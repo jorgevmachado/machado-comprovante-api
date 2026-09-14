@@ -14,9 +14,9 @@ Implementar o Model de Role responsável por representar os papéis de acesso do
 
 ## Referências
 
-- `05-domain.md`
-- `06-database.md`
-- `09-domain-contracts.md`
+- [05-domain.md](../../../../05-domain.md)
+- [06-database.md](../../../../06-database.md)
+- [09-domain-contracts.md](../../../../09-domain-contracts.md)
 
 ## Escopo
 

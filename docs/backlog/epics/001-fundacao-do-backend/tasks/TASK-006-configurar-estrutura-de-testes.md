@@ -14,7 +14,7 @@ Criar a infraestrutura inicial para execução dos testes automatizados do backe
 ## Referências
 
 - `04-technology.md`
-- `08-backend-architecture.md`
+- [08-backend-architecture.md](../../../../08-backend-architecture.md)
 - `README.md`
 
 ## Escopo

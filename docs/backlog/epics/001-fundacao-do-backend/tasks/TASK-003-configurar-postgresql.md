@@ -14,8 +14,8 @@ Configurar o PostgreSQL como banco de dados da aplicação e garantir que o back
 ## Referências
 
 - `04-technology.md`
-- `06-database.md`
-- `08-backend-architecture.md`
+- [06-database.md](../../../../06-database.md)
+- [08-backend-architecture.md](../../../../08-backend-architecture.md)
 
 ## Escopo
 
