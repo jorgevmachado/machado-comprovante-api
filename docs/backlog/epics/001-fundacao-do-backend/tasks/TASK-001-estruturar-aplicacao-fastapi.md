@@ -15,7 +15,7 @@ Criar a estrutura inicial da aplicação backend utilizando FastAPI.
 
 - `03-architecture.md`
 - `04-technology.md`
-- `08-backend-architecture.md`
+- [08-backend-architecture.md](../../../../08-backend-architecture.md)
 
 ## Escopo
 

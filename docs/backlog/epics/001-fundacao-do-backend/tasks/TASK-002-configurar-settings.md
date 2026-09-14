@@ -15,7 +15,7 @@ Criar o sistema centralizado de configurações da aplicação, permitindo que v
 
 - `03-architecture.md`
 - `04-technology.md`
-- `08-backend-architecture.md`
+- [08-backend-architecture.md](../../../../08-backend-architecture.md)
 
 ## Escopo
 

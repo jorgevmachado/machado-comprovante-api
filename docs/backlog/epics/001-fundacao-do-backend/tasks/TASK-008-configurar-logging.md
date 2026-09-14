@@ -15,7 +15,7 @@ Configurar o sistema de logging do backend para permitir rastreamento e diagnós
 ## Referências
 
 - `03-architecture.md`
-- `08-backend-architecture.md`
+- [08-backend-architecture.md](../../../../08-backend-architecture.md)
 - `README.md`
 
 ## Escopo

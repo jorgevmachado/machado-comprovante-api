@@ -13,8 +13,8 @@ Criar uma estratégia centralizada para tratamento das exceptions da aplicação
 
 ## Referências
 
-- `08-backend-architecture.md`
-- `09-domain-contracts.md`
+- [08-backend-architecture.md](../../../../08-backend-architecture.md)
+- [09-domain-contracts.md](../../../../09-domain-contracts.md)
 
 ## Escopo
 
