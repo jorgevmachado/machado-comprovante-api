@@ -20,9 +20,9 @@ Criar a migration inicial do banco de dados contendo todas as tabelas, constrain
 
 ## Referências
 
-- `06-database.md`
-- `08-backend-architecture.md`
-- `09-domain-contracts.md`
+- [05-domain.md](../../../../05-domain.md)
+- [06-database.md](../../../../06-database.md)
+- [09-domain-contracts.md](../../../../09-domain-contracts.md)
 
 ## Escopo
 
