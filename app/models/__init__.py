@@ -7,6 +7,7 @@ from app.models.authentication import Authentication
 from app.models.institution import Institution
 from app.models.beneficiary import Beneficiary
 from app.models.receipt import Receipt
+from app.models.payment import Payment
 
 __all__ = [
     "User",
@@ -16,6 +17,7 @@ __all__ = [
     "Institution",
     "Beneficiary",
     "Receipt",
+    "Payment",
     "StatusEnum",
     "ProcessingStatusEnum",
     "utcnow",
