@@ -13,11 +13,11 @@ Configurar ambiente de desenvolvimento conforme as regras do domínio, arquitetu
 
 ## Referências
 
-- `05-domain.md`
-- `06-database.md`
-- `07-api.md`
-- `08-backend-architecture.md`
-- `09-domain-contracts.md`
+- [05-domain.md](../../../../05-domain.md)
+- [06-database.md](../../../../06-database.md)
+- [07-api.md](../../../../07-api.md)
+- [08-backend-architecture.md](../../../../08-backend-architecture.md)
+- [09-domain-contracts.md](../../../../09-domain-contracts.md)
 - `README.md`
 
 ## Escopo

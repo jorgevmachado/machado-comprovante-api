@@ -13,9 +13,9 @@ Configurar o SQLAlchemy como camada de persistência ORM da aplicação e integr
 
 ## Referências
 
-- `06-database.md`
-- `08-backend-architecture.md`
-- `09-domain-contracts.md`
+- [06-database.md](../../../../06-database.md)
+- [08-backend-architecture.md](../../../../08-backend-architecture.md)
+- [09-domain-contracts.md](../../../../09-domain-contracts.md)
 
 ## Escopo
 
