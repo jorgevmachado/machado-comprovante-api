@@ -5,6 +5,7 @@ from app.models.role import Role
 from app.models.password import Password
 from app.models.authentication import Authentication
 from app.models.institution import Institution
+from app.models.beneficiary import Beneficiary
 
 __all__ = [
     "User",
@@ -12,6 +13,7 @@ __all__ = [
     "Password",
     "Authentication",
     "Institution",
+    "Beneficiary",
     "StatusEnum",
     "ProcessingStatusEnum",
     "utcnow",

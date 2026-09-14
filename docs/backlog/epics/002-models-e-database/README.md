@@ -20,7 +20,7 @@ Este Epic estabelece as entidades persistidas necessárias para autenticação, 
 | TASK-012 | Implementar Password | P0 | DONE |
 | TASK-013 | Implementar Authentication | P0 | DONE |
 | TASK-014 | Implementar Institution | P0 | DONE |
-| TASK-015 | Implementar Beneficiary | P0 | TODO |
+| TASK-015 | Implementar Beneficiary | P0 | DONE |
 | TASK-016 | Implementar Receipt | P0 | TODO |
 | TASK-017 | Implementar Payment | P0 | TODO |
 | TASK-018 | Criar migration inicial | P0 | TODO |
