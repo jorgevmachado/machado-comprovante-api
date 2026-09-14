@@ -1,6 +1,6 @@
 # Epic 002 — Models e Database
 
-**Status:** `PROGRESS`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -19,11 +19,11 @@ Este Epic estabelece as entidades persistidas necessárias para autenticação, 
 | TASK-011 | Implementar User | P0 | DONE |
 | TASK-012 | Implementar Password | P0 | DONE |
 | TASK-013 | Implementar Authentication | P0 | DONE |
-| TASK-014 | Implementar Institution | P0 | PROGRESS |
-| TASK-015 | Implementar Beneficiary | P0 | TODO |
-| TASK-016 | Implementar Receipt | P0 | TODO |
-| TASK-017 | Implementar Payment | P0 | TODO |
-| TASK-018 | Criar migration inicial | P0 | TODO |
+| TASK-014 | Implementar Institution | P0 | DONE |
+| TASK-015 | Implementar Beneficiary | P0 | DONE |
+| TASK-016 | Implementar Receipt | P0 | DONE |
+| TASK-017 | Implementar Payment | P0 | DONE |
+| TASK-018 | Criar migration inicial | P0 | DONE |
 
 ## Ordem de implementação
 
@@ -100,16 +100,16 @@ Após criado, Payment é tratado como imutável.
 
 O Epic será considerado `DONE` quando:
 
-* [ ] Todos os Models do MVP estiverem implementados;
-* [ ] Enums estiverem implementados;
-* [ ] Relacionamentos estiverem configurados;
-* [ ] Constraints estiverem implementadas;
-* [ ] Foreign Keys estiverem configuradas;
-* [ ] Índices necessários estiverem criados;
-* [ ] Regras de unicidade estiverem implementadas;
-* [ ] Migration inicial estiver criada;
-* [ ] Migration puder ser executada;
-* [ ] Rollback puder ser executado;
-* [ ] Testes relacionados estiverem passando;
-* [ ] Não houver quebra das regras de domínio;
-* [ ] A documentação necessária estiver atualizada.
+* [X] Todos os Models do MVP estiverem implementados;
+* [X] Enums estiverem implementados;
+* [X] Relacionamentos estiverem configurados;
+* [X] Constraints estiverem implementadas;
+* [X] Foreign Keys estiverem configuradas;
+* [X] Índices necessários estiverem criados;
+* [X] Regras de unicidade estiverem implementadas;
+* [X] Migration inicial estiver criada;
+* [X] Migration puder ser executada;
+* [X] Rollback puder ser executado;
+* [X] Testes relacionados estiverem passando;
+* [X] Não houver quebra das regras de domínio;
+* [X] A documentação necessária estiver atualizada.

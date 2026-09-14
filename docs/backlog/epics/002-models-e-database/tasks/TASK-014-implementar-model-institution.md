@@ -1,6 +1,6 @@
 # TASK-014 — Implementar Institution
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -13,9 +13,9 @@ Implementar o Model `Institution`, responsável por representar instituições f
 
 ## Referências
 
-- `05-domain.md`
-- `06-database.md`
-- `09-domain-contracts.md`
+- [05-domain.md](../../../../05-domain.md)
+- [06-database.md](../../../../06-database.md)
+- [09-domain-contracts.md](../../../../09-domain-contracts.md)
 
 ## Escopo
 
@@ -47,14 +47,14 @@ devem representar a mesma instituição canônica.
 
 ## Critérios de aceite
 
-* [ ] Model `Institution` está implementado;
-* [ ] `name_code` possui constraint de unicidade;
-* [ ] Institution não possui `user_id`;
-* [ ] Timestamps estão configurados;
-* [ ] Soft delete está configurado conforme o modelo definido;
-* [ ] Relacionamentos necessários estão preparados;
-* [ ] O Model pode ser persistido;
-* [ ] O Model pode ser incluído em migrations.
+* [X] Model `Institution` está implementado;
+* [X] `name_code` possui constraint de unicidade;
+* [X] Institution não possui `user_id`;
+* [X] Timestamps estão configurados;
+* [X] Soft delete está configurado conforme o modelo definido;
+* [X] Relacionamentos necessários estão preparados;
+* [X] O Model pode ser persistido;
+* [X] O Model pode ser incluído em migrations.
 
 ## Implementação
 
@@ -70,7 +70,7 @@ A normalização e resolução de instituições serão implementadas posteriorm
 
 ---
 
-**Status final:** `TODO`
+**Status final:** `DONE`
 
 ## Status disponíveis
 

@@ -1,6 +1,6 @@
 # TASK-018 — Criar migration inicial
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -20,9 +20,9 @@ Criar a migration inicial do banco de dados contendo todas as tabelas, constrain
 
 ## Referências
 
-- `06-database.md`
-- `08-backend-architecture.md`
-- `09-domain-contracts.md`
+- [05-domain.md](../../../../05-domain.md)
+- [06-database.md](../../../../06-database.md)
+- [09-domain-contracts.md](../../../../09-domain-contracts.md)
 
 ## Escopo
 
@@ -46,18 +46,18 @@ A migration inicial deve contemplar:
 
 ## Critérios de aceite
 
-- [ ] Todas as tabelas do MVP estão presentes;
-- [ ] Foreign Keys estão configuradas;
-- [ ] Constraints estão configuradas;
-- [ ] Índices necessários estão presentes;
-- [ ] Constraints de unicidade estão presentes;
-- [ ] Enums estão corretamente representados;
-- [ ] Campos obrigatórios possuem as restrições necessárias;
-- [ ] Campos opcionais aceitam `NULL` quando definido pelo domínio;
-- [ ] A migration pode ser executada em um banco vazio;
-- [ ] A migration cria a estrutura completa do MVP;
-- [ ] O rollback da migration funciona;
-- [ ] A estrutura gerada corresponde aos Models implementados.
+- [X] Todas as tabelas do MVP estão presentes;
+- [X] Foreign Keys estão configuradas;
+- [X] Constraints estão configuradas;
+- [X] Índices necessários estão presentes;
+- [X] Constraints de unicidade estão presentes;
+- [X] Enums estão corretamente representados;
+- [X] Campos obrigatórios possuem as restrições necessárias;
+- [X] Campos opcionais aceitam `NULL` quando definido pelo domínio;
+- [X] A migration pode ser executada em um banco vazio;
+- [X] A migration cria a estrutura completa do MVP;
+- [X] O rollback da migration funciona;
+- [X] A estrutura gerada corresponde aos Models implementados.
 
 ## Implementação
 
@@ -82,7 +82,7 @@ Antes da conclusão desta task, qualquer inconsistência entre `06-database.md`,
 
 ---
 
-**Status final:** `TODO`
+**Status final:** `DONE`
 
 ## Status disponíveis
 

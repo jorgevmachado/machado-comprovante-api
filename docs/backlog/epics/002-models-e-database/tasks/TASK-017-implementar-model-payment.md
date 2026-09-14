@@ -1,6 +1,6 @@
 # TASK-017 — Implementar Payment
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -16,9 +16,9 @@ Implementar o Model `Payment`, responsável por representar um pagamento confirm
 
 ## Referências
 
-- `05-domain.md`
-- `06-database.md`
-- `09-domain-contracts.md`
+- [05-domain.md](../../../../05-domain.md)
+- [06-database.md](../../../../06-database.md)
+- [09-domain-contracts.md](../../../../09-domain-contracts.md)
 
 ## Escopo
 
@@ -59,20 +59,20 @@ A Institution de destino pode ser nula quando não estiver disponível no compro
 
 ## Critérios de aceite
 
-* [ ] Model `Payment` está implementado;
-* [ ] Payment possui relacionamento com User;
-* [ ] Payment possui relacionamento com Beneficiary;
-* [ ] Payment possui Institution de origem;
-* [ ] Payment possui Institution de destino opcional;
-* [ ] Payment possui relacionamento com Receipt;
-* [ ] Data do pagamento está implementada;
-* [ ] Valor utiliza `Decimal`/tipo monetário apropriado;
-* [ ] Foreign Keys estão configuradas;
-* [ ] Constraints necessárias estão configuradas;
-* [ ] Índices necessários estão configurados;
-* [ ] O Model pode ser persistido;
-* [ ] O Model pode ser incluído em migrations;
-* [ ] O Model não possui operações de atualização/exclusão no contrato de domínio.
+* [X] Model `Payment` está implementado;
+* [X] Payment possui relacionamento com User;
+* [X] Payment possui relacionamento com Beneficiary;
+* [X] Payment possui Institution de origem;
+* [X] Payment possui Institution de destino opcional;
+* [X] Payment possui relacionamento com Receipt;
+* [X] Data do pagamento está implementada;
+* [X] Valor utiliza `Decimal`/tipo monetário apropriado;
+* [X] Foreign Keys estão configuradas;
+* [X] Constraints necessárias estão configuradas;
+* [X] Índices necessários estão configurados;
+* [X] O Model pode ser persistido;
+* [X] O Model pode ser incluído em migrations;
+* [X] O Model não possui operações de atualização/exclusão no contrato de domínio.
 
 ## Implementação
 
@@ -96,7 +96,7 @@ Essa definição deve ser reconciliada antes da implementação final da persist
 
 ---
 
-**Status final:** `TODO`
+**Status final:** `DONE`
 
 ## Status disponíveis
 

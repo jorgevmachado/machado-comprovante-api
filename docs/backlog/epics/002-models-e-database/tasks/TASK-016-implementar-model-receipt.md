@@ -1,6 +1,6 @@
 # TASK-016 — Implementar Receipt
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -14,9 +14,9 @@ Implementar o Model `Receipt`, responsável por representar o comprovante enviad
 
 ## Referências
 
-- `05-domain.md`
-- `06-database.md`
-- `09-domain-contracts.md`
+- [05-domain.md](../../../../05-domain.md)
+- [06-database.md](../../../../06-database.md)
+- [09-domain-contracts.md](../../../../09-domain-contracts.md)
 
 ## Escopo
 
@@ -51,17 +51,17 @@ O Receipt deve possuir uma referência ao arquivo original armazenado externamen
 
 ## Critérios de aceite
 
-* [ ] Model `Receipt` está implementado;
-* [ ] Receipt possui relacionamento com User;
-* [ ] Receipt possui `ProcessingStatus`;
-* [ ] Referência ao arquivo original pode ser armazenada;
-* [ ] Hash do arquivo pode ser armazenado;
-* [ ] Dados extraídos podem ser armazenados;
-* [ ] Relacionamento com Payment está preparado;
-* [ ] Constraints necessárias estão configuradas;
-* [ ] Foreign Keys estão configuradas;
-* [ ] O Model pode ser persistido;
-* [ ] O Model pode ser incluído em migrations.
+* [X] Model `Receipt` está implementado;
+* [X] Receipt possui relacionamento com User;
+* [X] Receipt possui `ProcessingStatus`;
+* [X] Referência ao arquivo original pode ser armazenada;
+* [X] Hash do arquivo pode ser armazenado;
+* [X] Dados extraídos podem ser armazenados;
+* [X] Relacionamento com Payment está preparado;
+* [X] Constraints necessárias estão configuradas;
+* [X] Foreign Keys estão configuradas;
+* [X] O Model pode ser persistido;
+* [X] O Model pode ser incluído em migrations.
 
 ## Implementação
 
@@ -78,7 +78,7 @@ As regras completas de processamento e transição de estados serão implementad
 
 ---
 
-**Status final:** `TODO`
+**Status final:** `DONE`
 
 ## Status disponíveis
 

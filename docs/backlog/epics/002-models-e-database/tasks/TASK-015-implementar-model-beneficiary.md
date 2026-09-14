@@ -1,6 +1,6 @@
 # TASK-015 — Implementar Beneficiary
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -13,9 +13,9 @@ Implementar o Model `Beneficiary`, responsável por representar beneficiários d
 
 ## Referências
 
-- `05-domain.md`
-- `06-database.md`
-- `09-domain-contracts.md`
+- [05-domain.md](../../../../05-domain.md)
+- [06-database.md](../../../../06-database.md)
+- [09-domain-contracts.md](../../../../09-domain-contracts.md)
 
 ## Escopo
 
@@ -58,14 +58,14 @@ não devem ser tratados automaticamente como o mesmo beneficiário.
 
 ## Critérios de aceite
 
-* [ ] Model `Beneficiary` está implementado;
-* [ ] `name_code` possui constraint de unicidade;
-* [ ] Beneficiary não possui `user_id`;
-* [ ] Timestamps estão configurados;
-* [ ] Soft delete está configurado conforme o modelo definido;
-* [ ] Relacionamento com Payment está preparado;
-* [ ] O Model pode ser persistido;
-* [ ] O Model pode ser incluído em migrations.
+* [X] Model `Beneficiary` está implementado;
+* [X] `name_code` possui constraint de unicidade;
+* [X] Beneficiary não possui `user_id`;
+* [X] Timestamps estão configurados;
+* [X] Soft delete está configurado conforme o modelo definido;
+* [X] Relacionamento com Payment está preparado;
+* [X] O Model pode ser persistido;
+* [X] O Model pode ser incluído em migrations.
 
 ## Implementação
 
@@ -81,7 +81,7 @@ A normalização e resolução de beneficiários serão implementadas posteriorm
 
 ---
 
-**Status final:** `TODO`
+**Status final:** `DONE`
 
 ## Status disponíveis
 
