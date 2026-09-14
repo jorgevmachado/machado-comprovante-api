@@ -6,6 +6,7 @@ from app.models.password import Password
 from app.models.authentication import Authentication
 from app.models.institution import Institution
 from app.models.beneficiary import Beneficiary
+from app.models.receipt import Receipt
 
 __all__ = [
     "User",
@@ -14,6 +15,7 @@ __all__ = [
     "Authentication",
     "Institution",
     "Beneficiary",
+    "Receipt",
     "StatusEnum",
     "ProcessingStatusEnum",
     "utcnow",
