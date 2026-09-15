@@ -3,11 +3,12 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, String, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import DateTime, String
+from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.database.base import table_registry, default_lazy
+from app.core.database.base import table_registry
 from app.models import utcnow
+
 
 @table_registry.mapped_as_dataclass
 class Institution:
