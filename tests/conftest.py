@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import fnmatch
 import os
 from contextlib import contextmanager
 from datetime import datetime
@@ -54,6 +55,20 @@ class FakeRedis:
             raise redis.exceptions.ResponseError("invalid expire time in setex")
         self._data[key] = value
         return True
+
+    async def delete(self, *keys: str):
+        deleted = 0
+        for key in keys:
+            if key in self._data:
+                del self._data[key]
+                deleted += 1
+        return deleted
+
+    async def scan_iter(self, match: str | None = None, count: int | None = None):
+        for key in list(self._data):
+            if match and not fnmatch.fnmatch(key, match):
+                continue
+            yield key
 
     async def flushdb(self):
         self._data.clear()

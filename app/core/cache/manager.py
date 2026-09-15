@@ -1,15 +1,15 @@
 import json
 from typing import Any, Optional, Union
 
-from app.core.cache.redis import redis_client as default_redis_client
+from app.core.cache import redis as redis_module
 
 FilterValue = Union[str, int, float, bool]
 PartType = Union[str, dict[str, FilterValue], None]
 
 
 class CacheManager:
-    def __init__(self, redis_client=default_redis_client):
-        self.redis_client = redis_client
+    def __init__(self, redis_client=None):
+        self.redis_client = redis_client or redis_module.redis_client
 
     @staticmethod
     def build_key(prefix: str, *parts: PartType) -> str:

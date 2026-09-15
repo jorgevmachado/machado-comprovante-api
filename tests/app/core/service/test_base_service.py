@@ -567,6 +567,18 @@ class TestBaseServiceInvalidateCache:
         base_service.cache_service.delete_domain.assert_awaited_once()
         base_service.cache_service.cache.delete_cache.assert_not_awaited()
 
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_invalidate_cache_logs_warning_when_cache_fails(base_service):
+        base_service.cache_service.delete_with_parent_cache = AsyncMock(
+            side_effect=Exception("cache down")
+        )
+        base_service.logger_params.logger.warning = MagicMock()
+
+        await base_service._invalidate_cache(identifier="item-1", finance_id="trainer-1")
+
+        base_service.logger_params.logger.warning.assert_called_once()
+
 
 class TestBaseServiceFindOneByName:
     @staticmethod

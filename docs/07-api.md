@@ -346,20 +346,71 @@ Retorna o estado e os dados processados do comprovante.
   "file_size": 152340,
   "processing_status": "PROCESSED",
   "extracted_data": {
-    "date": "2026-09-12",
-    "amount": 387.42,
-    "beneficiary": "Neoenergia",
-    "source_institution": "Itaú",
-    "destination_institution": null,
-    "field_states": {
-      "date": "FOUND",
-      "amount": "FOUND",
-      "beneficiary": "FOUND",
-      "source_institution": "FOUND",
-      "destination_institution": "NOT_FOUND"
-    },
-    "parser": "itau"
-  },
+		"fine": {
+			"value": null,
+			"status": "NOT_FOUND"
+		},
+		"payer": {
+			"value": "PAYER",
+			"status": "FOUND"
+		},
+		"barcode": {
+			"value": null,
+			"status": "NOT_FOUND"
+		},
+		"due_date": {
+			"value": null,
+			"status": "NOT_FOUND"
+		},
+		"discount": {
+			"value": null,
+			"status": "NOT_FOUND"
+		},
+		"interest": {
+			"value": null,
+			"status": "NOT_FOUND"
+		},
+		"paid_amount": {
+			"value": "4186.17",
+			"status": "FOUND"
+		},
+		"beneficiary": {
+			"value": "ITAU UNIBANCO HOLDING S.A.",
+			"status": "FOUND"
+		},
+		"payment_date": {
+			"value": "2026-09-08",
+			"status": "FOUND"
+		},
+		"total_charges": {
+			"value": null,
+			"status": "NOT_FOUND"
+		},
+		"authentication": {
+			"value": null,
+			"status": "NOT_FOUND"
+		},
+		"transaction_id": {
+			"value": null,
+			"status": "NOT_FOUND"
+		},
+		"effective_payer": {
+			"value": "PAYER",
+			"status": "FOUND"
+		},
+		"document_amount": {
+			"value": "4186.17",
+			"status": "FOUND"
+		},
+		"source_institution": {
+			"value": "SOURCE INSTITUTION",
+			"status": "FOUND"
+		},
+		"destination_institution": {
+			"value": null,
+			"status": "NOT_FOUND"
+		}
+	},
   "created_at": "2026-09-12T23:00:00"
 }
 ```
@@ -413,11 +464,20 @@ O frontend deverá enviar os dados revisados pelo usuário.
 
 ```json
 {
-  "payment_date": "2026-09-12",
-  "beneficiary": "Neoenergia",
-  "amount": 387.42,
-  "source_institution": "Itaú",
-  "destination_institution": null
+	"fine": "0.00",
+		"payer": "PAYER",
+		"barcode": "00190000090360004100200002433175915650000474175",
+		"due_date": "2026-09-10",
+		"discount": "0.00",
+		"interest": "0.00",
+		"paid_amount": "4741.75",
+		"beneficiary": "BENEFICIARY",
+		"payment_date": "2026-09-03",		
+		"transaction_id": "71207347056",
+		"effective_payer": "PAYER",
+		"document_amount": "4741.75",
+		"source_institution": "Caixa",
+		"destination_institution": "DESTINATION INSTITUTION"
 }
 ```
 

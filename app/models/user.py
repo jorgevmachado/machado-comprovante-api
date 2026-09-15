@@ -15,7 +15,6 @@ if TYPE_CHECKING:
     from app.models.role import Role
     from app.models.password import Password
     from app.models.authentication import Authentication
-    from app.models.payment import Payment
 
 
 @table_registry.mapped_as_dataclass
@@ -41,13 +40,6 @@ class User:
         lazy=default_lazy,
         back_populates="user",
     )
-
-    payment: Mapped["Payment"] = relationship(
-        init=False,
-        lazy=default_lazy,
-        back_populates="user",
-    )
-
     # Required fields (no defaults) — must come first in __init__
     name: Mapped[str] = mapped_column(String, nullable=False)
     email: Mapped[str] = mapped_column(String, unique=True, nullable=False)

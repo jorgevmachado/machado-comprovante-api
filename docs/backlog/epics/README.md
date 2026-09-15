@@ -6,7 +6,7 @@ Lista dos epics de implementação do backend Comprovante.
 - 002-models-e-database
 - 003-repository
 - 004-auth
-- 005-storage
+- 005-storage (Removido por não fazer mais sentido)
 - 006-receipt
 - 007-beneficiary-e-institution
 - 008-receipt-processing

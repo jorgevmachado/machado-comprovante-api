@@ -6,6 +6,7 @@ class StatusEnum(str, Enum):
     LOCKED = "LOCKED"
     INACTIVE = "INACTIVE"
 
+
 class ProcessingStatusEnum(str, Enum):
     FAILED = "FAILED"
     RECEIVED = "RECEIVED"
