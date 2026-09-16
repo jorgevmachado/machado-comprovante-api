@@ -1,6 +1,6 @@
 # Epic 009 — Review e Confirmação
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -12,9 +12,9 @@ Implementar a revisão dos dados extraídos e a confirmação do receipt, garant
 
 | ID | Task | Prioridade | Status |
 |---|---|---|---|
-| TASK-057 | Implementar atualização dos dados extraídos | P0 | TODO |
-| TASK-058 | Implementar confirmação de Receipt | P0 | TODO |
-| TASK-059 | Garantir idempotência da confirmação | P0 | TODO |
+| TASK-057 | Implementar atualização dos dados extraídos | P0 | DONE |
+| TASK-058 | Implementar confirmação de Receipt | P0 | DONE |
+| TASK-059 | Garantir idempotência da confirmação | P0 | DONE |
 
 ## Ordem de implementação
 
@@ -42,9 +42,9 @@ Este Epic contempla:
 
 O Epic será considerado `DONE` quando:
 
-* [ ] Os dados extraídos poderão ser revisados e atualizados corretamente.;
-* [ ] A confirmação de um receipt estiver implementada conforme o domínio.;
-* [ ] A confirmação estiver idempotente e segura.;
-* [ ] O fluxo de confirmação não produzirá pagamentos duplicados.;
-* [ ] Os testes de confirmação e revisão estiverem passando.;
+* [X] Os dados extraídos poderão ser revisados e atualizados corretamente.;
+* [X] A confirmação de um receipt estiver implementada conforme o domínio.;
+* [X] A confirmação estiver idempotente e segura.;
+* [X] O fluxo de confirmação não produzirá pagamentos duplicados.;
+* [X] Os testes de confirmação e revisão estiverem passando.;
 

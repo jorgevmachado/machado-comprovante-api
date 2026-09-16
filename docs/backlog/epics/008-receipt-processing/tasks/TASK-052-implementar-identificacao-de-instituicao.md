@@ -1,6 +1,6 @@
 # TASK-052 — Implementar identificação de instituição
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -31,12 +31,12 @@ Implementar identificação de instituição conforme as regras do domínio, arq
 
 ## Critérios de aceite
 
-* [ ] A funcionalidade foi implementada conforme o contrato do MVP;
-* [ ] O comportamento foi validado em cenários principais;
-* [ ] A regra de negócio relevante foi respeitada;
-* [ ] Os contratos de entrada/saída foram aplicados corretamente;
-* [ ] Os testes relacionados estiveram passando;
-* [ ] A documentação foi atualizada quando necessário.
+* [X] A funcionalidade foi implementada conforme o contrato do MVP;
+* [X] O comportamento foi validado em cenários principais;
+* [X] A regra de negócio relevante foi respeitada;
+* [X] Os contratos de entrada/saída foram aplicados corretamente;
+* [X] Os testes relacionados estiveram passando;
+* [X] A documentação foi atualizada quando necessário.
 
 ## Implementação
 
@@ -54,7 +54,7 @@ Nenhuma.
 
 ---
 
-**Status final:** `TODO`
+**Status final:** `DONE`
 
 ## Status disponíveis
 

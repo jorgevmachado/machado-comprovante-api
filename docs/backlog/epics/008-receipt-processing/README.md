@@ -1,6 +1,6 @@
 # Epic 008 — Receipt Processing
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -12,18 +12,18 @@ Implementar o pipeline de processamento de comprovantes, extração de texto, OC
 
 | ID | Task | Prioridade | Status |
 |---|---|---|---|
-| TASK-045 | Criar pipeline de processamento | P0 | TODO |
-| TASK-046 | Implementar extração de texto PDF | P0 | TODO |
-| TASK-047 | Implementar OCR | P0 | TODO |
-| TASK-048 | Criar contrato de parser | P0 | TODO |
-| TASK-049 | Implementar Itaú Receipt Parser | P0 | TODO |
-| TASK-050 | Implementar Nubank Receipt Parser | P0 | TODO |
-| TASK-051 | Implementar Generic Receipt Parser | P0 | TODO |
-| TASK-052 | Implementar identificação de instituição | P0 | TODO |
-| TASK-053 | Implementar validação de suficiência | P0 | TODO |
-| TASK-054 | Implementar AI fallback | P1 | TODO |
-| TASK-055 | Integrar processamento ao Receipt | P0 | TODO |
-| TASK-056 | Implementar reprocessamento de FAILED | P0 | TODO |
+| TASK-045 | Criar pipeline de processamento | P0 | DONE |
+| TASK-046 | Implementar extração de texto PDF | P0 | DONE |
+| TASK-047 | Implementar OCR | P0 | DONE |
+| TASK-048 | Criar contrato de parser | P0 | DONE |
+| TASK-049 | Implementar Itaú Receipt Parser | P0 | DONE |
+| TASK-050 | Implementar Nubank Receipt Parser | P0 | DONE |
+| TASK-051 | Implementar Generic Receipt Parser | P0 | DONE |
+| TASK-052 | Implementar identificação de instituição | P0 | DONE |
+| TASK-053 | Implementar validação de suficiência | P0 | DONE |
+| TASK-054 | Implementar AI fallback | P1 | DONE |
+| TASK-055 | Integrar processamento ao Receipt | P0 | DONE |
+| TASK-056 | Implementar reprocessamento de FAILED | P0 | DONE |
 
 ## Ordem de implementação
 
@@ -69,11 +69,11 @@ Este Epic contempla:
 
 O Epic será considerado `DONE` quando:
 
-* [ ] O pipeline de processamento estiver criado e integrado ao fluxo do receipt.;
-* [ ] A extração de texto PDF e OCR estiverem funcionando.;
-* [ ] Os parsers de Itaú, Nubank e genérico estiverem implementados e cobertos por testes.;
-* [ ] A identificação de instituição estiver correta.;
-* [ ] A validação de suficiência e o AI fallback estiverem implementados quando necessário.;
-* [ ] O reprocessamento de receipts em FAILED estiver funcional.;
-* [ ] Os testes do processamento estiverem passando.;
+* [X] O pipeline de processamento estiver criado e integrado ao fluxo do receipt.;
+* [X] A extração de texto PDF e OCR estiverem funcionando.;
+* [X] Os parsers de Itaú, Nubank e genérico estiverem implementados e cobertos por testes.;
+* [X] A identificação de instituição estiver correta.;
+* [X] A validação de suficiência e o AI fallback estiverem implementados quando necessário.;
+* [X] O reprocessamento de receipts em FAILED estiver funcional.;
+* [X] Os testes do processamento estiverem passando.;
 
