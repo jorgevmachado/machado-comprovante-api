@@ -92,7 +92,7 @@ A ordem pode ser ajustada durante a execução quando uma dependência técnica 
 
 ---
 
-# 4. [Épico A — Fundação do Backend](./epics/001-fundacao-do-backend/README.md)
+# 4. [Épico A — Fundação do Backend](epics/done/001-fundacao-do-backend/README.md)
 
 Objetivo:
 
@@ -102,26 +102,26 @@ Estabelecer a infraestrutura básica da aplicação FastAPI.
 
 ---
 
-# 5. [Épico B — Models e Database](./epics/002-models-e-database/README.md)
+# 5. [Épico B — Models e Database](epics/done/002-models-e-database/README.md)
 
 Objetivo:
 
 Implementar a persistência definida em [`../06-database.md`](../06-database.md).
 
-**Status:** `PROGRESS`
+**Status:** `DONE`
 ---
 
-# 6. [Épico C — Repository](./epics/003-repository/README.md)
+# 6. [Épico C — Repository](epics/done/003-repository/README.md)
 
 Objetivo:
 
 Implementar acesso aos dados sem acoplar os Services diretamente ao SQLAlchemy.
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 ---
 
-# 7. [Épico D — Auth](./epics/004-auth/README.md)
+# 7. [Épico D — Auth](epics/done/004-auth/README.md)
 
 Objetivo:
 
@@ -141,51 +141,51 @@ Implementar armazenamento dos arquivos originais.
 
 ---
 
-# 9. [Épico F — Receipt](./epics/006-receipt/README.md)
+# 9. [Épico F — Receipt](epics/done/006-receipt/README.md)
 
 Objetivo:
 
 Implementar a criação, consulta e ciclo de vida dos receipts conforme as regras do domínio e do processamento.
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 ---
 
-# 10. [Épico G — Beneficiary e Institution](./epics/007-beneficiary-e-institution/README.md)
+# 10. [Épico G — Beneficiary e Institution](epics/done/007-beneficiary-e-institution/README.md)
 
 Objetivo:
 
 Implementar a normalização, resolução e relacionamento entre beneficiários e instituições, mantendo consistência e organização dos dados.
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 ---
-# 11. [Épico H — Receipt Processing](./epics/008-receipt-processing/README.md)
+# 11. [Épico H — Receipt Processing](epics/done/008-receipt-processing/README.md)
 
 Objetivo:
 
 Transformar o documento original em dados estruturados.
 
-**Status:** `TODO`
+**Status:** `DONE`
 ---
 
-# 12. [Épico I — Review e Confirmation](./epics/009-review-e-confirmation/README.md)
+# 12. [Épico I — Review e Confirmation](epics/done/009-review-e-confirmation/README.md)
 
 Objetivo:
 
 Implementar a revisão dos dados extraídos e a confirmação do receipt, garantindo consistência, idempotência e integridade do pagamento.
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 ---
 
-# 13. [Épico J — Payment API](./epics/010-payment-api/README.md)
+# 13. [Épico J — Payment API](epics/done/010-payment-api/README.md)
 
 Objetivo:
 
 Implementar a API de listagem e consulta de pagamentos, garantindo o contrato de negócio e o isolamento por usuário.
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 ---
 

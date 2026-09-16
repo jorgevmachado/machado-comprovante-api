@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from sqlalchemy import DateTime, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.database.base import table_registry
+from app.core.database.base import default_lazy, table_registry
 from app.models import utcnow
+
+if TYPE_CHECKING:
+    from app.models.payment import Payment
 
 
 @table_registry.mapped_as_dataclass
@@ -31,4 +35,12 @@ class Beneficiary:
     )
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None, init=False
+    )
+
+    payments: Mapped[list["Payment"]] = relationship(
+        lazy=default_lazy,
+        default_factory=list,
+        init=False,
+        repr=False,
+        back_populates="beneficiary",
     )

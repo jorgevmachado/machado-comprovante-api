@@ -25,6 +25,7 @@ class BaseRepository[ModelT]:
         self, query, page_filter: Annotated[FilterPage, Query()] = None
     ):
         order_by = getattr(page_filter, "order_by", None) if page_filter else None
+        print("# => order_by => ", order_by)
         if not order_by:
             order_by = self.default_order_by
         if order_by is None:
@@ -280,6 +281,47 @@ class BaseRepository[ModelT]:
 
         return None
 
+    async def list_paginate(
+        self,
+        query,
+        page_filter: Annotated[FilterPage, Query()],
+        relations_filters: dict[str, Any] = None,
+    ):
+        params = get_limit_offset_params(page_filter)
+
+        if relations_filters:
+            count_query = select(func.count()).select_from(
+                query.order_by(None).subquery()
+            )
+            total = int(await self.session.scalar(count_query) or 0)
+
+            paginated_query = query.limit(params.limit).offset(params.offset)
+            for option in self.relations:
+                paginated_query = paginated_query.options(option)
+
+            paginated_result = await self.session.scalars(paginated_query)
+
+            return CustomLimitOffsetPage.create(
+                items=paginated_result.all(),
+                total=total,
+                params=params,
+            )
+
+        result_paginate = await paginate(self.session, query, params=params)
+
+        if isinstance(result_paginate, CustomLimitOffsetPage):
+            return result_paginate
+
+        total = getattr(result_paginate, "total", None)
+        if total is None and hasattr(result_paginate, "meta"):
+            total = getattr(result_paginate.meta, "total", None)
+
+        return CustomLimitOffsetPage.create(
+            items=result_paginate.items,
+            total=total,
+            params=params,
+        )
+
     async def list_all(self, page_filter: Annotated[FilterPage, Query()] = None):
         query = select(self.model)
         relation: str | None = None
@@ -303,41 +345,8 @@ class BaseRepository[ModelT]:
 
         query = self._apply_order_by(query, page_filter)
 
-        if is_paginate(page_filter):
-            params = get_limit_offset_params(page_filter)
-
-            if relations_filters:
-                count_query = select(func.count()).select_from(
-                    query.order_by(None).subquery()
-                )
-                total = int(await self.session.scalar(count_query) or 0)
-
-                paginated_query = query.limit(params.limit).offset(params.offset)
-                for option in self.relations:
-                    paginated_query = paginated_query.options(option)
-
-                paginated_result = await self.session.scalars(paginated_query)
-
-                return CustomLimitOffsetPage.create(
-                    items=paginated_result.all(),
-                    total=total,
-                    params=params,
-                )
-
-            result_paginate = await paginate(self.session, query, params=params)
-
-            if isinstance(result_paginate, CustomLimitOffsetPage):
-                return result_paginate
-
-            total = getattr(result_paginate, "total", None)
-            if total is None and hasattr(result_paginate, "meta"):
-                total = getattr(result_paginate.meta, "total", None)
-
-            return CustomLimitOffsetPage.create(
-                items=result_paginate.items,
-                total=total,
-                params=params,
-            )
+        if page_filter is not None and is_paginate(page_filter):
+            return await self.list_paginate(query, page_filter, relations_filters)
         result = await self.session.scalars(query)
         return result.all()
 

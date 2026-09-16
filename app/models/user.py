@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from app.models.role import Role
     from app.models.password import Password
     from app.models.authentication import Authentication
+    from app.models.payment import Payment
 
 
 @table_registry.mapped_as_dataclass
@@ -67,4 +68,12 @@ class User:
     )
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None, init=False
+    )
+
+    payments: Mapped[list["Payment"]] = relationship(
+        lazy=default_lazy,
+        default_factory=list,
+        init=False,
+        repr=False,
+        back_populates="user",
     )

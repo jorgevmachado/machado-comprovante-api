@@ -3,16 +3,21 @@ from __future__ import annotations
 import logging
 from datetime import date
 from decimal import Decimal
+from typing import Annotated
 from uuid import UUID
 
+from fastapi import Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.logging import LoggingParams
+from app.core.exceptions import handle_service_exception
+from app.core.logging import LoggingParams, log_service_success
+from app.core.pagination import exception_pagination
 from app.core.service import BaseService
 from app.domain.finance.payment.repository import PaymentRepository
 from app.domain.finance.payment.schema import PaymentSchema
 
 from app.models import Payment, User
+from app.shared.schemas import FilterPage
 
 logger = logging.getLogger(__name__)
 
@@ -60,3 +65,30 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
             destination_institution_id=destination_institution_id,
         )
         return await self.repository.save(entity=payment)
+
+    async def list(
+        self,
+        user: User,
+        page_filter: Annotated[FilterPage, Query()] | None = None,
+    ):
+        try:
+            return await self.repository.list(
+                user_id=str(user.id), page_filter=page_filter
+            )
+        except Exception as exception:
+            handle_service_exception(
+                exception,
+                logger=self.logger_params.logger,
+                service=self.logger_params.service,
+                operation="list",
+                user_request=user.username,
+                raise_exception=False,
+            )
+            return exception_pagination(page_filter)
+        finally:
+            log_service_success(
+                self.logger_params,
+                operation="list",
+                message="List successfully",
+                user_request=user.username,
+            )
