@@ -1,6 +1,6 @@
 # Epic 007 — Beneficiary e Institution
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -12,10 +12,10 @@ Implementar a normalização, resolução e relacionamento entre beneficiários 
 
 | ID | Task | Prioridade | Status |
 |---|---|---|---|
-| TASK-041 | Implementar normalização de Beneficiary | P0 | TODO |
-| TASK-042 | Implementar resolução de Beneficiary | P0 | TODO |
-| TASK-043 | Implementar normalização de Institution | P0 | TODO |
-| TASK-044 | Implementar resolução de Institution | P0 | TODO |
+| TASK-041 | Implementar normalização de Beneficiary | P0 | DONE |
+| TASK-042 | Implementar resolução de Beneficiary | P0 | DONE |
+| TASK-043 | Implementar normalização de Institution | P0 | DONE |
+| TASK-044 | Implementar resolução de Institution | P0 | DONE |
 
 ## Ordem de implementação
 
@@ -45,9 +45,9 @@ Este Epic contempla:
 
 O Epic será considerado `DONE` quando:
 
-* [ ] Beneficiários e instituições estiverem normalizados e deduplicados corretamente.;
-* [ ] A resolução de beneficiários e instituições estiver funcionando em cenários reais de ingestão.;
-* [ ] Os identificadores canônicos estiverem consistentes com as regras do domínio.;
-* [ ] Relacionamentos e regras de unicidade estiverem validados.;
-* [ ] Os testes associados estiverem passando.;
+* [X] Beneficiários e instituições estiverem normalizados e deduplicados corretamente.;
+* [X] A resolução de beneficiários e instituições estiver funcionando em cenários reais de ingestão.;
+* [X] Os identificadores canônicos estiverem consistentes com as regras do domínio.;
+* [X] Relacionamentos e regras de unicidade estiverem validados.;
+* [X] Os testes associados estiverem passando.;
 

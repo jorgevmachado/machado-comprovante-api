@@ -75,7 +75,9 @@ class FinanceService:
                 else None,
             )
 
-            await self.receipt_service.confirm_receipt(receipt=receipt, payload=payload.model_dump(mode="json"))
+            await self.receipt_service.confirm_receipt(
+                receipt=receipt, payload=payload.model_dump(mode="json")
+            )
 
             return FinanceConfirmResponseSchema(
                 beneficiary=BeneficiarySchema(id=beneficiary.id, name=beneficiary.name),

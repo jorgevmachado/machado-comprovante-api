@@ -5,7 +5,10 @@ from app.domain.finance.receipt.interpretation.interpreters.unknown import (
 )
 from app.domain.finance.receipt.interpretation.schema import (
     InstitutionEnum,
-    InterpretationResult, ExtractedReceiptData, ExtractedField, ExtractionStatusEnum,
+    InterpretationResult,
+    ExtractedReceiptData,
+    ExtractedField,
+    ExtractionStatusEnum,
 )
 from app.domain.finance.receipt.interpretation.interpreters.caixa import (
     CaixaInterpreter,
@@ -52,9 +55,7 @@ class InterpretationService:
             document_amount=self._convert_field(data.get("document_amount")),
             paid_amount=self._convert_field(data.get("paid_amount")),
             beneficiary=self._convert_field(data.get("beneficiary")),
-            source_institution=self._convert_field(
-                data.get("source_institution")
-            ),
+            source_institution=self._convert_field(data.get("source_institution")),
             destination_institution=self._convert_field(
                 data.get("destination_institution")
             ),
@@ -64,16 +65,10 @@ class InterpretationService:
             fine=self._convert_field(data.get("fine")),
             total_charges=self._convert_field(data.get("total_charges")),
             payer=self._convert_field(data.get("payer")),
-            effective_payer=self._convert_field(
-                data.get("effective_payer")
-            ),
+            effective_payer=self._convert_field(data.get("effective_payer")),
             barcode=self._convert_field(data.get("barcode")),
-            authentication=self._convert_field(
-                data.get("authentication")
-            ),
-            transaction_id=self._convert_field(
-                data.get("transaction_id")
-            ),
+            authentication=self._convert_field(data.get("authentication")),
+            transaction_id=self._convert_field(data.get("transaction_id")),
         )
 
     @staticmethod

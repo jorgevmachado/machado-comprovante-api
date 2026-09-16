@@ -2,7 +2,9 @@ from unittest.mock import MagicMock
 
 from app.domain.finance.receipt.interpretation.schema import (
     InstitutionEnum,
-    InterpretationResult, ExtractedField, ExtractionStatusEnum,
+    InterpretationResult,
+    ExtractedField,
+    ExtractionStatusEnum,
 )
 from app.domain.finance.receipt.interpretation.service import (
     InterpretationService,
