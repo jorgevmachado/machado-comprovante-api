@@ -25,7 +25,6 @@ class BaseRepository[ModelT]:
         self, query, page_filter: Annotated[FilterPage, Query()] = None
     ):
         order_by = getattr(page_filter, "order_by", None) if page_filter else None
-        print("# => order_by => ", order_by)
         if not order_by:
             order_by = self.default_order_by
         if order_by is None:
