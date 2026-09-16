@@ -78,22 +78,32 @@ class FinanceService:
             await self.receipt_service.confirm_receipt(
                 receipt=receipt, payload=payload.model_dump(mode="json")
             )
-
-            return FinanceConfirmResponseSchema(
-                beneficiary=BeneficiarySchema(id=beneficiary.id, name=beneficiary.name),
-                payment=PaymentSchema(
-                    id=payment.id,
-                    amount=payment.amount,
-                    payment_date=payment.payment_date,
-                ),
-                source_institution=InstitutionSchema(
-                    id=source_institution.id, name=source_institution.name
-                ),
-                destination_institution=InstitutionSchema(
+            beneficiary_schema = BeneficiarySchema(
+                id=beneficiary.id, name=beneficiary.name
+            )
+            source_institution_schema = InstitutionSchema(
+                id=source_institution.id, name=source_institution.name
+            )
+            destination_institution_schema = (
+                InstitutionSchema(
                     id=destination_institution.id, name=destination_institution.name
                 )
                 if destination_institution
-                else None,
+                else None
+            )
+
+            return FinanceConfirmResponseSchema(
+                beneficiary=beneficiary_schema,
+                payment=PaymentSchema(
+                    id=payment.id,
+                    amount=payment.amount,
+                    beneficiary=beneficiary_schema,
+                    payment_date=payment.payment_date,
+                    source_institution=source_institution_schema,
+                    destination_institution=destination_institution_schema,
+                ),
+                source_institution=source_institution_schema,
+                destination_institution=destination_institution_schema,
             )
         except Exception as e:
             raise e

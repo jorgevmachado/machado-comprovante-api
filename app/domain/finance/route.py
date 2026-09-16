@@ -16,6 +16,7 @@ from app.domain.finance.service import FinanceService
 from app.domain.finance.receipt.route import router as receipt_router
 from app.domain.finance.beneficiary.route import router as beneficiary_router
 from app.domain.finance.institution.route import router as institution_router
+from app.domain.finance.payment.route import router as payment_router
 from app.models import User
 
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -35,6 +36,8 @@ router.include_router(receipt_router, prefix="/receipt", tags=["Receipt"])
 router.include_router(beneficiary_router, prefix="/beneficiary", tags=["Beneficiary"])
 
 router.include_router(institution_router, prefix="/institution", tags=["Institution"])
+
+router.include_router(payment_router, prefix="/payment", tags=["Payment"])
 
 
 @router.post(

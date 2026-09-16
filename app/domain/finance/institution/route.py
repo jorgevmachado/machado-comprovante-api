@@ -54,6 +54,6 @@ async def list_all(
     current_user: CurrentUser,
     page_filter: Annotated[FilterPage, Depends(institution_filter)],
 ):
-    return await service.list_all_cached(
+    return await service.list_all(
         page_filter=page_filter, user_request=current_user.username
     )
