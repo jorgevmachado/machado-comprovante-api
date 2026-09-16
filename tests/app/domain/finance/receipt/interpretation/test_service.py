@@ -178,6 +178,31 @@ class TestInterpretationService:
         finally:
             InterpretationValidator.validate = original_validate
 
+    def test_interpret_uses_invalid_text_interpreter(self):
+        service = InterpretationService()
+
+        expected = MagicMock(spec=InterpretationResult)
+
+        service.unknown.invalid_interpret = MagicMock(return_value=MagicMock())
+
+        from app.domain.finance.receipt.interpretation.service import (
+            InterpretationValidator,
+        )
+
+        original_validate = InterpretationValidator.validate
+
+        try:
+            InterpretationValidator.validate = MagicMock(
+                return_value=expected,
+            )
+
+            result = service.interpret("")
+
+            assert result is expected
+            service.unknown.invalid_interpret.assert_called_once()
+        finally:
+            InterpretationValidator.validate = original_validate
+
     @staticmethod
     def test_convert_field_returns_found_when_value_exists():
         value = "Empresa Exemplo"
@@ -195,3 +220,12 @@ class TestInterpretationService:
         assert isinstance(result, ExtractedField)
         assert result.value is None
         assert result.status == ExtractionStatusEnum.NOT_FOUND
+
+    def test_has_text_returns_true_when_text_exists(self):
+        assert InterpretationService._has_text("texto do comprovante") is True
+
+    def test_has_text_returns_false_for_empty_text(self):
+        assert InterpretationService._has_text("") is False
+
+    def test_has_text_returns_false_for_whitespace(self):
+        assert InterpretationService._has_text("   \n\t  ") is False

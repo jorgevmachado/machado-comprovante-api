@@ -25,6 +25,10 @@ class InterpretationService:
         self.unknown = UnknownInterpreter()
 
     def interpret(self, text: str) -> InterpretationResult:
+        if not self._has_text(text):
+            data = self.unknown.invalid_interpret()
+            return InterpretationValidator.validate(data)
+
         institution = self._identify_institution(text)
 
         if institution == InstitutionEnum.ITAU:
@@ -109,3 +113,7 @@ class InterpretationService:
             return InstitutionEnum.CAIXA
 
         return InstitutionEnum.UNKNOWN
+
+    @staticmethod
+    def _has_text(text: str) -> bool:
+        return bool(text.strip())

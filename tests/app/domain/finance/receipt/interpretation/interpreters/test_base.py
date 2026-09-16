@@ -408,3 +408,24 @@ Tipo de conta Conta corrente
 
         assert result.status == ExtractionStatusEnum.NOT_FOUND
         assert result.value is None
+
+    def test_invalid_interpret_returns_not_found(self):
+        constructor = BaseInterpreter()
+        result = constructor.invalid_interpret()
+
+        assert result.fine.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.payer.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.barcode.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.due_date.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.discount.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.interest.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.paid_amount.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.beneficiary.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.payment_date.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.total_charges.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.authentication.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.transaction_id.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.effective_payer.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.document_amount.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.source_institution.status == ExtractionStatusEnum.NOT_FOUND
+        assert result.destination_institution.status == ExtractionStatusEnum.NOT_FOUND

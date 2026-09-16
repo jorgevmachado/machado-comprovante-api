@@ -135,15 +135,6 @@ class TestReceiptService:
 
         assert result == hashlib.sha256(content).hexdigest()
 
-    def test_has_text_returns_true_when_text_exists(self):
-        assert ReceiptService._has_text("texto do comprovante") is True
-
-    def test_has_text_returns_false_for_empty_text(self):
-        assert ReceiptService._has_text("") is False
-
-    def test_has_text_returns_false_for_whitespace(self):
-        assert ReceiptService._has_text("   \n\t  ") is False
-
     @pytest.mark.asyncio
     async def test_check_duplicate_raises_when_receipt_is_received(self):
         service = create_service()
@@ -424,29 +415,64 @@ class TestReceiptService:
         service = create_service()
         user = create_user()
 
-        file = create_upload_file()
+        file = create_upload_file(
+            filename="comprovante.pdf",
+            content_type="application/pdf",
+            content=b"conteudo",
+        )
+
+        interpretation = create_interpretation(
+            errors=[
+                InterpretationValidationError(
+                    field="beneficiary",
+                    status=ExtractionStatusEnum.NOT_FOUND,
+                )
+            ]
+        )
 
         monkeypatch.setattr(
             "app.domain.finance.receipt.service.validate_file",
             AsyncMock(return_value=b"conteudo"),
         )
 
+        service.extraction_service.extract = AsyncMock(return_value="")
+
+        service.interpretation_service.interpret = MagicMock(
+            return_value=interpretation
+        )
+
         service._check_duplicate = AsyncMock(return_value=None)
 
-        service.extraction_service.extract = AsyncMock(return_value="   ")
+        receipt = MagicMock()
+        receipt.id = UUID("22222222-2222-2222-2222-222222222222")
+        receipt.file_name = "comprovante.pdf"
+        receipt.file_type = "application/pdf"
+        receipt.file_size = 9
+        receipt.processing_status = ProcessingStatusEnum.FAILED
 
-        service.interpretation_service.interpret = MagicMock()
+        service.persist_received_receipt = AsyncMock(return_value=receipt)
 
-        with pytest.raises(HTTPException) as exc_info:
-            await service.received_receipt(
-                file=file,
-                user=user,
-            )
+        result = await service.received_receipt(
+            file=file,
+            user=user,
+        )
 
-        assert exc_info.value.status_code == 400
-        assert exc_info.value.detail == "Extracted text is empty"
+        assert result.id == receipt.id
+        assert result.data == interpretation.data
+        assert result.errors == interpretation.errors
+        assert result.file_name == receipt.file_name
+        assert result.file_type == receipt.file_type
+        assert result.file_size == receipt.file_size
+        assert result.processing_status == receipt.processing_status
 
-        service.interpretation_service.interpret.assert_not_called()
+        service.extraction_service.extract.assert_awaited_once_with(
+            content=b"conteudo",
+            content_type="application/pdf",
+        )
+
+        service.interpretation_service.interpret.assert_called_once_with("")
+
+        service.persist_received_receipt.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_validate_confirm_receipt_returns_received_receipt(

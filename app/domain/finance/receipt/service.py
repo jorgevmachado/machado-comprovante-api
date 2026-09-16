@@ -68,10 +68,6 @@ class ReceiptService(BaseService[ReceiptRepository, Receipt]):
 
         return existing_receipt
 
-    @staticmethod
-    def _has_text(text: str) -> bool:
-        return bool(text.strip())
-
     async def persist_received_receipt(
         self,
         file: UploadFile,
@@ -131,11 +127,6 @@ class ReceiptService(BaseService[ReceiptRepository, Receipt]):
                 content=content, content_type=file.content_type
             )
 
-            if not self._has_text(text):
-                raise HTTPException(
-                    status_code=HTTPStatus.BAD_REQUEST,
-                    detail="Extracted text is empty",
-                )
             interpretation = self.interpretation_service.interpret(text)
 
             file_size = len(content)

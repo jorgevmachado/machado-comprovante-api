@@ -62,6 +62,26 @@ class BaseInterpreter:
             destination_institution=self._extract_destination_institution(text),
         )
 
+    def invalid_interpret(self) -> ExtractedReceiptData:
+        return ExtractedReceiptData(
+            fine=self._not_found(),
+            payer=self._not_found(),
+            barcode=self._not_found(),
+            due_date=self._not_found(),
+            discount=self._not_found(),
+            interest=self._not_found(),
+            paid_amount=self._not_found(),
+            beneficiary=self._not_found(),
+            payment_date=self._not_found(),
+            total_charges=self._not_found(),
+            authentication=self._not_found(),
+            transaction_id=self._not_found(),
+            effective_payer=self._not_found(),
+            document_amount=self._not_found(),
+            source_institution=self._not_found(),
+            destination_institution=self._not_found(),
+        )
+
     @staticmethod
     def _parse_date(value: str, format: str = "%d/%m/%Y") -> ExtractedField[date]:
         try:
