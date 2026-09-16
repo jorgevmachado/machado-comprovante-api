@@ -338,7 +338,9 @@ class TestReceiptService:
             AsyncMock(return_value=b"conteudo"),
         )
         service._check_duplicate = AsyncMock(return_value=None)
-        service.extraction_service.extract = AsyncMock(side_effect=RuntimeError("extract failed"))
+        service.extraction_service.extract = AsyncMock(
+            side_effect=RuntimeError("extract failed")
+        )
 
         with pytest.raises(Exception) as exc_info:
             await service.received_receipt(file=file, user=user)
@@ -561,9 +563,7 @@ class TestReceiptService:
 
         assert result is receipt
         assert receipt.extracted_data == (
-            service.interpretation_service
-            .convert(payload)
-            .model_dump(mode="json")
+            service.interpretation_service.convert(payload).model_dump(mode="json")
         )
         assert receipt.processing_status == ProcessingStatusEnum.PROCESSED
 
@@ -693,8 +693,8 @@ class TestReceiptService:
 
         assert result.extracted_data.destination_institution.value is None
         assert (
-                result.extracted_data.destination_institution.status
-                == ExtractionStatusEnum.NOT_FOUND
+            result.extracted_data.destination_institution.status
+            == ExtractionStatusEnum.NOT_FOUND
         )
 
         assert result.created_at == created_at

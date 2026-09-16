@@ -15,7 +15,10 @@ from app.core.exceptions import handle_service_exception
 from app.core.logging import LoggingParams, log_service_success
 from app.core.service import BaseService
 from app.domain.finance.receipt.extraction.service import ExtractionService
-from app.domain.finance.receipt.interpretation.schema import InterpretationResult, ExtractedReceiptData
+from app.domain.finance.receipt.interpretation.schema import (
+    InterpretationResult,
+    ExtractedReceiptData,
+)
 from app.domain.finance.receipt.interpretation.service import InterpretationService
 
 from app.domain.finance.receipt.repository import (

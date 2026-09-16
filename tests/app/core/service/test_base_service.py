@@ -575,7 +575,9 @@ class TestBaseServiceInvalidateCache:
         )
         base_service.logger_params.logger.warning = MagicMock()
 
-        await base_service._invalidate_cache(identifier="item-1", finance_id="trainer-1")
+        await base_service._invalidate_cache(
+            identifier="item-1", finance_id="trainer-1"
+        )
 
         base_service.logger_params.logger.warning.assert_called_once()
 

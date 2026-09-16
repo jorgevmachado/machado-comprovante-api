@@ -36,11 +36,8 @@ async def received_receipt(
 ):
     return await service.received_receipt(file=file, user=current_user)
 
-@router.get(
-    "/{receipt_id}",
-    response_model=ReceiptSchema,
-    status_code=HTTPStatus.OK
-)
+
+@router.get("/{receipt_id}", response_model=ReceiptSchema, status_code=HTTPStatus.OK)
 async def get_receipt(
     service: Service,
     receipt_id: str,
