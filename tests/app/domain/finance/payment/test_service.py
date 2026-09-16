@@ -50,8 +50,8 @@ class TestPaymentService:
         user = SimpleNamespace(id=uuid4())
 
         with pytest.raises(
-            Exception,
-            match="Payment already exists for the given receipt and user.",
+                Exception,
+                match="Payment already exists for the given receipt and user.",
         ):
             await service.check_receipt(
                 receipt_id=receipt_id,
@@ -166,7 +166,7 @@ class TestPaymentService:
         assert result is expected
 
         repository.list.assert_awaited_once_with(
-            user_id=str(user.id),
+            user_id=user.id,
             page_filter=page_filter,
         )
 
@@ -211,7 +211,7 @@ class TestPaymentService:
         assert result is expected
 
         repository.list.assert_awaited_once_with(
-            user_id=str(user.id),
+            user_id=user.id,
             page_filter=page_filter,
         )
 
@@ -260,7 +260,7 @@ class TestPaymentService:
         assert result is expected
 
         repository.list.assert_awaited_once_with(
-            user_id=str(user.id),
+            user_id=user.id,
             page_filter=None,
         )
 

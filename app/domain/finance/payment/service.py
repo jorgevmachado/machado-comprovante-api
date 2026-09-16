@@ -73,7 +73,7 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
     ):
         try:
             return await self.repository.list(
-                user_id=str(user.id), page_filter=page_filter
+                user_id=user.id, page_filter=page_filter
             )
         except Exception as exception:
             handle_service_exception(
