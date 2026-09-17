@@ -1,6 +1,6 @@
 # Epic 011 — Beneficiary API
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -12,9 +12,9 @@ Implementar a API de consulta de beneficiários e garantir o acesso consistente 
 
 | ID | Task | Prioridade | Status |
 |---|---|---|---|
-| TASK-062 | Implementar consulta de Beneficiaries | P0 | TODO |
-| TASK-066 | Implementar consulta por Beneficiary | P0 | TODO |
-| TASK-067 | Implementar isolamento por usuário | P0 | TODO |
+| TASK-062 | Implementar consulta de Beneficiaries | P0 | DONE |
+| TASK-066 | Implementar consulta por Beneficiary | P0 | DONE |
+| TASK-067 | Implementar isolamento por usuário | P0 | DONE |
 
 ## Ordem de implementação
 
@@ -42,11 +42,11 @@ Este Epic contempla:
 
 O Epic será considerado `DONE` quando:
 
-* [ ] A consulta de beneficiários estiver disponível e coerente com as regras do domínio.;
-* [ ] A busca por beneficiary estará funcional em cenários principais.;
-* [ ] O isolamento por usuário estiver garantido em todas as consultas.;
-* [ ] Os endpoints e regras de segurança estiverem validados com testes.;
+* [X] A consulta de beneficiários estiver disponível e coerente com as regras do domínio.;
+* [X] A busca por beneficiary estará funcional em cenários principais.;
+* [X] O isolamento por usuário estiver garantido em todas as consultas.;
+* [X] Os endpoints e regras de segurança estiverem validados com testes.;
 
-* [ ] Todos os testes relacionados estiverem passando;
-* [ ] A documentação do Epic estiver atualizada;
-* [ ] Nenhuma regra de negócio foi alterada sem respaldo da documentação.
+* [X] Todos os testes relacionados estiverem passando;
+* [X] A documentação do Epic estiver atualizada;
+* [X] Nenhuma regra de negócio foi alterada sem respaldo da documentação.

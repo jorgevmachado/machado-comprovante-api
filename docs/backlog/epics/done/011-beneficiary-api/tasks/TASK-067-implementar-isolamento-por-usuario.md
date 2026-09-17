@@ -1,6 +1,6 @@
 # TASK-067 — Implementar isolamento por usuário
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -14,12 +14,12 @@ Implementar isolamento por usuário conforme as regras do domínio, arquitetura 
 
 ## Referências
 
-- [05-domain.md](../../../../05-domain.md)
-- [06-database.md](../../../../06-database.md)
-- [07-api.md](../../../../07-api.md)
-- [08-backend-architecture.md](../../../../08-backend-architecture.md)
-- [09-domain-contracts.md](../../../../09-domain-contracts.md)
-- `README.md`
+- [05-domain.md](../../../../../05-domain.md)
+- [06-database.md](../../../../../06-database.md)
+- [07-api.md](../../../../../07-api.md)
+- [08-backend-architecture.md](../../../../../08-backend-architecture.md)
+- [09-domain-contracts.md](../../../../../09-domain-contracts.md)
+- `../../../../../../README.md`
 
 ## Escopo
 
@@ -30,12 +30,12 @@ Implementar isolamento por usuário conforme as regras do domínio, arquitetura 
 
 ## Critérios de aceite
 
-* [ ] A funcionalidade foi implementada conforme o contrato do MVP;
-* [ ] O comportamento foi validado em cenários principais;
-* [ ] A regra de negócio relevante foi respeitada;
-* [ ] Os contratos de entrada/saída foram aplicados corretamente;
-* [ ] Os testes relacionados estiveram passando;
-* [ ] A documentação foi atualizada quando necessário.
+* [X] A funcionalidade foi implementada conforme o contrato do MVP;
+* [X] O comportamento foi validado em cenários principais;
+* [X] A regra de negócio relevante foi respeitada;
+* [X] Os contratos de entrada/saída foram aplicados corretamente;
+* [X] Os testes relacionados estiveram passando;
+* [X] A documentação foi atualizada quando necessário.
 
 ## Implementação
 
@@ -52,7 +52,7 @@ Nenhuma.
 
 ---
 
-**Status final:** `TODO`
+**Status final:** `DONE`
 
 ## Status disponíveis
 

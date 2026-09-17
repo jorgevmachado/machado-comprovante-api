@@ -33,6 +33,7 @@ def institution_filter(
     offset: int | None = None,
     clean_cache: bool = False,
     with_deleted: bool = False,
+    institution_type: str | None = None,
 ) -> FilterPage:
     return FilterPage.build(
         page=page,
@@ -41,6 +42,7 @@ def institution_filter(
         offset=offset,
         clean_cache=clean_cache,
         with_deleted=with_deleted,
+        institution_type=institution_type,
     )
 
 
@@ -54,6 +56,6 @@ async def list_all(
     current_user: CurrentUser,
     page_filter: Annotated[FilterPage, Depends(institution_filter)],
 ):
-    return await service.list_all(
-        page_filter=page_filter, user_request=current_user.username
+    return await service.list(
+        page_filter=page_filter, user=current_user
     )

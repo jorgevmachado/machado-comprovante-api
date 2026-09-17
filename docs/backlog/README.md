@@ -189,7 +189,7 @@ Implementar a API de listagem e consulta de pagamentos, garantindo o contrato de
 
 ---
 
-# 14. [Épico K — Beneficiary API](./epics/011-beneficiary-api/README.md)
+# 14. [Épico K — Beneficiary API](epics/done/011-beneficiary-api/README.md)
 
 Objetivo:
 
