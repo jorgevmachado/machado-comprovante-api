@@ -1,5 +1,6 @@
+from decimal import Decimal
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch, ANY
 import pytest
 from datetime import date
 from uuid import uuid4
@@ -216,6 +217,28 @@ class TestPaymentRepositoryBuildFilter:
         assert f"payments.user_id = '{user_id.hex}'" in sql
         assert "JOIN beneficiaries" not in sql
         assert "JOIN institutions" not in sql
+
+
+class TestPaymentRepositoryOnlyFilterDate:
+    def test_should_return_page_filter_with_only_date_filters(self):
+        page_filter = FilterPage.build(
+            beneficiary="Amazon",
+            source_institution="Itaú",
+            destination_institution="Nubank",
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+        )
+
+        result = PaymentRepository._only_filter_date(page_filter)
+
+        assert result.start_date == date(2026, 9, 1)
+        assert result.end_date == date(2026, 9, 30)
+        assert result != page_filter
+
+    def test_should_return_none_when_page_filter_is_none(self):
+        result = PaymentRepository._only_filter_date(None)
+
+        assert result is None
 
 
 class TestPaymentRepositoryList:
@@ -506,3 +529,455 @@ class TestPaymentRepositoryList:
         assert result is expected
 
         scalars_result.all.assert_called_once_with()
+
+
+class TestPaymentRepositorySummaryCount:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_count_of_payments_when_page_filter_is_none():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+
+        expected = [
+            SimpleNamespace(id=uuid4()),
+        ]
+
+        scalars_result = MagicMock()
+        scalars_result.all.return_value = expected
+        session.scalars.return_value = scalars_result
+
+        with (
+            patch.object(
+                repository,
+                "_build_filter",
+                side_effect=lambda query, user_id, page_filter: query,
+            ) as build_filter,
+        ):
+            result = await repository.summary_count(
+                user_id=user_id,
+                page_filter=None,
+            )
+
+        assert result == {"count": len(expected)}
+
+        build_filter.assert_called_once()
+
+        session.scalars.assert_awaited_once()
+        scalars_result.all.assert_called_once_with()
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_count_of_payments_when_page_filter_is_not_none():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+        page_filter = FilterPage(
+            beneficiary="Amazon",
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+        )
+
+        expected_page_filter = FilterPage(
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+        )
+        expected = [
+            SimpleNamespace(id=uuid4()),
+        ]
+
+        scalars_result = MagicMock()
+        scalars_result.all.return_value = expected
+        session.scalars.return_value = scalars_result
+
+        with (
+            patch.object(
+                repository,
+                "_build_filter",
+                side_effect=lambda query, user_id, page_filter: query,
+            ) as build_filter,
+        ):
+            result = await repository.summary_count(
+                user_id=user_id,
+                page_filter=page_filter,
+            )
+
+        assert result == {"count": len(expected)}
+
+        build_filter.assert_called_once_with(ANY, user_id, expected_page_filter)
+
+        session.scalars.assert_awaited_once()
+        scalars_result.all.assert_called_once_with()
+
+
+class TestPaymentRepositorySummaryTotal:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_total_of_payments_when_page_filter_is_none():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+
+        list = [
+            SimpleNamespace(id=uuid4(), amount=Decimal("4741.75")),
+            SimpleNamespace(id=uuid4(), amount=Decimal("132.98")),
+        ]
+
+        expected = sum([item.amount for item in list])
+
+        scalars_result = MagicMock()
+        scalars_result.all.return_value = list
+        session.scalars.return_value = scalars_result
+
+        with (
+            patch.object(
+                repository,
+                "_build_filter",
+                side_effect=lambda query, user_id, page_filter: query,
+            ) as build_filter,
+        ):
+            result = await repository.summary_total(
+                user_id=user_id,
+                page_filter=None,
+            )
+
+        assert result == {"total": expected}
+
+        build_filter.assert_called_once()
+
+        session.scalars.assert_awaited_once()
+        scalars_result.all.assert_called_once_with()
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_total_of_payments_when_page_filter_is_not_none():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+        page_filter = FilterPage(
+            beneficiary="Amazon",
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+        )
+
+        expected_page_filter = FilterPage(
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+        )
+        list = [
+            SimpleNamespace(id=uuid4(), amount=Decimal("4741.75")),
+        ]
+        expected = sum([item.amount for item in list])
+
+        scalars_result = MagicMock()
+        scalars_result.all.return_value = list
+        session.scalars.return_value = scalars_result
+
+        with (
+            patch.object(
+                repository,
+                "_build_filter",
+                side_effect=lambda query, user_id, page_filter: query,
+            ) as build_filter,
+        ):
+            result = await repository.summary_total(
+                user_id=user_id,
+                page_filter=page_filter,
+            )
+
+        assert result == {"total": expected}
+
+        build_filter.assert_called_once_with(ANY, user_id, expected_page_filter)
+
+        session.scalars.assert_awaited_once()
+        scalars_result.all.assert_called_once_with()
+
+class TestPaymentRepositorySummaryOrderBy:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_first_payment_when_order_by_is_asc():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+        page_filter = FilterPage.build(
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+        )
+
+        expected = SimpleNamespace(
+            id=uuid4(),
+            amount=Decimal("100.00"),
+        )
+
+        scalars_result = MagicMock()
+        scalars_result.first.return_value = expected
+        session.scalars.return_value = scalars_result
+
+        filtered_query = MagicMock()
+
+        with (
+            patch.object(
+                repository,
+                "_only_filter_date",
+                return_value=page_filter,
+            ) as only_filter_date,
+            patch.object(
+                repository,
+                "_build_filter",
+                return_value=filtered_query,
+            ) as build_filter,
+        ):
+            result = await repository.summary_order_by(
+                user_id=user_id,
+                order_by="asc",
+                page_filter=page_filter,
+            )
+
+        assert result is expected
+
+        only_filter_date.assert_called_once_with(page_filter)
+
+        build_filter.assert_called_once_with(
+            ANY,
+            user_id,
+            page_filter,
+        )
+
+        session.scalars.assert_awaited_once()
+        scalars_result.first.assert_called_once_with()
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_first_payment_when_order_by_is_desc():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+        page_filter = FilterPage.build(
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+        )
+
+        expected = SimpleNamespace(
+            id=uuid4(),
+            amount=Decimal("5000.00"),
+        )
+
+        scalars_result = MagicMock()
+        scalars_result.first.return_value = expected
+        session.scalars.return_value = scalars_result
+
+        filtered_query = MagicMock()
+
+        with (
+            patch.object(
+                repository,
+                "_only_filter_date",
+                return_value=page_filter,
+            ) as only_filter_date,
+            patch.object(
+                repository,
+                "_build_filter",
+                return_value=filtered_query,
+            ) as build_filter,
+        ):
+            result = await repository.summary_order_by(
+                user_id=user_id,
+                order_by="desc",
+                page_filter=page_filter,
+            )
+
+        assert result is expected
+
+        only_filter_date.assert_called_once_with(page_filter)
+
+        build_filter.assert_called_once_with(
+            ANY,
+            user_id,
+            page_filter,
+        )
+
+        session.scalars.assert_awaited_once()
+        scalars_result.first.assert_called_once_with()
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_use_desc_when_order_by_is_not_asc():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+
+        scalars_result = MagicMock()
+        scalars_result.first.return_value = None
+        session.scalars.return_value = scalars_result
+
+        with (
+            patch.object(
+                repository,
+                "_only_filter_date",
+                return_value=None,
+            ) as only_filter_date,
+            patch.object(
+                repository,
+                "_build_filter",
+                side_effect=lambda query, user_id, page_filter: query,
+            ) as build_filter,
+        ):
+            result = await repository.summary_order_by(
+                user_id=user_id,
+                order_by=None,
+                page_filter=None,
+            )
+
+        assert result is None
+
+        only_filter_date.assert_called_once_with(None)
+
+        build_filter.assert_called_once_with(
+            ANY,
+            user_id,
+            None,
+        )
+
+        session.scalars.assert_awaited_once()
+        scalars_result.first.assert_called_once_with()
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_use_desc_when_order_by_is_invalid():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+
+        scalars_result = MagicMock()
+        scalars_result.first.return_value = None
+        session.scalars.return_value = scalars_result
+
+        with (
+            patch.object(
+                repository,
+                "_only_filter_date",
+                return_value=None,
+            ),
+            patch.object(
+                repository,
+                "_build_filter",
+                side_effect=lambda query, user_id, page_filter: query,
+            ),
+        ):
+            result = await repository.summary_order_by(
+                user_id=user_id,
+                order_by="invalid",
+                page_filter=None,
+            )
+
+        assert result is None
+
+        session.scalars.assert_awaited_once()
+        scalars_result.first.assert_called_once_with()
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_apply_only_date_filters():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+
+        page_filter = FilterPage.build(
+            beneficiary="Amazon",
+            source_institution="Itaú",
+            destination_institution="Nubank",
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+        )
+
+        expected_page_filter = FilterPage.build(
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+        )
+
+        scalars_result = MagicMock()
+        scalars_result.first.return_value = None
+        session.scalars.return_value = scalars_result
+
+        with (
+            patch.object(
+                repository,
+                "_only_filter_date",
+                return_value=expected_page_filter,
+            ) as only_filter_date,
+            patch.object(
+                repository,
+                "_build_filter",
+                side_effect=lambda query, user_id, page_filter: query,
+            ) as build_filter,
+        ):
+            result = await repository.summary_order_by(
+                user_id=user_id,
+                order_by="desc",
+                page_filter=page_filter,
+            )
+
+        assert result is None
+
+        only_filter_date.assert_called_once_with(page_filter)
+
+        build_filter.assert_called_once_with(
+            ANY,
+            user_id,
+            expected_page_filter,
+        )
+
+        session.scalars.assert_awaited_once()
+        scalars_result.first.assert_called_once_with()
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_pass_none_to_build_filter_when_page_filter_is_none():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+
+        scalars_result = MagicMock()
+        scalars_result.first.return_value = None
+        session.scalars.return_value = scalars_result
+
+        with (
+            patch.object(
+                repository,
+                "_only_filter_date",
+                return_value=None,
+            ) as only_filter_date,
+            patch.object(
+                repository,
+                "_build_filter",
+                side_effect=lambda query, user_id, page_filter: query,
+            ) as build_filter,
+        ):
+            result = await repository.summary_order_by(
+                user_id=user_id,
+                order_by="desc",
+                page_filter=None,
+            )
+
+        assert result is None
+
+        only_filter_date.assert_called_once_with(None)
+
+        build_filter.assert_called_once_with(
+            ANY,
+            user_id,
+            None,
+        )
+
+        session.scalars.assert_awaited_once()
+        scalars_result.first.assert_called_once_with()

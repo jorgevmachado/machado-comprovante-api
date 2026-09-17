@@ -12,9 +12,9 @@ Implementar as consultas financeiras agregadas para acompanhamento do volume e d
 
 | ID | Task | Prioridade | Status |
 |---|---|---|---|
-| TASK-063 | Implementar quantidade de Payments | P1 | TODO |
-| TASK-064 | Implementar total de pagamentos | P1 | TODO |
-| TASK-065 | Implementar maior pagamento | P1 | TODO |
+| TASK-063 | Implementar quantidade de Payments | P1 | DONE |
+| TASK-064 | Implementar total de pagamentos | P1 | DONE |
+| TASK-065 | Implementar maior pagamento | P1 | DONE |
 
 ## Ordem de implementação
 

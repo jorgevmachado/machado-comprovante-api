@@ -41,9 +41,7 @@ class TestInstitutionRepositoryList:
 
         query = session.scalars.await_args.args[0]
 
-        compiled = query.compile(
-            compile_kwargs={"literal_binds": True}
-        )
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
         assert f"payments.user_id = '{user_id.hex}'" in sql
@@ -72,9 +70,7 @@ class TestInstitutionRepositoryList:
 
         query = session.scalars.await_args.args[0]
 
-        compiled = query.compile(
-            compile_kwargs={"literal_binds": True}
-        )
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
         assert "institutions.name_code =" not in sql
@@ -94,13 +90,16 @@ class TestInstitutionRepositoryList:
             name="Itaú Unibanco",
         )
 
-        with patch(
-            "app.domain.finance.institution.repository.is_paginate",
-            return_value=False,
-        ), patch(
-            "app.domain.finance.institution.repository.to_snake_case",
-            return_value="itau_unibanco",
-        ) as to_snake_case:
+        with (
+            patch(
+                "app.domain.finance.institution.repository.is_paginate",
+                return_value=False,
+            ),
+            patch(
+                "app.domain.finance.institution.repository.to_snake_case",
+                return_value="itau_unibanco",
+            ) as to_snake_case,
+        ):
             await repository.list(
                 user_id=user_id,
                 page_filter=page_filter,
@@ -110,9 +109,7 @@ class TestInstitutionRepositoryList:
 
         query = session.scalars.await_args.args[0]
 
-        compiled = query.compile(
-            compile_kwargs={"literal_binds": True}
-        )
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
         assert "institutions.name_code = 'itau_unibanco'" in sql
@@ -143,15 +140,10 @@ class TestInstitutionRepositoryList:
 
         query = session.scalars.await_args.args[0]
 
-        compiled = query.compile(
-            compile_kwargs={"literal_binds": True}
-        )
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
-        assert (
-            "payments.source_institution_id = institutions.id"
-            in sql
-        )
+        assert "payments.source_institution_id = institutions.id" in sql
 
     @staticmethod
     @pytest.mark.asyncio
@@ -179,15 +171,10 @@ class TestInstitutionRepositoryList:
 
         query = session.scalars.await_args.args[0]
 
-        compiled = query.compile(
-            compile_kwargs={"literal_binds": True}
-        )
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
-        assert (
-            "payments.destination_institution_id = institutions.id"
-            in sql
-        )
+        assert "payments.destination_institution_id = institutions.id" in sql
 
     @staticmethod
     @pytest.mark.asyncio
@@ -205,12 +192,15 @@ class TestInstitutionRepositoryList:
             institution_type="source",
         )
 
-        with patch(
-            "app.domain.finance.institution.repository.is_paginate",
-            return_value=False,
-        ), patch(
-            "app.domain.finance.institution.repository.to_snake_case",
-            return_value="itau",
+        with (
+            patch(
+                "app.domain.finance.institution.repository.is_paginate",
+                return_value=False,
+            ),
+            patch(
+                "app.domain.finance.institution.repository.to_snake_case",
+                return_value="itau",
+            ),
         ):
             await repository.list(
                 user_id=user_id,
@@ -219,16 +209,11 @@ class TestInstitutionRepositoryList:
 
         query = session.scalars.await_args.args[0]
 
-        compiled = query.compile(
-            compile_kwargs={"literal_binds": True}
-        )
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
         assert "institutions.name_code = 'itau'" in sql
-        assert (
-            "payments.source_institution_id = institutions.id"
-            in sql
-        )
+        assert "payments.source_institution_id = institutions.id" in sql
 
     @staticmethod
     @pytest.mark.asyncio
@@ -246,12 +231,15 @@ class TestInstitutionRepositoryList:
             institution_type="destination",
         )
 
-        with patch(
-            "app.domain.finance.institution.repository.is_paginate",
-            return_value=False,
-        ), patch(
-            "app.domain.finance.institution.repository.to_snake_case",
-            return_value="nubank",
+        with (
+            patch(
+                "app.domain.finance.institution.repository.is_paginate",
+                return_value=False,
+            ),
+            patch(
+                "app.domain.finance.institution.repository.to_snake_case",
+                return_value="nubank",
+            ),
         ):
             await repository.list(
                 user_id=user_id,
@@ -260,16 +248,11 @@ class TestInstitutionRepositoryList:
 
         query = session.scalars.await_args.args[0]
 
-        compiled = query.compile(
-            compile_kwargs={"literal_binds": True}
-        )
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
         assert "institutions.name_code = 'nubank'" in sql
-        assert (
-            "payments.destination_institution_id = institutions.id"
-            in sql
-        )
+        assert "payments.destination_institution_id = institutions.id" in sql
 
     @staticmethod
     @pytest.mark.asyncio
@@ -284,15 +267,18 @@ class TestInstitutionRepositoryList:
 
         expected = MagicMock()
 
-        with patch(
-            "app.domain.finance.institution.repository.is_paginate",
-            return_value=True,
-        ), patch.object(
-            repository,
-            "list_paginate",
-            new_callable=AsyncMock,
-            return_value=expected,
-        ) as list_paginate:
+        with (
+            patch(
+                "app.domain.finance.institution.repository.is_paginate",
+                return_value=True,
+            ),
+            patch.object(
+                repository,
+                "list_paginate",
+                new_callable=AsyncMock,
+                return_value=expected,
+            ) as list_paginate,
+        ):
             result = await repository.list(
                 user_id=uuid4(),
                 page_filter=page_filter,
@@ -304,9 +290,7 @@ class TestInstitutionRepositoryList:
 
         query = list_paginate.await_args.args[0]
 
-        compiled = query.compile(
-            compile_kwargs={"literal_binds": True}
-        )
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
         assert "SELECT DISTINCT" in sql
@@ -332,9 +316,7 @@ class TestInstitutionRepositoryList:
 
         query = session.scalars.await_args.args[0]
 
-        compiled = query.compile(
-            compile_kwargs={"literal_binds": True}
-        )
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
         assert "SELECT DISTINCT" in sql

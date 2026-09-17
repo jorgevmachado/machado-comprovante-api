@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Annotated, cast
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, desc, asc
 from sqlalchemy.orm import selectinload
 
 
@@ -48,6 +48,18 @@ class PaymentRepository(BaseRepository[Payment]):
             raw_filters.pop("end_date")
         return query
 
+    @staticmethod
+    def _only_filter_date(page_filter: Annotated[FilterPage, Query()] | None = None):
+        if page_filter is not None:
+            raw_filters = page_filter.model_dump(exclude_none=True)
+            start_date = raw_filters.get("start_date")
+            end_date = raw_filters.get("end_date")
+            page_filter = FilterPage.build(
+                start_date=start_date,
+                end_date=end_date,
+            )
+        return page_filter
+
     async def list(
         self, user_id: UUID, page_filter: Annotated[FilterPage, Query()] | None = None
     ):
@@ -63,3 +75,51 @@ class PaymentRepository(BaseRepository[Payment]):
             return await self.list_paginate(query, page_filter)
         result = await self.session.scalars(query)
         return result.all()
+
+    async def summary_count(
+        self, user_id: UUID, page_filter: Annotated[FilterPage, Query()] | None = None
+    ):
+        query = select(self.model).options(
+            selectinload(Payment.user),
+            selectinload(Payment.beneficiary),
+            selectinload(Payment.source_institution),
+            selectinload(Payment.destination_institution),
+        )
+        page_filter = self._only_filter_date(page_filter)
+        query = self._build_filter(query, user_id, page_filter)
+        result = await self.session.scalars(query)
+        return {"count": len(result.all())}
+
+    async def summary_total(
+        self, user_id: UUID, page_filter: Annotated[FilterPage, Query()] | None = None
+    ):
+        query = select(self.model).options(
+            selectinload(Payment.user),
+            selectinload(Payment.beneficiary),
+            selectinload(Payment.source_institution),
+            selectinload(Payment.destination_institution),
+        )
+        page_filter = self._only_filter_date(page_filter)
+        query = self._build_filter(query, user_id, page_filter)
+        result = await self.session.scalars(query)
+        return {"total": sum(payment.amount for payment in result.all())}
+
+    async def summary_order_by(
+        self, user_id: UUID, order_by: str | None = None, page_filter: Annotated[FilterPage, Query()] | None = None
+    ):
+        query = select(self.model).options(
+            selectinload(Payment.user),
+            selectinload(Payment.beneficiary),
+            selectinload(Payment.source_institution),
+            selectinload(Payment.destination_institution),
+        )
+
+        if order_by == "asc":
+            query = query.order_by(asc(Payment.amount)).limit(1)
+        else:
+            query = query.order_by(desc(Payment.amount)).limit(1)
+
+        page_filter = self._only_filter_date(page_filter)
+        query = self._build_filter(query, user_id, page_filter)
+        result = await self.session.scalars(query)
+        return result.first()
