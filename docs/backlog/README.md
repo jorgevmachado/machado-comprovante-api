@@ -195,17 +195,17 @@ Objetivo:
 
 Implementar a API de consulta de beneficiários e garantir o acesso consistente e isolado por usuário.
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 ---
 
-# 15. [Épico L — Queries Financeiras](./epics/012-queries-financeiras/README.md)
+# 15. [Épico L — Queries Financeiras](epics/done/012-queries-financeiras/README.md)
 
 Objetivo:
 
 Implementar as consultas financeiras agregadas para acompanhamento do volume e do valor dos pagamentos.
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 # 16. [Épico M — Segurança](./epics/013-seguranca/README.md)
 

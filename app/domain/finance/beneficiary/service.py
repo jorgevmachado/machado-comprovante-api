@@ -51,9 +51,7 @@ class BeneficiaryService(BaseService[BeneficiaryRepository, Beneficiary]):
         page_filter: Annotated[FilterPage, Query()] | None = None,
     ):
         try:
-            return await self.repository.list(
-                user_id=user.id, page_filter=page_filter
-            )
+            return await self.repository.list(user_id=user.id, page_filter=page_filter)
         except Exception as exception:
             handle_service_exception(
                 exception,
@@ -71,4 +69,3 @@ class BeneficiaryService(BaseService[BeneficiaryRepository, Beneficiary]):
                 message="List successfully",
                 user_request=user.username,
             )
-

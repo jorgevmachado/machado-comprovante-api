@@ -234,7 +234,7 @@ class TestBeneficiaryService:
         repository.list.return_value = expected
 
         with patch(
-                "app.domain.finance.beneficiary.service.log_service_success"
+            "app.domain.finance.beneficiary.service.log_service_success"
         ) as log_success:
             result = await service.list(
                 user=user,

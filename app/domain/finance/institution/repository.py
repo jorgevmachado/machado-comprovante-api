@@ -42,14 +42,10 @@ class InstitutionRepository(BaseRepository[Institution]):
             if name:
                 name_code = to_snake_case(name)
 
-                query = query.where(
-                    Institution.name_code == name_code
-                )
+                query = query.where(Institution.name_code == name_code)
 
             if institution_type == "source":
-                query = query.where(
-                    Payment.source_institution_id == Institution.id
-                )
+                query = query.where(Payment.source_institution_id == Institution.id)
 
             if institution_type == "destination":
                 query = query.where(

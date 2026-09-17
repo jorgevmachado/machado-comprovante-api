@@ -86,15 +86,18 @@ class TestBeneficiaryRepositoryList:
 
         expected = MagicMock()
 
-        with patch(
-            "app.domain.finance.beneficiary.repository.is_paginate",
-            return_value=True,
-        ) as is_paginate, patch.object(
-            repository,
-            "list_paginate",
-            new_callable=AsyncMock,
-            return_value=expected,
-        ) as list_paginate:
+        with (
+            patch(
+                "app.domain.finance.beneficiary.repository.is_paginate",
+                return_value=True,
+            ) as is_paginate,
+            patch.object(
+                repository,
+                "list_paginate",
+                new_callable=AsyncMock,
+                return_value=expected,
+            ) as list_paginate,
+        ):
             result = await repository.list(
                 user_id=user_id,
                 page_filter=page_filter,
@@ -106,9 +109,7 @@ class TestBeneficiaryRepositoryList:
 
         query = list_paginate.await_args.args[0]
 
-        compiled = query.compile(
-            compile_kwargs={"literal_binds": True}
-        )
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
         assert "beneficiaries.name_code = 'amazon'" in sql
@@ -127,15 +128,18 @@ class TestBeneficiaryRepositoryList:
 
         expected = MagicMock()
 
-        with patch(
-            "app.domain.finance.beneficiary.repository.is_paginate",
-            return_value=True,
-        ) as is_paginate, patch.object(
-            repository,
-            "list_paginate",
-            new_callable=AsyncMock,
-            return_value=expected,
-        ) as list_paginate:
+        with (
+            patch(
+                "app.domain.finance.beneficiary.repository.is_paginate",
+                return_value=True,
+            ) as is_paginate,
+            patch.object(
+                repository,
+                "list_paginate",
+                new_callable=AsyncMock,
+                return_value=expected,
+            ) as list_paginate,
+        ):
             result = await repository.list(
                 user_id=user_id,
                 page_filter=page_filter,
@@ -162,14 +166,17 @@ class TestBeneficiaryRepositoryList:
         scalars_result.all.return_value = []
         session.scalars.return_value = scalars_result
 
-        with patch(
-            "app.domain.finance.beneficiary.repository.is_paginate",
-            return_value=False,
-        ), patch.object(
-            repository,
-            "list_paginate",
-            new_callable=AsyncMock,
-        ) as list_paginate:
+        with (
+            patch(
+                "app.domain.finance.beneficiary.repository.is_paginate",
+                return_value=False,
+            ),
+            patch.object(
+                repository,
+                "list_paginate",
+                new_callable=AsyncMock,
+            ) as list_paginate,
+        ):
             result = await repository.list(
                 user_id=user_id,
                 page_filter=page_filter,
@@ -203,9 +210,7 @@ class TestBeneficiaryRepositoryList:
 
         query = session.scalars.await_args.args[0]
 
-        compiled = query.compile(
-            compile_kwargs={"literal_binds": True}
-        )
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
         assert "JOIN payments" in sql
@@ -225,15 +230,18 @@ class TestBeneficiaryRepositoryList:
 
         expected = MagicMock()
 
-        with patch(
+        with (
+            patch(
                 "app.domain.finance.beneficiary.repository.is_paginate",
                 return_value=True,
-        ), patch.object(
-            repository,
-            "list_paginate",
-            new_callable=AsyncMock,
-            return_value=expected,
-        ) as list_paginate:
+            ),
+            patch.object(
+                repository,
+                "list_paginate",
+                new_callable=AsyncMock,
+                return_value=expected,
+            ) as list_paginate,
+        ):
             result = await repository.list(
                 user_id=user_id,
                 page_filter=page_filter,
@@ -244,9 +252,7 @@ class TestBeneficiaryRepositoryList:
 
         query = list_paginate.await_args.args[0]
 
-        compiled = query.compile(
-            compile_kwargs={"literal_binds": True}
-        )
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
         assert "beneficiaries.name_code =" not in sql
@@ -260,8 +266,8 @@ class TestBeneficiaryRepositoryList:
         user_id = uuid4()
 
         with patch(
-                "app.domain.finance.beneficiary.repository.is_paginate",
-                return_value=False,
+            "app.domain.finance.beneficiary.repository.is_paginate",
+            return_value=False,
         ):
             await repository.list(
                 user_id=user_id,
@@ -270,9 +276,7 @@ class TestBeneficiaryRepositoryList:
 
         query = session.scalars.await_args.args[0]
 
-        compiled = query.compile(
-            compile_kwargs={"literal_binds": True}
-        )
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
         assert f"payments.user_id = '{user_id.hex}'" in sql

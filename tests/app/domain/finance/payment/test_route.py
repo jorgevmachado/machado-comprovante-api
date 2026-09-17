@@ -10,6 +10,8 @@ from app.domain.finance.payment.route import (
     list_all,
     payment_filter,
     payment_service,
+    summary_count,
+    summary_total, summary_max, summary_min,
 )
 from app.domain.finance.payment.service import PaymentService
 
@@ -79,6 +81,128 @@ async def test_payment_route_list_all() -> None:
 
     assert result is expected
     service.list.assert_awaited_once_with(
+        page_filter=page_filter,
+        user=current_user,
+    )
+
+
+@pytest.mark.asyncio
+async def test_payment_route_summary_count() -> None:
+    service = AsyncMock()
+    page_filter = payment_filter(
+        start_date=date(2026, 9, 1),
+        end_date=date(2026, 9, 30),
+    )
+
+    expected = SimpleNamespace(
+        count=2,
+    )
+
+    service.summary_count.return_value = expected
+
+    current_user = SimpleNamespace(
+        id="user-id",
+        username="Payment User",
+    )
+
+    result = await summary_count(
+        service=service,
+        current_user=current_user,
+        page_filter=page_filter,
+    )
+
+    assert result is expected
+    service.summary_count.assert_awaited_once_with(
+        page_filter=page_filter,
+        user=current_user,
+    )
+
+
+@pytest.mark.asyncio
+async def test_payment_route_summary_total() -> None:
+    service = AsyncMock()
+    page_filter = payment_filter(
+        start_date=date(2026, 9, 1),
+        end_date=date(2026, 9, 30),
+    )
+
+    expected = SimpleNamespace(
+        total=2000,
+    )
+
+    service.summary_total.return_value = expected
+
+    current_user = SimpleNamespace(
+        id="user-id",
+        username="Payment User",
+    )
+
+    result = await summary_total(
+        service=service,
+        current_user=current_user,
+        page_filter=page_filter,
+    )
+
+    assert result is expected
+    service.summary_total.assert_awaited_once_with(
+        page_filter=page_filter,
+        user=current_user,
+    )
+
+@pytest.mark.asyncio
+async def test_payment_route_summary_max() -> None:
+    service = AsyncMock()
+    page_filter = payment_filter(
+        start_date=date(2026, 9, 1),
+        end_date=date(2026, 9, 30),
+    )
+
+    expected = SimpleNamespace(id="payment-1"),
+
+    service.summary_max.return_value = expected
+
+    current_user = SimpleNamespace(
+        id="user-id",
+        username="Payment User",
+    )
+
+    result = await summary_max(
+        service=service,
+        current_user=current_user,
+        page_filter=page_filter,
+    )
+
+    assert result is expected
+    service.summary_max.assert_awaited_once_with(
+        page_filter=page_filter,
+        user=current_user,
+    )
+
+@pytest.mark.asyncio
+async def test_payment_route_summary_min() -> None:
+    service = AsyncMock()
+    page_filter = payment_filter(
+        start_date=date(2026, 9, 1),
+        end_date=date(2026, 9, 30),
+    )
+
+    expected = SimpleNamespace(id="payment-1"),
+
+    service.summary_min.return_value = expected
+
+    current_user = SimpleNamespace(
+        id="user-id",
+        username="Payment User",
+    )
+
+    result = await summary_min(
+        service=service,
+        current_user=current_user,
+        page_filter=page_filter,
+    )
+
+    assert result is expected
+    service.summary_min.assert_awaited_once_with(
         page_filter=page_filter,
         user=current_user,
     )

@@ -10,7 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_session
 from app.core.pagination import CustomLimitOffsetPage
 from app.core.security import get_current_user
-from app.domain.finance.payment.schema import PaymentSchema
+from app.domain.finance.payment.schema import (
+    PaymentSchema,
+    PaymentSummaryCountSchema,
+    PaymentSummaryTotalSchema, PaymentSummaryMinMaxSchema,
+)
 from app.domain.finance.payment.service import PaymentService
 from app.models import User
 from app.shared.schemas import FilterPage
@@ -69,3 +73,54 @@ async def list_all(
     page_filter: Annotated[FilterPage, Depends(payment_filter)],
 ):
     return await service.list(page_filter=page_filter, user=current_user)
+
+
+@router.get(
+    "/summary/count",
+    status_code=HTTPStatus.OK,
+    response_model=PaymentSummaryCountSchema,
+)
+async def summary_count(
+    service: Service,
+    current_user: CurrentUser,
+    page_filter: Annotated[FilterPage, Depends(payment_filter)],
+):
+    return await service.summary_count(page_filter=page_filter, user=current_user)
+
+
+@router.get(
+    "/summary/total",
+    status_code=HTTPStatus.OK,
+    response_model=PaymentSummaryTotalSchema,
+)
+async def summary_total(
+    service: Service,
+    current_user: CurrentUser,
+    page_filter: Annotated[FilterPage, Depends(payment_filter)],
+):
+    return await service.summary_total(page_filter=page_filter, user=current_user)
+
+
+@router.get(
+    "/summary/max",
+    status_code=HTTPStatus.OK,
+    response_model=PaymentSummaryMinMaxSchema,
+)
+async def summary_max(
+    service: Service,
+    current_user: CurrentUser,
+    page_filter: Annotated[FilterPage, Depends(payment_filter)],
+):
+    return await service.summary_max(page_filter=page_filter, user=current_user)
+
+@router.get(
+    "/summary/min",
+    status_code=HTTPStatus.OK,
+    response_model=PaymentSummaryMinMaxSchema,
+)
+async def summary_min(
+    service: Service,
+    current_user: CurrentUser,
+    page_filter: Annotated[FilterPage, Depends(payment_filter)],
+):
+    return await service.summary_min(page_filter=page_filter, user=current_user)

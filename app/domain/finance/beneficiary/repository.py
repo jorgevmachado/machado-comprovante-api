@@ -20,7 +20,7 @@ class BeneficiaryRepository(BaseRepository[Beneficiary]):
     model = Beneficiary
 
     async def list(
-            self, user_id: UUID, page_filter: Annotated[FilterPage, Query()] | None = None
+        self, user_id: UUID, page_filter: Annotated[FilterPage, Query()] | None = None
     ):
         query = (
             select(Beneficiary)
