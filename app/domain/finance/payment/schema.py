@@ -27,6 +27,7 @@ class PaymentSummaryTotalSchema(BaseModel):
 
 class PaymentSummaryMinMaxSchema(BaseModel):
     payment: PaymentSchema | None = None
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PaymentSummaryBeneficiaryTotalSchema(BaseModel):
