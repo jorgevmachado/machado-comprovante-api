@@ -15,7 +15,7 @@ from app.domain.finance.beneficiary.schema import BeneficiarySchema
 
 from app.models import Beneficiary, User
 from app.shared.schemas import FilterPage
-from app.shared.utils.string import to_snake_case, is_valid_uuid
+from app.shared.utils.string import to_snake_case
 
 logger = logging.getLogger(__name__)
 
