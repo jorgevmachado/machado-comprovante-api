@@ -1,6 +1,6 @@
 # Epic 017 — CI
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -12,8 +12,8 @@ Configurar a integração contínua para automatizar validação, lint e testes 
 
 | ID | Task | Prioridade | Status |
 |---|---|---|---|
-| TASK-083 | Configurar GitHub Actions | P0 | TODO |
-| TASK-084 | Executar testes automaticamente | P0 | TODO |
+| TASK-083 | Configurar GitHub Actions | P0 | DONE |
+| TASK-084 | Executar testes automaticamente | P0 | DONE |
 
 ## Ordem de implementação
 
@@ -39,10 +39,10 @@ Este Epic contempla:
 
 O Epic será considerado `DONE` quando:
 
-* [ ] O GitHub Actions estiver configurado para executar os checks do projeto.;
-* [ ] Os testes forem executados automaticamente em pull requests e branches relevantes.;
-* [ ] O pipeline estiver estável e documentado.;
+* [x] O GitHub Actions estiver configurado para executar os checks do projeto.;
+* [X] Os testes forem executados automaticamente em pull requests e branches relevantes.;
+* [X] O pipeline estiver estável e documentado.;
 
-* [ ] Todos os testes relacionados estiverem passando;
-* [ ] A documentação do Epic estiver atualizada;
-* [ ] Nenhuma regra de negócio foi alterada sem respaldo da documentação.
+* [X] Todos os testes relacionados estiverem passando;
+* [X] A documentação do Epic estiver atualizada;
+* [X] Nenhuma regra de negócio foi alterada sem respaldo da documentação.

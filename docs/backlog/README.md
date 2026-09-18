@@ -246,7 +246,7 @@ Preparar o ambiente de desenvolvimento com contêinerização e configuração l
 **Status:** `DONE`
 ---
 
-# 20. [Épico Q — CI](./epics/017-ci/README.md)
+# 20. [Épico Q — CI](epics/done/017-ci/README.md)
 
 Objetivo:
 
