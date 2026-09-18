@@ -8,6 +8,8 @@ from starlette.datastructures import Headers
 from app.domain.finance.receipt.validation import (
     MAX_FILE_SIZE,
     validate_file,
+    validate_batch_size,
+    MAX_BATCH_FILES,
 )
 
 
@@ -142,3 +144,23 @@ class TestValidateFile:
         result = await validate_file(file)
 
         assert result == content
+
+
+class TestValidateBatchSize:
+    @pytest.mark.asyncio
+    async def test_validate_batch_size_more_than_max(self):
+        files = [
+            create_upload_file(
+                filename=f"documento_{i}.pdf",
+                content_type="application/pdf",
+            )
+            for i in range(MAX_BATCH_FILES + 1)
+        ]
+
+        with pytest.raises(HTTPException) as exc_info:
+            validate_batch_size(files)
+
+        assert exc_info.value.status_code == HTTPStatus.BAD_REQUEST
+        assert exc_info.value.detail == (
+            f"A maximum of {MAX_BATCH_FILES} files can be uploaded at once."
+        )

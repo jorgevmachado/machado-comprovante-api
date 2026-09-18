@@ -24,8 +24,12 @@ from app.domain.finance.receipt.interpretation.service import InterpretationServ
 from app.domain.finance.receipt.repository import (
     ReceiptRepository,
 )
-from app.domain.finance.receipt.schema import ReceiptSchema, UploadReceiptResponseSchema
-from app.domain.finance.receipt.validation import validate_file
+from app.domain.finance.receipt.schema import (
+    ReceiptSchema,
+    UploadReceiptResponseSchema,
+    BatchReceiptResponseSchema,
+)
+from app.domain.finance.receipt.validation import validate_file, validate_batch_size
 
 from app.models import (
     Receipt,
@@ -56,20 +60,6 @@ class ReceiptService(BaseService[ReceiptRepository, Receipt]):
 
     def _calculate_hash(self, content: bytes) -> str:
         return hashlib.sha256(content).hexdigest()
-
-    async def _check_duplicate(self, file_hash: str, user_id: UUID) -> None:
-        existing_receipt = await self.find_by(
-            file_hash=file_hash, user_id=str(user_id), without_throw=True
-        )
-        if (
-            existing_receipt
-            and existing_receipt.processing_status == ProcessingStatusEnum.RECEIVED
-        ):
-            raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST, detail="Duplicate receipt"
-            )
-
-        return existing_receipt
 
     async def persist_received_receipt(
         self,
@@ -124,8 +114,22 @@ class ReceiptService(BaseService[ReceiptRepository, Receipt]):
         try:
             content = await validate_file(file)
             file_hash = self._calculate_hash(content)
-            receipt = await self._check_duplicate(file_hash=file_hash, user_id=user.id)
-
+            receipt = await self.find_by(
+                file_hash=file_hash, user_id=str(user.id), without_throw=True
+            )
+            if receipt and receipt.processing_status == ProcessingStatusEnum.RECEIVED:
+                return UploadReceiptResponseSchema(
+                    id=receipt.id,
+                    data=ExtractedReceiptData.model_validate(receipt.extracted_data)
+                    if receipt.extracted_data is not None
+                    else None,
+                    errors=[],
+                    file_name=receipt.file_name,
+                    file_type=receipt.file_type,
+                    file_size=receipt.file_size,
+                    error_message="Receipt already received",
+                    processing_status=ProcessingStatusEnum.FAILED,
+                )
             text = await self.extraction_service.extract(
                 content=content, content_type=file.content_type
             )
@@ -223,4 +227,49 @@ class ReceiptService(BaseService[ReceiptRepository, Receipt]):
             created_at=receipt.created_at,
             updated_at=receipt.updated_at,
             deleted_at=receipt.deleted_at,
+        )
+
+    async def received_receipt_batch(
+        self, files: list[UploadFile], user: User
+    ) -> BatchReceiptResponseSchema:
+        validate_batch_size(files)
+        items: list[UploadReceiptResponseSchema] = []
+        for file in files:
+            try:
+                item = await self.received_receipt(file, user)
+                items.append(item)
+            except Exception as exception:
+                items.append(
+                    UploadReceiptResponseSchema(
+                        id=UUID(int=0),
+                        data=None,
+                        errors=[],
+                        file_name=file.filename,
+                        file_type=file.content_type,
+                        file_size=0,
+                        error_message=str(exception),
+                        processing_status=ProcessingStatusEnum.FAILED,
+                    )
+                )
+
+        failed = sum(
+            item.processing_status == ProcessingStatusEnum.FAILED for item in items
+        )
+        received = sum(
+            item.processing_status == ProcessingStatusEnum.RECEIVED for item in items
+        )
+        processed = sum(
+            item.processing_status == ProcessingStatusEnum.PROCESSED for item in items
+        )
+        processing = sum(
+            item.processing_status == ProcessingStatusEnum.PROCESSING for item in items
+        )
+
+        return BatchReceiptResponseSchema(
+            total=len(items),
+            items=items,
+            failed=failed,
+            received=received,
+            processed=processed,
+            processing=processing,
         )
