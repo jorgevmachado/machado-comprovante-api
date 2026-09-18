@@ -655,7 +655,10 @@ class TestPaymentServiceSummaryBeneficiary:
                 page_filter=None,
             )
         assert exc_info.value.status_code == HTTPStatus.BAD_REQUEST
-        assert exc_info.value.detail == "The beneficiary query parameter is required for the query"
+        assert (
+            exc_info.value.detail
+            == "The beneficiary query parameter is required for the query"
+        )
 
     @staticmethod
     @pytest.mark.asyncio
@@ -679,7 +682,10 @@ class TestPaymentServiceSummaryBeneficiary:
                 page_filter=page_filter,
             )
         assert exc_info.value.status_code == HTTPStatus.BAD_REQUEST
-        assert exc_info.value.detail == "The beneficiary query parameter is required for the query"
+        assert (
+            exc_info.value.detail
+            == "The beneficiary query parameter is required for the query"
+        )
 
     @staticmethod
     @pytest.mark.asyncio
@@ -714,7 +720,6 @@ class TestPaymentServiceSummaryBeneficiary:
             beneficiary="Amazon",
             page_filter=page_filter,
         )
-
 
     @staticmethod
     @pytest.mark.asyncio

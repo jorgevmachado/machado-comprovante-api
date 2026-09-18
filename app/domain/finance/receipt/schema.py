@@ -27,12 +27,22 @@ class ReceiptSchema(BaseModel):
 
 class UploadReceiptResponseSchema(BaseModel):
     id: UUID
-    data: ExtractedReceiptData
+    data: ExtractedReceiptData | None = None
     errors: list[InterpretationValidationError]
     file_name: str | None = None
     file_type: str | None = None
     file_size: int
+    error_message: str | None = None
     processing_status: ProcessingStatusEnum
+
+
+class BatchReceiptResponseSchema(BaseModel):
+    total: int
+    items: list[UploadReceiptResponseSchema]
+    failed: int
+    received: int
+    processed: int
+    processing: int
 
 
 class ConfirmReceiptRequestSchema(BaseModel):

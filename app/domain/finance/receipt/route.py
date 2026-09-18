@@ -7,7 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
 from app.core.security import get_current_user
-from app.domain.finance.receipt.schema import UploadReceiptResponseSchema, ReceiptSchema
+from app.domain.finance.receipt.schema import (
+    UploadReceiptResponseSchema,
+    ReceiptSchema,
+    BatchReceiptResponseSchema,
+)
 from app.domain.finance.receipt.service import ReceiptService
 from app.models import User
 
@@ -35,6 +39,17 @@ async def received_receipt(
     file: UploadFile = File(...),
 ):
     return await service.received_receipt(file=file, user=current_user)
+
+
+@router.post(
+    "/batch", response_model=BatchReceiptResponseSchema, status_code=HTTPStatus.CREATED
+)
+async def received_receipt_batch(
+    files: Annotated[list[UploadFile], File(...)],
+    current_user: CurrentUser,
+    service: Service,
+):
+    return await service.received_receipt_batch(files=files, user=current_user)
 
 
 @router.get("/{receipt_id}", response_model=ReceiptSchema, status_code=HTTPStatus.OK)

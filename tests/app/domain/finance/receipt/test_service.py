@@ -1,5 +1,7 @@
 from __future__ import annotations
-from uuid import UUID
+
+from types import SimpleNamespace
+from uuid import UUID, uuid4
 import hashlib
 from datetime import date, datetime, timezone
 from decimal import Decimal
@@ -17,6 +19,7 @@ from app.domain.finance.receipt.interpretation.schema import (
     InterpretationResult,
     InterpretationValidationError,
 )
+from app.domain.finance.receipt.schema import UploadReceiptResponseSchema
 from app.domain.finance.receipt.service import ReceiptService
 from app.models import ProcessingStatusEnum, Receipt, User
 
@@ -126,7 +129,7 @@ def create_interpretation(
     )
 
 
-class TestReceiptService:
+class TestReceiptServiceCalculateHash:
     def test_calculate_hash(self):
         service = create_service()
         content = b"conteudo do arquivo"
@@ -135,66 +138,8 @@ class TestReceiptService:
 
         assert result == hashlib.sha256(content).hexdigest()
 
-    @pytest.mark.asyncio
-    async def test_check_duplicate_raises_when_receipt_is_received(self):
-        service = create_service()
-        user_id = "11111111-1111-1111-1111-111111111111"
 
-        existing_receipt = MagicMock()
-        existing_receipt.processing_status = ProcessingStatusEnum.RECEIVED
-
-        service.find_by = AsyncMock(return_value=existing_receipt)
-
-        with pytest.raises(HTTPException) as exc_info:
-            await service._check_duplicate(
-                file_hash="abc123",
-                user_id=user_id,
-            )
-
-        assert exc_info.value.status_code == 400
-        assert exc_info.value.detail == "Duplicate receipt"
-
-        service.find_by.assert_awaited_once_with(
-            file_hash="abc123",
-            user_id=user_id,
-            without_throw=True,
-        )
-
-    @pytest.mark.asyncio
-    async def test_check_duplicate_returns_existing_receipt_when_not_received(
-        self,
-    ):
-        service = create_service()
-        user_id = "11111111-1111-1111-1111-111111111111"
-
-        existing_receipt = MagicMock()
-        existing_receipt.processing_status = ProcessingStatusEnum.PROCESSED
-
-        service.find_by = AsyncMock(return_value=existing_receipt)
-
-        result = await service._check_duplicate(
-            file_hash="abc123",
-            user_id=user_id,
-        )
-
-        assert result is existing_receipt
-
-    @pytest.mark.asyncio
-    async def test_check_duplicate_returns_none_when_receipt_does_not_exist(
-        self,
-    ):
-        service = create_service()
-        user_id = "11111111-1111-1111-1111-111111111111"
-
-        service.find_by = AsyncMock(return_value=None)
-
-        result = await service._check_duplicate(
-            file_hash="abc123",
-            user_id=user_id,
-        )
-
-        assert result is None
-
+class TestReceiptServicePersistReceivedReceipt:
     @pytest.mark.asyncio
     async def test_persist_received_receipt_creates_received_receipt(
         self,
@@ -324,6 +269,8 @@ class TestReceiptService:
 
         assert exc_info.value.__class__.__name__ == "AppHTTPException"
 
+
+class TestReceiptServiceReceivedReceipt:
     @pytest.mark.asyncio
     async def test_received_receipt_raises_app_http_exception_when_processing_fails(
         self,
@@ -337,7 +284,7 @@ class TestReceiptService:
             "app.domain.finance.receipt.service.validate_file",
             AsyncMock(return_value=b"conteudo"),
         )
-        service._check_duplicate = AsyncMock(return_value=None)
+        service.find_by = AsyncMock(return_value=None)
         service.extraction_service.extract = AsyncMock(
             side_effect=RuntimeError("extract failed")
         )
@@ -374,7 +321,7 @@ class TestReceiptService:
             return_value=interpretation
         )
 
-        service._check_duplicate = AsyncMock(return_value=None)
+        service.find_by = AsyncMock(return_value=None)
 
         receipt = MagicMock()
         receipt.id = UUID("22222222-2222-2222-2222-222222222222")
@@ -443,7 +390,7 @@ class TestReceiptService:
             return_value=interpretation
         )
 
-        service._check_duplicate = AsyncMock(return_value=None)
+        service.find_by = AsyncMock(return_value=None)
 
         receipt = MagicMock()
         receipt.id = UUID("22222222-2222-2222-2222-222222222222")
@@ -476,6 +423,38 @@ class TestReceiptService:
 
         service.persist_received_receipt.assert_awaited_once()
 
+    @pytest.mark.asyncio
+    async def test_received_receipt_when_error_when_exists(
+        self,
+        monkeypatch,
+    ):
+        service = create_service()
+        user = create_user()
+        file = create_upload_file()
+
+        monkeypatch.setattr(
+            "app.domain.finance.receipt.service.validate_file",
+            AsyncMock(return_value=b"conteudo"),
+        )
+
+        service.find_by = AsyncMock(
+            return_value=SimpleNamespace(
+                id=uuid4(),
+                erros=[],
+                file_name=file.filename,
+                file_type=file.content_type,
+                file_size=9,
+                extracted_data=None,
+                processing_status=ProcessingStatusEnum.RECEIVED,
+            )
+        )
+        result = await service.received_receipt(file=file, user=user)
+        assert result.file_name == file.filename
+        assert result.processing_status == ProcessingStatusEnum.FAILED
+        assert result.error_message == "Receipt already received"
+
+
+class TestReceiptServiceValidateConfirmReceipt:
     @pytest.mark.asyncio
     async def test_validate_confirm_receipt_returns_received_receipt(
         self,
@@ -540,6 +519,8 @@ class TestReceiptService:
         assert exc_info.value.status_code == 409
         assert exc_info.value.detail == ("Receipt is not ready for confirmation")
 
+
+class TestReceiptServiceConfirmReceipt:
     @pytest.mark.asyncio
     async def test_confirm_receipt_updates_data_and_status(self):
         service = create_service()
@@ -569,6 +550,8 @@ class TestReceiptService:
 
         service.repository.save.assert_awaited_once_with(entity=receipt)
 
+
+class TestReceiptServiceUpdateReceiptStatus:
     @pytest.mark.asyncio
     async def test_update_receipt_status_success(self):
         service = create_service()
@@ -588,6 +571,8 @@ class TestReceiptService:
 
         service.repository.save.assert_awaited_once_with(entity=receipt)
 
+
+class TestReceiptServiceGetReceipt:
     @pytest.mark.asyncio
     async def test_get_receipt_returns_receipt_with_extracted_data(self):
         service = create_service()
@@ -771,3 +756,108 @@ class TestReceiptService:
             user_id=str(user.id),
             without_throw=True,
         )
+
+
+class TestReceiptServiceReceivedReceiptBatch:
+    @pytest.mark.asyncio
+    async def test_received_receipt_batch_all_failed(
+        self,
+        monkeypatch,
+    ):
+        service = create_service()
+        user = create_user()
+        file_1 = create_upload_file()
+        file_2 = create_upload_file(
+            filename="comprovante.png",
+            content_type="image/png",
+            content=b"conteudo do arquivo png",
+        )
+        file_3 = create_upload_file(
+            filename="comprovante.jpeg",
+            content_type="image/jpeg",
+            content=b"conteudo do arquivo jpeg",
+        )
+
+        files = [file_1, file_2, file_3]
+
+        service.received_receipt = AsyncMock(
+            side_effect=[
+                RuntimeError("received receipt failed"),
+                RuntimeError("received receipt failed"),
+                RuntimeError("received receipt failed"),
+            ]
+        )
+
+        result = await service.received_receipt_batch(files=files, user=user)
+        assert result.failed == 3
+        assert result.received == 0
+        assert result.processed == 0
+        assert result.processing == 0
+        assert result.total == 3
+        assert len(result.items) == 3
+
+    @pytest.mark.asyncio
+    async def test_received_receipt_processes_file_successfully(
+        self,
+        monkeypatch,
+    ):
+        service = create_service()
+        user = create_user()
+
+        file_1 = create_upload_file()
+        file_2 = create_upload_file(
+            filename="comprovante.png",
+            content_type="image/png",
+            content=b"conteudo do arquivo png",
+        )
+        file_3 = create_upload_file(
+            filename="comprovante.jpeg",
+            content_type="image/jpeg",
+            content=b"conteudo do arquivo jpeg",
+        )
+        file_4 = create_upload_file()
+        file_5 = create_upload_file()
+
+        files = [file_1, file_2, file_3, file_4, file_5]
+
+        service.received_receipt = AsyncMock(
+            side_effect=[
+                UploadReceiptResponseSchema(
+                    id=uuid4(),
+                    processing_status=ProcessingStatusEnum.FAILED,
+                    errors=[],
+                    file_size=0,
+                ),
+                UploadReceiptResponseSchema(
+                    id=uuid4(),
+                    processing_status=ProcessingStatusEnum.RECEIVED,
+                    errors=[],
+                    file_size=0,
+                ),
+                UploadReceiptResponseSchema(
+                    id=uuid4(),
+                    processing_status=ProcessingStatusEnum.PROCESSED,
+                    errors=[],
+                    file_size=0,
+                ),
+                UploadReceiptResponseSchema(
+                    id=uuid4(),
+                    processing_status=ProcessingStatusEnum.PROCESSING,
+                    errors=[],
+                    file_size=0,
+                ),
+                RuntimeError("received receipt failed"),
+            ]
+        )
+
+        result = await service.received_receipt_batch(
+            files=files,
+            user=user,
+        )
+
+        assert result.failed == 2
+        assert result.received == 1
+        assert result.processed == 1
+        assert result.processing == 1
+        assert result.total == 5
+        assert len(result.items) == 5
