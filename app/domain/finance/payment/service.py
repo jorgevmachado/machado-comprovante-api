@@ -3,10 +3,11 @@ from __future__ import annotations
 import logging
 from datetime import date
 from decimal import Decimal
+from http import HTTPStatus
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Query
+from fastapi import Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import handle_service_exception
@@ -152,9 +153,7 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
             result = await self.repository.summary_order_by(
                 user_id=user.id, order_by="desc", page_filter=page_filter
             )
-            return PaymentSummaryMinMaxSchema(
-                payment=result
-            )
+            return PaymentSummaryMinMaxSchema(payment=result)
         except Exception as exception:
             handle_service_exception(
                 exception,
@@ -181,9 +180,7 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
             result = await self.repository.summary_order_by(
                 user_id=user.id, order_by="asc", page_filter=page_filter
             )
-            return PaymentSummaryMinMaxSchema(
-                payment=result
-            )
+            return PaymentSummaryMinMaxSchema(payment=result)
         except Exception as exception:
             handle_service_exception(
                 exception,
@@ -198,5 +195,51 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
                 self.logger_params,
                 operation="summary_min",
                 message="Summary min successfully",
+                user_request=user.username,
+            )
+
+    @staticmethod
+    def _validate_beneficiary_filter(
+        page_filter: Annotated[FilterPage, Query()] | None = None,
+    ) -> str:
+        error_message = "The beneficiary query parameter is required for the query"
+        if not page_filter:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail=error_message,
+            )
+        raw_filters = page_filter.model_dump(exclude_none=True)
+        param = raw_filters.get("beneficiary")
+        if not param:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail=error_message,
+            )
+        return param
+
+    async def summary_beneficiary(
+        self,
+        user: User,
+        page_filter: Annotated[FilterPage, Query()] | None = None,
+    ):
+        beneficiary = self._validate_beneficiary_filter(page_filter)
+        try:
+            return await self.repository.summary_beneficiary(
+                user_id=user.id, beneficiary=beneficiary, page_filter=page_filter
+            )
+        except Exception as exception:
+            handle_service_exception(
+                exception,
+                logger=self.logger_params.logger,
+                service=self.logger_params.service,
+                operation="summary_beneficiary",
+                user_request=user.username,
+                raise_exception=False,
+            )
+        finally:
+            log_service_success(
+                self.logger_params,
+                operation="summary_beneficiary",
+                message="Summary beneficiary successfully",
                 user_request=user.username,
             )

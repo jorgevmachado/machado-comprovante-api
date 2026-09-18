@@ -1,6 +1,6 @@
 # Epic 013 — Segurança
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -12,8 +12,8 @@ Fortalecer a segurança da aplicação, validando upload de arquivos e protegend
 
 | ID | Task | Prioridade | Status |
 |---|---|---|---|
-| TASK-068 | Validar upload seguro | P0 | TODO |
-| TASK-069 | Proteger secrets | P0 | TODO |
+| TASK-068 | Validar upload seguro | P0 | DONE |
+| TASK-069 | Proteger secrets | P0 | DONE |
 
 ## Ordem de implementação
 
@@ -39,10 +39,10 @@ Este Epic contempla:
 
 O Epic será considerado `DONE` quando:
 
-* [ ] A validação de upload seguro estiver implementada e testada.;
-* [ ] Secrets e configurações sensíveis não estiverem expostos em repositório ou logs.;
-* [ ] A aplicação estiver alinhada às exigências de segurança da documentação.;
+* [X] A validação de upload seguro estiver implementada e testada.;
+* [X] Secrets e configurações sensíveis não estiverem expostos em repositório ou logs.;
+* [X] A aplicação estiver alinhada às exigências de segurança da documentação.;
 
-* [ ] Todos os testes relacionados estiverem passando;
-* [ ] A documentação do Epic estiver atualizada;
-* [ ] Nenhuma regra de negócio foi alterada sem respaldo da documentação.
+* [X] Todos os testes relacionados estiverem passando;
+* [X] A documentação do Epic estiver atualizada;
+* [X] Nenhuma regra de negócio foi alterada sem respaldo da documentação.

@@ -24,5 +24,11 @@ class PaymentSummaryCountSchema(BaseModel):
 class PaymentSummaryTotalSchema(BaseModel):
     total: Decimal
 
+
 class PaymentSummaryMinMaxSchema(BaseModel):
     payment: PaymentSchema | None = None
+
+
+class PaymentSummaryBeneficiaryTotalSchema(BaseModel):
+    total: Decimal
+    beneficiary: str

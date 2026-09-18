@@ -207,7 +207,7 @@ Implementar as consultas financeiras agregadas para acompanhamento do volume e d
 
 **Status:** `DONE`
 
-# 16. [Épico M — Segurança](./epics/013-seguranca/README.md)
+# 16. [Épico M — Segurança](epics/done/013-seguranca/README.md)
 
 Objetivo:
 
@@ -217,7 +217,7 @@ Fortalecer a segurança da aplicação, validando upload de arquivos e protegend
 
 ---
 
-# 17. [Épico N — Testes](./epics/014-testes/README.md)
+# 17. [Épico N — Testes](epics/done/014-testes/README.md)
 
 ### TASK-070 — Testes dos models
 
@@ -237,7 +237,7 @@ Documentar e padronizar a API pública, garantindo visibilidade do contrato e re
 **Status:** `TODO`
 ---
 
-# 19. [Épico P — Docker e Ambiente](./epics/016-docker-e-ambiente/README.md)
+# 19. [Épico P — Docker e Ambiente](epics/done/016-docker-e-ambiente/README.md)
 
 Objetivo:
 
@@ -255,7 +255,7 @@ Configurar a integração contínua para automatizar validação, lint e testes 
 **Status:** `TODO`
 ---
 
-# 21. [Épico R — Observabilidade](./epics/018-observabilidade/README.md)
+# 21. [Épico R — Observabilidade](epics/done/018-observabilidade/README.md)
 
 Objetivo:
 

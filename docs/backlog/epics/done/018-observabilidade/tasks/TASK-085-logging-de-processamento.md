@@ -1,24 +1,24 @@
-# TASK-081 — Criar Docker Compose para desenvolvimento
+# TASK-085 — Logging de processamento
 
 **Status:** `DONE`
 
-**Prioridade:** `P0`
+**Prioridade:** `P1`
 
 **Dependências:**
-- TASK-080
+- Nenhuma.
 
 ## Objetivo
 
-Criar Docker Compose para desenvolvimento conforme as regras do domínio, arquitetura e backlog do MVP.
+Logging de processamento conforme as regras do domínio, arquitetura e backlog do MVP.
 
 ## Referências
 
-- [05-domain.md](../../../../05-domain.md)
-- [06-database.md](../../../../06-database.md)
-- [07-api.md](../../../../07-api.md)
-- [08-backend-architecture.md](../../../../08-backend-architecture.md)
-- [09-domain-contracts.md](../../../../09-domain-contracts.md)
-- `README.md`
+- [05-domain.md](../../../../../05-domain.md)
+- [06-database.md](../../../../../06-database.md)
+- [07-api.md](../../../../../07-api.md)
+- [08-backend-architecture.md](../../../../../08-backend-architecture.md)
+- [09-domain-contracts.md](../../../../../09-domain-contracts.md)
+- `../../../../../../README.md`
 
 ## Escopo
 
@@ -42,7 +42,7 @@ Registrar aqui os principais pontos implementados durante a execução da task.
 
 ## Dependências para conclusão
 
-* TASK-080 concluída antes da finalização desta task.
+* Nenhuma.
 
 ## Notas
 

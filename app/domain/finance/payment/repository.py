@@ -20,8 +20,14 @@ class PaymentRepository(BaseRepository[Payment]):
     model = Payment
 
     @staticmethod
+    def _get_name_code(name: str) -> str:
+        return to_snake_case(name)
+
     def _build_filter(
-        query, user_id: UUID, page_filter: Annotated[FilterPage, Query()] | None = None
+        self,
+        query,
+        user_id: UUID,
+        page_filter: Annotated[FilterPage, Query()] | None = None,
     ):
         relations = {
             "beneficiary": Beneficiary,
@@ -34,11 +40,9 @@ class PaymentRepository(BaseRepository[Payment]):
         raw_filters = page_filter.model_dump(exclude_none=True)
         for relation, model in relations.items():
             if raw_filters.get(relation):
-                relation_name = cast(str, raw_filters.get(relation))
-                relation_name_code = to_snake_case(relation_name)
-
                 query = query.join(getattr(Payment, relation)).where(
-                    model.name_code == relation_name_code
+                    model.name_code
+                    == self._get_name_code(cast(str, raw_filters.get(relation)))
                 )
         if raw_filters.get("start_date"):
             query = query.where(Payment.payment_date >= raw_filters.get("start_date"))
@@ -105,7 +109,10 @@ class PaymentRepository(BaseRepository[Payment]):
         return {"total": sum(payment.amount for payment in result.all())}
 
     async def summary_order_by(
-        self, user_id: UUID, order_by: str | None = None, page_filter: Annotated[FilterPage, Query()] | None = None
+        self,
+        user_id: UUID,
+        order_by: str | None = None,
+        page_filter: Annotated[FilterPage, Query()] | None = None,
     ):
         query = select(self.model).options(
             selectinload(Payment.user),
@@ -123,3 +130,29 @@ class PaymentRepository(BaseRepository[Payment]):
         query = self._build_filter(query, user_id, page_filter)
         result = await self.session.scalars(query)
         return result.first()
+
+    async def summary_beneficiary(
+        self,
+        user_id: UUID,
+        beneficiary: str,
+        page_filter: Annotated[FilterPage, Query()] | None = None,
+    ):
+        query = (
+            select(self.model)
+            .options(
+                selectinload(Payment.user),
+                selectinload(Payment.beneficiary),
+                selectinload(Payment.source_institution),
+                selectinload(Payment.destination_institution),
+            )
+            .join(Payment.beneficiary)
+            .where(Beneficiary.name_code == self._get_name_code(beneficiary))
+        )
+
+        page_filter = self._only_filter_date(page_filter)
+        query = self._build_filter(query, user_id, page_filter)
+        result = await self.session.scalars(query)
+        return {
+            "total": sum(payment.amount for payment in result.all()),
+            "beneficiary": beneficiary,
+        }

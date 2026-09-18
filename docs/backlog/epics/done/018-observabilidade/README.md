@@ -1,6 +1,6 @@
 # Epic 018 — Observabilidade
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P1`
 
@@ -12,8 +12,8 @@ Implementar logs e rastreio de erros para monitoramento do processamento e das o
 
 | ID | Task | Prioridade | Status |
 |---|---|---|---|
-| TASK-085 | Logging de processamento | P1 | TODO |
-| TASK-086 | Rastreamento de erros | P1 | TODO |
+| TASK-085 | Logging de processamento | P1 | DONE |
+| TASK-086 | Rastreamento de erros | P1 | DONE |
 
 ## Ordem de implementação
 
@@ -39,10 +39,10 @@ Este Epic contempla:
 
 O Epic será considerado `DONE` quando:
 
-* [ ] O logging do processamento estiver implementado e útil para análise operacional.;
-* [ ] O rastreamento de erros estiver configurado para facilitar diagnóstico e correção.;
-* [ ] Os registros estiverem em conformidade com os padrões da aplicação.;
+* [X] O logging do processamento estiver implementado e útil para análise operacional.;
+* [X] O rastreamento de erros estiver configurado para facilitar diagnóstico e correção.;
+* [X] Os registros estiverem em conformidade com os padrões da aplicação.;
 
-* [ ] Todos os testes relacionados estiverem passando;
-* [ ] A documentação do Epic estiver atualizada;
-* [ ] Nenhuma regra de negócio foi alterada sem respaldo da documentação.
+* [X] Todos os testes relacionados estiverem passando;
+* [X] A documentação do Epic estiver atualizada;
+* [X] Nenhuma regra de negócio foi alterada sem respaldo da documentação.

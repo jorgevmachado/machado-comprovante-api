@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from http import HTTPStatus
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
 import pytest
+from fastapi import HTTPException
 
 from app.domain.finance.beneficiary.schema import BeneficiarySchema
 from app.domain.finance.institution.schema import InstitutionSchema
@@ -472,6 +474,7 @@ class TestPaymentServiceSummaryTotal:
             page_filter=None,
         )
 
+
 class TestPaymentServiceSummaryMax:
     @staticmethod
     @pytest.mark.asyncio
@@ -489,22 +492,16 @@ class TestPaymentServiceSummaryMax:
             end_date=date(2026, 9, 30),
         )
 
-        expected_beneficiary = BeneficiarySchema(
-            id=uuid4(),
-            name="Beneficiary"
-        )
+        expected_beneficiary = BeneficiarySchema(id=uuid4(), name="Beneficiary")
 
-        expected_source_institution = InstitutionSchema(
-            id=uuid4(),
-            name="Institution"
-        )
+        expected_source_institution = InstitutionSchema(id=uuid4(), name="Institution")
 
         expected = SimpleNamespace(
             id=uuid4(),
             amount=Decimal("2000"),
             beneficiary=expected_beneficiary,
             payment_date=date(2026, 9, 15),
-            source_institution=expected_source_institution
+            source_institution=expected_source_institution,
         )
 
         repository.summary_order_by.return_value = expected
@@ -520,7 +517,7 @@ class TestPaymentServiceSummaryMax:
                 amount=expected.amount,
                 beneficiary=expected.beneficiary,
                 payment_date=expected.payment_date,
-                source_institution=expected.source_institution
+                source_institution=expected.source_institution,
             )
         )
 
@@ -558,6 +555,7 @@ class TestPaymentServiceSummaryMax:
             page_filter=None,
         )
 
+
 class TestPaymentServiceSummaryMin:
     @staticmethod
     @pytest.mark.asyncio
@@ -575,22 +573,16 @@ class TestPaymentServiceSummaryMin:
             end_date=date(2026, 9, 30),
         )
 
-        expected_beneficiary = BeneficiarySchema(
-            id=uuid4(),
-            name="Beneficiary"
-        )
+        expected_beneficiary = BeneficiarySchema(id=uuid4(), name="Beneficiary")
 
-        expected_source_institution = InstitutionSchema(
-            id=uuid4(),
-            name="Institution"
-        )
+        expected_source_institution = InstitutionSchema(id=uuid4(), name="Institution")
 
         expected = SimpleNamespace(
             id=uuid4(),
             amount=Decimal("2000"),
             beneficiary=expected_beneficiary,
             payment_date=date(2026, 9, 15),
-            source_institution=expected_source_institution
+            source_institution=expected_source_institution,
         )
 
         repository.summary_order_by.return_value = expected
@@ -606,7 +598,7 @@ class TestPaymentServiceSummaryMin:
                 amount=expected.amount,
                 beneficiary=expected.beneficiary,
                 payment_date=expected.payment_date,
-                source_institution=expected.source_institution
+                source_institution=expected.source_institution,
             )
         )
 
@@ -642,4 +634,118 @@ class TestPaymentServiceSummaryMin:
             user_id=user.id,
             order_by="asc",
             page_filter=None,
+        )
+
+
+class TestPaymentServiceSummaryBeneficiary:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_summary_beneficiary_returns_raises_when_dont_received_filters():
+        repository = AsyncMock()
+        service = PaymentService(repository)
+
+        user = SimpleNamespace(
+            id=uuid4(),
+            username="jorge",
+        )
+
+        with pytest.raises(HTTPException) as exc_info:
+            await service.summary_beneficiary(
+                user=user,
+                page_filter=None,
+            )
+        assert exc_info.value.status_code == HTTPStatus.BAD_REQUEST
+        assert exc_info.value.detail == "The beneficiary query parameter is required for the query"
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_summary_beneficiary_returns_raises_when_dont_received_beneficiar_param():
+        repository = AsyncMock()
+        service = PaymentService(repository)
+
+        user = SimpleNamespace(
+            id=uuid4(),
+            username="jorge",
+        )
+
+        page_filter = FilterPage.build(
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+        )
+
+        with pytest.raises(HTTPException) as exc_info:
+            await service.summary_beneficiary(
+                user=user,
+                page_filter=page_filter,
+            )
+        assert exc_info.value.status_code == HTTPStatus.BAD_REQUEST
+        assert exc_info.value.detail == "The beneficiary query parameter is required for the query"
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_summary_beneficiary_returns_repository_result():
+        repository = AsyncMock()
+        service = PaymentService(repository)
+
+        user = SimpleNamespace(
+            id=uuid4(),
+            username="jorge",
+        )
+
+        page_filter = FilterPage.build(
+            beneficiary="Amazon",
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+        )
+
+        expected = {"beneficiary": "Amazon", "total": Decimal("2000")}
+
+        repository.summary_beneficiary.return_value = expected
+
+        result = await service.summary_beneficiary(
+            user=user,
+            page_filter=page_filter,
+        )
+
+        assert result is expected
+
+        repository.summary_beneficiary.assert_awaited_once_with(
+            user_id=user.id,
+            beneficiary="Amazon",
+            page_filter=page_filter,
+        )
+
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_summary_beneficiary_returns_repository_when_repository_raises():
+        repository = AsyncMock()
+        service = PaymentService(repository)
+
+        user = SimpleNamespace(
+            id=uuid4(),
+            username="jorge",
+        )
+
+        page_filter = FilterPage.build(
+            beneficiary="Amazon",
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+        )
+
+        exception = Exception("Repository error")
+        repository.summary_beneficiary.side_effect = exception
+
+        with (
+            patch("app.domain.finance.payment.service.handle_service_exception"),
+        ):
+            await service.summary_beneficiary(
+                user=user,
+                page_filter=page_filter,
+            )
+
+        repository.summary_beneficiary.assert_awaited_once_with(
+            user_id=user.id,
+            beneficiary="Amazon",
+            page_filter=page_filter,
         )

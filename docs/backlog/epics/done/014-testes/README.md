@@ -1,6 +1,6 @@
 # Epic 014 — Testes
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -12,14 +12,14 @@ Cobrir os módulos críticos do sistema com testes automatizados de domínio, in
 
 | ID | Task | Prioridade | Status |
 |---|---|---|---|
-| TASK-070 | Testes dos models | P0 | TODO |
-| TASK-071 | Testes do Auth | P0 | TODO |
-| TASK-072 | Testes do Receipt | P0 | TODO |
-| TASK-073 | Testes dos Parsers | P0 | TODO |
-| TASK-074 | Testes do Payment | P0 | TODO |
-| TASK-075 | Testes de Beneficiary | P0 | TODO |
-| TASK-076 | Testes de Institution | P0 | TODO |
-| TASK-077 | Testes de integração da confirmação | P0 | TODO |
+| TASK-070 | Testes dos models | P0 | DONE |
+| TASK-071 | Testes do Auth | P0 | DONE |
+| TASK-072 | Testes do Receipt | P0 | DONE |
+| TASK-073 | Testes dos Parsers | P0 | DONE |
+| TASK-074 | Testes do Payment | P0 | DONE |
+| TASK-075 | Testes de Beneficiary | P0 | DONE |
+| TASK-076 | Testes de Institution | P0 | DONE |
+| TASK-077 | Testes de integração da confirmação | P0 | DONE |
 
 ## Ordem de implementação
 
@@ -57,11 +57,11 @@ Este Epic contempla:
 
 O Epic será considerado `DONE` quando:
 
-* [ ] Os testes dos models, auth, receipt, parsers, payment, beneficiary e institution estiverem implementados.;
-* [ ] A integração da confirmação estiver coberta por testes.;
-* [ ] Os testes forem executados com sucesso e a regressão for controlada.;
-* [ ] A suíte de testes estiver alinhada às regras de negócio do MVP.;
+* [X] Os testes dos models, auth, receipt, parsers, payment, beneficiary e institution estiverem implementados.;
+* [X] A integração da confirmação estiver coberta por testes.;
+* [X] Os testes forem executados com sucesso e a regressão for controlada.;
+* [X] A suíte de testes estiver alinhada às regras de negócio do MVP.;
 
-* [ ] Todos os testes relacionados estiverem passando;
-* [ ] A documentação do Epic estiver atualizada;
-* [ ] Nenhuma regra de negócio foi alterada sem respaldo da documentação.
+* [X] Todos os testes relacionados estiverem passando;
+* [X] A documentação do Epic estiver atualizada;
+* [X] Nenhuma regra de negócio foi alterada sem respaldo da documentação.

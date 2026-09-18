@@ -1,24 +1,25 @@
-# TASK-085 — Logging de processamento
+# TASK-077 — Testes de integração da confirmação
 
-**Status:** `TODO`
+**Status:** `DONE`
 
-**Prioridade:** `P1`
+**Prioridade:** `P0`
 
 **Dependências:**
-- Nenhuma.
+- TASK-058
+- TASK-022
 
 ## Objetivo
 
-Logging de processamento conforme as regras do domínio, arquitetura e backlog do MVP.
+Testes de integração da confirmação conforme as regras do domínio, arquitetura e backlog do MVP.
 
 ## Referências
 
-- [05-domain.md](../../../../05-domain.md)
-- [06-database.md](../../../../06-database.md)
-- [07-api.md](../../../../07-api.md)
-- [08-backend-architecture.md](../../../../08-backend-architecture.md)
-- [09-domain-contracts.md](../../../../09-domain-contracts.md)
-- `README.md`
+- [05-domain.md](../../../../../05-domain.md)
+- [06-database.md](../../../../../06-database.md)
+- [07-api.md](../../../../../07-api.md)
+- [08-backend-architecture.md](../../../../../08-backend-architecture.md)
+- [09-domain-contracts.md](../../../../../09-domain-contracts.md)
+- `../../../../../../README.md`
 
 ## Escopo
 
@@ -29,12 +30,12 @@ Logging de processamento conforme as regras do domínio, arquitetura e backlog d
 
 ## Critérios de aceite
 
-* [ ] A funcionalidade foi implementada conforme o contrato do MVP;
-* [ ] O comportamento foi validado em cenários principais;
-* [ ] A regra de negócio relevante foi respeitada;
-* [ ] Os contratos de entrada/saída foram aplicados corretamente;
-* [ ] Os testes relacionados estiveram passando;
-* [ ] A documentação foi atualizada quando necessário.
+* [X] A funcionalidade foi implementada conforme o contrato do MVP;
+* [X] O comportamento foi validado em cenários principais;
+* [X] A regra de negócio relevante foi respeitada;
+* [X] Os contratos de entrada/saída foram aplicados corretamente;
+* [X] Os testes relacionados estiveram passando;
+* [X] A documentação foi atualizada quando necessário.
 
 ## Implementação
 
@@ -42,7 +43,8 @@ Registrar aqui os principais pontos implementados durante a execução da task.
 
 ## Dependências para conclusão
 
-* Nenhuma.
+* TASK-058 concluída antes da finalização desta task.
+* TASK-022 concluída antes da finalização desta task.
 
 ## Notas
 
@@ -50,7 +52,7 @@ Nenhuma.
 
 ---
 
-**Status final:** `TODO`
+**Status final:** `DONE`
 
 ## Status disponíveis
 

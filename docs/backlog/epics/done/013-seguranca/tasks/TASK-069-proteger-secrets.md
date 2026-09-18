@@ -1,24 +1,24 @@
-# TASK-076 — Testes de Institution
+# TASK-069 — Proteger secrets
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
 **Dependências:**
-- TASK-024
+- TASK-068
 
 ## Objetivo
 
-Testes de Institution conforme as regras do domínio, arquitetura e backlog do MVP.
+Proteger secrets conforme as regras do domínio, arquitetura e backlog do MVP.
 
 ## Referências
 
-- [05-domain.md](../../../../05-domain.md)
-- [06-database.md](../../../../06-database.md)
-- [07-api.md](../../../../07-api.md)
-- [08-backend-architecture.md](../../../../08-backend-architecture.md)
-- [09-domain-contracts.md](../../../../09-domain-contracts.md)
-- `README.md`
+- [05-domain.md](../../../../../05-domain.md)
+- [06-database.md](../../../../../06-database.md)
+- [07-api.md](../../../../../07-api.md)
+- [08-backend-architecture.md](../../../../../08-backend-architecture.md)
+- [09-domain-contracts.md](../../../../../09-domain-contracts.md)
+- `../../../../../../README.md`
 
 ## Escopo
 
@@ -29,12 +29,12 @@ Testes de Institution conforme as regras do domínio, arquitetura e backlog do M
 
 ## Critérios de aceite
 
-* [ ] A funcionalidade foi implementada conforme o contrato do MVP;
-* [ ] O comportamento foi validado em cenários principais;
-* [ ] A regra de negócio relevante foi respeitada;
-* [ ] Os contratos de entrada/saída foram aplicados corretamente;
-* [ ] Os testes relacionados estiveram passando;
-* [ ] A documentação foi atualizada quando necessário.
+* [X] A funcionalidade foi implementada conforme o contrato do MVP;
+* [X] O comportamento foi validado em cenários principais;
+* [X] A regra de negócio relevante foi respeitada;
+* [X] Os contratos de entrada/saída foram aplicados corretamente;
+* [X] Os testes relacionados estiveram passando;
+* [X] A documentação foi atualizada quando necessário.
 
 ## Implementação
 
@@ -42,7 +42,7 @@ Registrar aqui os principais pontos implementados durante a execução da task.
 
 ## Dependências para conclusão
 
-* TASK-024 concluída antes da finalização desta task.
+* TASK-068 concluída antes da finalização desta task.
 
 ## Notas
 
@@ -50,7 +50,7 @@ Nenhuma.
 
 ---
 
-**Status final:** `TODO`
+**Status final:** `DONE`
 
 ## Status disponíveis
 

@@ -13,7 +13,9 @@ from app.core.security import get_current_user
 from app.domain.finance.payment.schema import (
     PaymentSchema,
     PaymentSummaryCountSchema,
-    PaymentSummaryTotalSchema, PaymentSummaryMinMaxSchema,
+    PaymentSummaryTotalSchema,
+    PaymentSummaryMinMaxSchema,
+    PaymentSummaryBeneficiaryTotalSchema,
 )
 from app.domain.finance.payment.service import PaymentService
 from app.models import User
@@ -113,6 +115,7 @@ async def summary_max(
 ):
     return await service.summary_max(page_filter=page_filter, user=current_user)
 
+
 @router.get(
     "/summary/min",
     status_code=HTTPStatus.OK,
@@ -124,3 +127,16 @@ async def summary_min(
     page_filter: Annotated[FilterPage, Depends(payment_filter)],
 ):
     return await service.summary_min(page_filter=page_filter, user=current_user)
+
+
+@router.get(
+    "/summary/beneficiary",
+    status_code=HTTPStatus.OK,
+    response_model=PaymentSummaryBeneficiaryTotalSchema,
+)
+async def summary_beneficiary(
+    service: Service,
+    current_user: CurrentUser,
+    page_filter: Annotated[FilterPage, Depends(payment_filter)],
+):
+    return await service.summary_beneficiary(page_filter=page_filter, user=current_user)

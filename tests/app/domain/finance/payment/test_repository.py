@@ -15,10 +15,12 @@ from app.shared.schemas import FilterPage
 class TestPaymentRepositoryBuildFilter:
     def test_should_filter_by_user_id(self):
         user_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
 
         query = select(Payment)
 
-        result = PaymentRepository._build_filter(
+        result = repository._build_filter(
             query,
             user_id,
         )
@@ -29,13 +31,15 @@ class TestPaymentRepositoryBuildFilter:
 
     def test_should_filter_by_beneficiary(self):
         user_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
         page_filter = FilterPage.build(
             beneficiary="Amazon",
         )
 
         query = select(Payment)
 
-        result = PaymentRepository._build_filter(
+        result = repository._build_filter(
             query,
             user_id,
             page_filter,
@@ -49,13 +53,15 @@ class TestPaymentRepositoryBuildFilter:
 
     def test_should_filter_by_source_institution(self):
         user_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
         page_filter = FilterPage.build(
             source_institution="Itaú Unibanco",
         )
 
         query = select(Payment)
 
-        result = PaymentRepository._build_filter(
+        result = repository._build_filter(
             query,
             user_id,
             page_filter,
@@ -69,13 +75,15 @@ class TestPaymentRepositoryBuildFilter:
 
     def test_should_filter_by_destination_institution(self):
         user_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
         page_filter = FilterPage.build(
             destination_institution="Nubank",
         )
 
         query = select(Payment)
 
-        result = PaymentRepository._build_filter(
+        result = repository._build_filter(
             query,
             user_id,
             page_filter,
@@ -89,13 +97,15 @@ class TestPaymentRepositoryBuildFilter:
 
     def test_should_filter_by_start_date(self):
         user_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
         page_filter = FilterPage.build(
             start_date=date(2026, 9, 1),
         )
 
         query = select(Payment)
 
-        result = PaymentRepository._build_filter(
+        result = repository._build_filter(
             query,
             user_id,
             page_filter,
@@ -108,13 +118,15 @@ class TestPaymentRepositoryBuildFilter:
 
     def test_should_filter_by_end_date(self):
         user_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
         page_filter = FilterPage.build(
             end_date=date(2026, 9, 30),
         )
 
         query = select(Payment)
 
-        result = PaymentRepository._build_filter(
+        result = repository._build_filter(
             query,
             user_id,
             page_filter,
@@ -131,10 +143,12 @@ class TestPaymentRepositoryBuildFilter:
             start_date=date(2026, 9, 1),
             end_date=date(2026, 9, 30),
         )
+        session = AsyncMock()
+        repository = PaymentRepository(session)
 
         query = select(Payment)
 
-        result = PaymentRepository._build_filter(
+        result = repository._build_filter(
             query,
             user_id,
             page_filter,
@@ -148,6 +162,8 @@ class TestPaymentRepositoryBuildFilter:
 
     def test_should_apply_all_filters(self):
         user_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
         page_filter = FilterPage.build(
             beneficiary="Amazon",
             source_institution="Itaú",
@@ -158,7 +174,7 @@ class TestPaymentRepositoryBuildFilter:
 
         query = select(Payment)
 
-        result = PaymentRepository._build_filter(
+        result = repository._build_filter(
             query,
             user_id,
             page_filter,
@@ -181,11 +197,13 @@ class TestPaymentRepositoryBuildFilter:
 
     def test_should_not_add_optional_filters_when_not_provided(self):
         user_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
         page_filter = FilterPage()
 
         query = select(Payment)
 
-        result = PaymentRepository._build_filter(
+        result = repository._build_filter(
             query,
             user_id,
             page_filter,
@@ -202,10 +220,11 @@ class TestPaymentRepositoryBuildFilter:
 
     def test_should_return_query_with_user_filter_when_page_filter_is_none(self):
         user_id = uuid4()
-
+        session = AsyncMock()
+        repository = PaymentRepository(session)
         query = select(Payment)
 
-        result = PaymentRepository._build_filter(
+        result = repository._build_filter(
             query,
             user_id,
             None,
@@ -696,6 +715,7 @@ class TestPaymentRepositorySummaryTotal:
         session.scalars.assert_awaited_once()
         scalars_result.all.assert_called_once_with()
 
+
 class TestPaymentRepositorySummaryOrderBy:
     @staticmethod
     @pytest.mark.asyncio
@@ -981,3 +1001,47 @@ class TestPaymentRepositorySummaryOrderBy:
 
         session.scalars.assert_awaited_once()
         scalars_result.first.assert_called_once_with()
+
+
+class TestPaymentRepositorySummaryBeneficiary:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_beneficiary_of_payments_when_page_filter_is_none():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+
+        list = [
+            SimpleNamespace(id=uuid4(), amount=Decimal("4741.75")),
+            SimpleNamespace(id=uuid4(), amount=Decimal("132.98")),
+        ]
+
+        expected = {
+            "total": sum([item.amount for item in list]),
+            "beneficiary": "Amazon",
+        }
+
+        scalars_result = MagicMock()
+        scalars_result.all.return_value = list
+        session.scalars.return_value = scalars_result
+
+        with (
+            patch.object(
+                repository,
+                "_build_filter",
+                side_effect=lambda query, user_id, page_filter: query,
+            ) as build_filter,
+        ):
+            result = await repository.summary_beneficiary(
+                user_id=user_id,
+                beneficiary="Amazon",
+                page_filter=None,
+            )
+
+        assert result == expected
+
+        build_filter.assert_called_once()
+
+        session.scalars.assert_awaited_once()
+        scalars_result.all.assert_called_once_with()

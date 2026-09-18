@@ -1,24 +1,24 @@
-# TASK-082 — Configurar ambiente de desenvolvimento
+# TASK-076 — Testes de Institution
 
 **Status:** `DONE`
 
 **Prioridade:** `P0`
 
 **Dependências:**
-- TASK-081
+- TASK-024
 
 ## Objetivo
 
-Configurar ambiente de desenvolvimento conforme as regras do domínio, arquitetura e backlog do MVP.
+Testes de Institution conforme as regras do domínio, arquitetura e backlog do MVP.
 
 ## Referências
 
-- [05-domain.md](../../../../05-domain.md)
-- [06-database.md](../../../../06-database.md)
-- [07-api.md](../../../../07-api.md)
-- [08-backend-architecture.md](../../../../08-backend-architecture.md)
-- [09-domain-contracts.md](../../../../09-domain-contracts.md)
-- `README.md`
+- [05-domain.md](../../../../../05-domain.md)
+- [06-database.md](../../../../../06-database.md)
+- [07-api.md](../../../../../07-api.md)
+- [08-backend-architecture.md](../../../../../08-backend-architecture.md)
+- [09-domain-contracts.md](../../../../../09-domain-contracts.md)
+- `../../../../../../README.md`
 
 ## Escopo
 
@@ -42,7 +42,7 @@ Registrar aqui os principais pontos implementados durante a execução da task.
 
 ## Dependências para conclusão
 
-* TASK-081 concluída antes da finalização desta task.
+* TASK-024 concluída antes da finalização desta task.
 
 ## Notas
 

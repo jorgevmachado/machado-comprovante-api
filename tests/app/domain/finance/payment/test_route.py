@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -11,7 +12,10 @@ from app.domain.finance.payment.route import (
     payment_filter,
     payment_service,
     summary_count,
-    summary_total, summary_max, summary_min,
+    summary_total,
+    summary_max,
+    summary_min,
+    summary_beneficiary,
 )
 from app.domain.finance.payment.service import PaymentService
 
@@ -149,6 +153,7 @@ async def test_payment_route_summary_total() -> None:
         user=current_user,
     )
 
+
 @pytest.mark.asyncio
 async def test_payment_route_summary_max() -> None:
     service = AsyncMock()
@@ -157,7 +162,7 @@ async def test_payment_route_summary_max() -> None:
         end_date=date(2026, 9, 30),
     )
 
-    expected = SimpleNamespace(id="payment-1"),
+    expected = (SimpleNamespace(id="payment-1"),)
 
     service.summary_max.return_value = expected
 
@@ -178,6 +183,7 @@ async def test_payment_route_summary_max() -> None:
         user=current_user,
     )
 
+
 @pytest.mark.asyncio
 async def test_payment_route_summary_min() -> None:
     service = AsyncMock()
@@ -186,7 +192,7 @@ async def test_payment_route_summary_min() -> None:
         end_date=date(2026, 9, 30),
     )
 
-    expected = SimpleNamespace(id="payment-1"),
+    expected = (SimpleNamespace(id="payment-1"),)
 
     service.summary_min.return_value = expected
 
@@ -203,6 +209,37 @@ async def test_payment_route_summary_min() -> None:
 
     assert result is expected
     service.summary_min.assert_awaited_once_with(
+        page_filter=page_filter,
+        user=current_user,
+    )
+
+
+@pytest.mark.asyncio
+async def test_payment_route_summary_beneficiary() -> None:
+    service = AsyncMock()
+    page_filter = payment_filter(
+        start_date=date(2026, 9, 1),
+        end_date=date(2026, 9, 30),
+        beneficiary="beneficiary",
+    )
+
+    expected = (SimpleNamespace(beneficiary="beneficiary", amount=Decimal("100")),)
+
+    service.summary_beneficiary.return_value = expected
+
+    current_user = SimpleNamespace(
+        id="user-id",
+        username="Payment User",
+    )
+
+    result = await summary_beneficiary(
+        service=service,
+        current_user=current_user,
+        page_filter=page_filter,
+    )
+
+    assert result is expected
+    service.summary_beneficiary.assert_awaited_once_with(
         page_filter=page_filter,
         user=current_user,
     )
