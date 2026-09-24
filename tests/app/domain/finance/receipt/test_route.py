@@ -223,7 +223,7 @@ class TestReceiptRoutes:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_confirm_route_returns_service_result():
+    async def test_update_receipt_route_returns_service_result():
         service = AsyncMock()
 
         receipt_id = uuid4()
@@ -251,6 +251,6 @@ class TestReceiptRoutes:
 
         service.update_receipt.assert_awaited_once_with(
             receipt_id=str(receipt_id),
-            payload=payload,
+            payload=payload.model_dump(mode="json"),
             user=current_user,
         )

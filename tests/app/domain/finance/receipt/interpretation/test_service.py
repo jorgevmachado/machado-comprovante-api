@@ -314,3 +314,35 @@ class TestInterpretationService:
         result = InterpretationService._identify_institution(text)
 
         assert result == InstitutionEnum.UNKNOWN
+
+    def test_identify_institution_returns_nubank_when_itau_is_processing_institution(self):
+        text = """
+        Comprovante de pagamento
+        06 AGO 2026 - 16:13:05
+        Valor R$ 164,38
+        Manoel da Silva
+        Pagador Pinto
+        Documento
+        Favorecido SEFAZ DISTRITO FEDER
+        Código de barras
+        856700000016643800091305826000048627281
+        804612527
+        NSU
+        6362ebea-2e30-463e-a59a-58ebd89bbade
+        Nu Pagamentos S.A.
+        CNPJ 18.236.120/0001-58
+        ID da transação: 6a74dcbf - ef54-474b-
+        a4fa- Oba01edbcóba
+        Recebido por correspondente bancário
+        digital e processado por Itaú Unibanco S.A.
+        Estamos aqui para ajudar se você tiver alguma
+        dúvida.
+        Me ajuda >
+        Ouvidoria: 0800 887 0463 ou demais canais em
+        nubank.com.br/contatostouvidoria
+        """
+
+        assert (
+                InterpretationService._identify_institution(text)
+                == InstitutionEnum.NUBANK
+        )

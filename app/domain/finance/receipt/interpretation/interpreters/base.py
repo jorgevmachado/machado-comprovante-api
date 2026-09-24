@@ -299,7 +299,6 @@ class BaseInterpreter:
 
     @staticmethod
     def _extract_beneficiary(text: str) -> ExtractedField[str]:
-        print('# => _extract_beneficiary => ', text)
         return BaseInterpreter._extract_text_field(
             text,
             (

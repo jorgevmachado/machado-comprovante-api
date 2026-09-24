@@ -111,12 +111,6 @@ class InterpretationService:
 
             return InstitutionEnum.UNKNOWN
 
-        if re.search(r"ITA[ÚU]\s+UNIBANCO", normalized_text):
-            return InstitutionEnum.ITAU
-
-        if "AUTENTICAÇÃO DIGITAL ITAÚ" in normalized_text:
-            return InstitutionEnum.ITAU
-
         if re.search(r"NU\s+PAGAMENTOS\s+S\.?A", normalized_text):
             return InstitutionEnum.NUBANK
 
@@ -131,6 +125,12 @@ class InterpretationService:
 
         if "VIA INTERNET BANKING CAIXA" in normalized_text:
             return InstitutionEnum.CAIXA
+
+        if "AUTENTICAÇÃO DIGITAL ITAÚ" in normalized_text:
+            return InstitutionEnum.ITAU
+
+        if re.search(r"ITA[ÚU]\s+UNIBANCO", normalized_text):
+            return InstitutionEnum.ITAU
 
         return InstitutionEnum.UNKNOWN
 

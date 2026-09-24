@@ -104,5 +104,5 @@ async def update_receipt(
     current_user: CurrentUser,
 ):
     return await service.update_receipt(
-        receipt_id=receipt_id, payload=payload, user=current_user
+        receipt_id=receipt_id, payload=payload.model_dump(mode="json"), user=current_user
     )

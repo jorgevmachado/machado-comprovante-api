@@ -37,7 +37,6 @@ class NubankInterpreter(BaseInterpreter):
     def _extract_payment_date(
         text: str,
     ) -> ExtractedField[date]:
-        print('# => _extract_payment_date => ', text)
         match = re.search(
             r"(\d{2})\s+([A-Z]{3})\s+(\d{4})(?:\s*-\s*\d{2}:\d{2}:\d{2})?",
             text,
