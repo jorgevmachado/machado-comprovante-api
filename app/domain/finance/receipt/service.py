@@ -20,6 +20,7 @@ from app.domain.finance.receipt.interpretation.schema import (
     ExtractedReceiptData,
 )
 from app.domain.finance.receipt.interpretation.service import InterpretationService
+from app.domain.finance.receipt.interpretation.validation import InterpretationValidator
 
 from app.domain.finance.receipt.repository import (
     ReceiptRepository,
@@ -269,3 +270,27 @@ class ReceiptService(BaseService[ReceiptRepository, Receipt]):
             processed=processed,
             processing=processing,
         )
+
+    async def update_receipt(self, receipt_id: str, payload: dict[str, object], user: User) -> Receipt:
+        receipt = await self.find_by(
+            id=receipt_id, user_id=str(user.id), without_throw=True
+        )
+        if not receipt:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND, detail="Receipt not found"
+            )
+        if (
+                receipt.processing_status == ProcessingStatusEnum.PROCESSED or
+                receipt.processing_status == ProcessingStatusEnum.PROCESSING
+        ):
+            raise HTTPException(
+                status_code=HTTPStatus.CONFLICT,
+                detail="Receipt is processed or in processing and cannot be updated",
+            )
+
+        extracted_data = self.interpretation_service.convert(payload)
+        validated = InterpretationValidator.validate(extracted_data)
+        receipt.extracted_data = extracted_data.model_dump(mode="json")
+        receipt.processing_status = ProcessingStatusEnum.RECEIVED if not validated.errors else ProcessingStatusEnum.FAILED
+        return await self.repository.save(entity=receipt)
+

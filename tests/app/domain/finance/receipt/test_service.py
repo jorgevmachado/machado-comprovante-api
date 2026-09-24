@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from http import HTTPStatus
 from types import SimpleNamespace
 from uuid import UUID, uuid4
 import hashlib
@@ -128,6 +129,20 @@ def create_interpretation(
         errors=errors or [],
     )
 
+@pytest.fixture()
+def receipt():
+    created_at = datetime(2026, 9, 15, 10, 30, tzinfo=timezone.utc)
+    receipt = MagicMock(spec=Receipt)
+    receipt.id = UUID("22222222-2222-2222-2222-222222222222")
+    receipt.file_name = "comprovante.pdf"
+    receipt.file_type = "application/pdf"
+    receipt.file_size = 1024
+    receipt.processing_status = ProcessingStatusEnum.RECEIVED
+    receipt.extracted_data = None
+    receipt.created_at = created_at
+    receipt.updated_at = None
+    receipt.deleted_at = None
+    return receipt
 
 class TestReceiptServiceCalculateHash:
     def test_calculate_hash(self):
@@ -861,3 +876,204 @@ class TestReceiptServiceReceivedReceiptBatch:
         assert result.processing == 1
         assert result.total == 5
         assert len(result.items) == 5
+
+
+class TestReceiptServiceUpdateReceipt:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_update_receipt_raises_when_receipt_does_not_exist():
+        service = create_service()
+        user = create_user()
+
+        service.find_by = AsyncMock(return_value=None)
+
+        payload = {
+            "payment_date": "2026-09-15",
+            "paid_amount": "95.00",
+            "beneficiary": "EMPRESA EXEMPLO",
+            "source_institution": "Banco Exemplo",
+            "destination_institution": None,
+        }
+
+        receipt_id = UUID("22222222-2222-2222-2222-222222222222")
+
+        with pytest.raises(HTTPException) as exc_info:
+            await service.update_receipt(
+                receipt_id=str(receipt_id),
+                user=user,
+                payload=payload,
+            )
+
+        assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
+        assert exc_info.value.detail == "Receipt not found"
+
+        service.find_by.assert_awaited_once_with(
+            id=str(receipt_id),
+            user_id=str(user.id),
+            without_throw=True,
+        )
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_update_receipt_raises_when_receipt_processing_status_is_processed(receipt):
+        service = create_service()
+        user = create_user()
+
+        receipt.processing_status = ProcessingStatusEnum.PROCESSED
+        service.find_by = AsyncMock(return_value=receipt)
+
+        payload = {
+            "payment_date": "2026-09-15",
+            "paid_amount": "95.00",
+            "beneficiary": "EMPRESA EXEMPLO",
+            "source_institution": "Banco Exemplo",
+            "destination_institution": None,
+        }
+
+        with pytest.raises(HTTPException) as exc_info:
+            await service.update_receipt(
+                receipt_id=str(receipt.id),
+                user=user,
+                payload=payload,
+            )
+
+        assert exc_info.value.status_code == HTTPStatus.CONFLICT
+        assert exc_info.value.detail == "Receipt is processed or in processing and cannot be updated"
+
+        service.find_by.assert_awaited_once_with(
+            id=str(receipt.id),
+            user_id=str(user.id),
+            without_throw=True,
+        )
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_update_receipt_raises_when_receipt_processing_status_is_processing(receipt):
+        service = create_service()
+        user = create_user()
+
+        receipt.processing_status = ProcessingStatusEnum.PROCESSING
+        service.find_by = AsyncMock(return_value=receipt)
+
+        payload = {
+            "payment_date": "2026-09-15",
+            "paid_amount": "95.00",
+            "beneficiary": "EMPRESA EXEMPLO",
+            "source_institution": "Banco Exemplo",
+            "destination_institution": None,
+        }
+
+        with pytest.raises(HTTPException) as exc_info:
+            await service.update_receipt(
+                receipt_id=str(receipt.id),
+                user=user,
+                payload=payload,
+            )
+
+        assert exc_info.value.status_code == HTTPStatus.CONFLICT
+        assert exc_info.value.detail == "Receipt is processed or in processing and cannot be updated"
+
+        service.find_by.assert_awaited_once_with(
+            id=str(receipt.id),
+            user_id=str(user.id),
+            without_throw=True,
+        )
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_update_receipt_with_success(receipt):
+        service = create_service()
+
+        receipt.extracted_data = {
+        "payment_date": {
+            "value": "2026-09-15",
+            "status": "FOUND",
+        },
+        "document_amount": {
+            "value": "100.00",
+            "status": "FOUND",
+        },
+        "paid_amount": {
+            "value": "95.00",
+            "status": "FOUND",
+        },
+        "beneficiary": {
+            "value": "EMPRESA EXEMPLO",
+            "status": "FOUND",
+        },
+        "source_institution": {
+            "value": "Banco Exemplo",
+            "status": "FOUND",
+        },
+        "destination_institution": {
+            "value": None,
+            "status": "NOT_FOUND",
+        },
+        "due_date": {
+            "value": None,
+            "status": "NOT_FOUND",
+        },
+        "discount": {
+            "value": None,
+            "status": "NOT_FOUND",
+        },
+        "interest": {
+            "value": None,
+            "status": "NOT_FOUND",
+        },
+        "fine": {
+            "value": None,
+            "status": "NOT_FOUND",
+        },
+        "total_charges": {
+            "value": None,
+            "status": "NOT_FOUND",
+        },
+        "payer": {
+            "value": None,
+            "status": "NOT_FOUND",
+        },
+        "effective_payer": {
+            "value": None,
+            "status": "NOT_FOUND",
+        },
+        "barcode": {
+            "value": None,
+            "status": "NOT_FOUND",
+        },
+        "authentication": {
+            "value": None,
+            "status": "NOT_FOUND",
+        },
+        "transaction_id": {
+            "value": None,
+            "status": "NOT_FOUND",
+        },
+    }
+        receipt.processing_status = ProcessingStatusEnum.FAILED
+
+        payload = {
+            "payment_date": "2026-09-15",
+            "paid_amount": "95.00",
+            "beneficiary": "EMPRESA EXEMPLO",
+            "source_institution": "Banco Exemplo",
+            "destination_institution": None,
+        }
+
+        service.repository.find_by = AsyncMock(return_value=receipt)
+        expected_receipt = receipt
+        expected_receipt.processing_status = ProcessingStatusEnum.RECEIVED
+        service.repository.save = AsyncMock(return_value=expected_receipt)
+
+        result = await service.update_receipt(
+            receipt_id=receipt.id,
+            payload=payload,
+            user=create_user()
+        )
+
+        assert result is expected_receipt
+        assert expected_receipt.extracted_data == (
+            service.interpretation_service.convert(payload).model_dump(mode="json")
+        )
+
+        service.repository.save.assert_awaited_once_with(entity=expected_receipt)

@@ -14,6 +14,7 @@ from app.domain.finance.receipt.schema import (
     BatchReceiptResponseSchema,
 )
 from app.domain.finance.receipt.service import ReceiptService
+from app.domain.finance.schema import FinanceConfirmRequestSchema
 from app.models import User
 from app.shared.schemas import FilterPage
 
@@ -93,3 +94,15 @@ async def get_receipt(
     current_user: CurrentUser,
 ):
     return await service.get_receipt(receipt_id=receipt_id, user=current_user)
+
+
+@router.put("/{receipt_id}", response_model=ReceiptSchema, status_code=HTTPStatus.OK)
+async def update_receipt(
+    service: Service,
+    receipt_id: str,
+    payload: FinanceConfirmRequestSchema,
+    current_user: CurrentUser,
+):
+    return await service.update_receipt(
+        receipt_id=receipt_id, payload=payload, user=current_user
+    )

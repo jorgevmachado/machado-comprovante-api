@@ -10,9 +10,20 @@ from app.domain.finance.receipt.route import (
     get_receipt,
     received_receipt,
     receipt_service,
-    received_receipt_batch, receipt_filter, list_all,
+    received_receipt_batch, receipt_filter, list_all, update_receipt,
 )
 from app.domain.finance.receipt.service import ReceiptService
+from app.domain.finance.schema import FinanceConfirmRequestSchema
+
+
+def build_update_payload() -> FinanceConfirmRequestSchema:
+    return FinanceConfirmRequestSchema(
+        paid_amount="387.42",
+        payment_date="2026-09-12",
+        beneficiary="Empresa Exemplo",
+        source_institution="Banco Exemplo",
+        destination_institution="Banco Destino",
+    )
 
 class TestReceiptRoutes:
     @staticmethod
@@ -209,3 +220,37 @@ class TestReceiptRoutes:
         assert received_filter.page == page_filter.page
         assert received_filter.limit == page_filter.limit
         assert received_filter.user_id == current_user.id
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_confirm_route_returns_service_result():
+        service = AsyncMock()
+
+        receipt_id = uuid4()
+
+        current_user = SimpleNamespace(
+            id=uuid4(),
+        )
+
+        payload = build_update_payload()
+
+        expected = SimpleNamespace(
+            id=uuid4(),
+        )
+
+        service.update_receipt.return_value = expected
+
+        result = await update_receipt(
+            receipt_id=str(receipt_id),
+            service=service,
+            payload=payload,
+            current_user=current_user,
+        )
+
+        assert result is expected
+
+        service.update_receipt.assert_awaited_once_with(
+            receipt_id=str(receipt_id),
+            payload=payload,
+            user=current_user,
+        )
