@@ -76,11 +76,7 @@ class ReceiptService(BaseService[ReceiptRepository, Receipt]):
                 if not interpretation.errors
                 else ProcessingStatusEnum.FAILED
             )
-            interpretation_data = (
-                interpretation.data.model_dump(mode="json")
-                if processing_status == ProcessingStatusEnum.RECEIVED
-                else None
-            )
+            interpretation_data = interpretation.data.model_dump(mode="json")
             if receipt:
                 receipt.file_name = file.filename
                 receipt.file_type = file.content_type

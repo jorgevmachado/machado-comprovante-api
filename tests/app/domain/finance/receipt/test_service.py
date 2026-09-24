@@ -212,7 +212,7 @@ class TestReceiptServicePersistReceivedReceipt:
         entity = service.repository.save.await_args.kwargs["entity"]
 
         assert entity.processing_status == ProcessingStatusEnum.FAILED
-        assert entity.extracted_data is None
+        assert entity.extracted_data is not None
 
     @pytest.mark.asyncio
     async def test_persist_received_receipt_updates_existing_receipt(

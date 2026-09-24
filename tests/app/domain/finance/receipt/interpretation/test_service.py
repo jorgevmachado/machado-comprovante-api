@@ -231,3 +231,86 @@ class TestInterpretationService:
 
     def test_has_text_returns_false_for_whitespace(self):
         assert InterpretationService._has_text("   \n\t  ") is False
+
+    def test_identify_nubank_origin_with_itau_destination(self):
+        text = """
+            Comprovante de pagamento
+            Destino
+            Nome NEOENERGIA BRASILIA
+            Instituição ITAÚ UNIBANCO S.A.
+
+            Origem
+            Nome Jorge Luiz Vieira Machado da Silva
+            Instituição NU PAGAMENTOS - IP
+        """
+
+        result = InterpretationService._identify_institution(text)
+
+        assert result == InstitutionEnum.NUBANK
+
+    def test_identify_nubank_origin_with_corrupted_ocr(self):
+        text = """
+            Comprovante de pagamento
+            Destino
+            Nome NEOENERGIA BRASILIA
+            Instituição ITAÚ UNIBANCO S.A.
+
+            Origem
+            Nome Jorge Luiz Vieira Machado da Silva
+            NU PAGAMENTOS |P
+            CPF 123.456.789-00
+
+            Nu Pagamentos S.A. - Instituição de Pagamento
+            CNPJ 18.236.120/0001-58
+        """
+
+        result = InterpretationService._identify_institution(text)
+
+        assert result == InstitutionEnum.NUBANK
+
+    def test_identify_itau_origin_with_other_destination(self):
+        text = """
+            Comprovante de pagamento
+            Destino
+            Nome João da Silva
+            Instituição NU PAGAMENTOS S.A.
+
+            Origem
+            Nome Maria da Silva
+            Instituição ITAU UNIBANCO S.A.
+        """
+
+        result = InterpretationService._identify_institution(text)
+
+        assert result == InstitutionEnum.ITAU
+
+    def test_identify_caixa_origin(self):
+        text = """
+            Comprovante de pagamento
+            Destino
+            Nome João da Silva
+            Instituição ITAU UNIBANCO S.A.
+
+            Origem
+            Nome Maria da Silva
+            Banco CAIXA ECONOMICA FEDERAL
+        """
+
+        result = InterpretationService._identify_institution(text)
+
+        assert result == InstitutionEnum.CAIXA
+
+    def test_identify_unknown_when_origin_has_no_known_institution(self):
+        text = """
+            Comprovante de pagamento
+            Destino
+            Instituição ITAU UNIBANCO S.A.
+
+            Origem
+            Nome João da Silva
+            Instituição BANCO EXEMPLO
+        """
+
+        result = InterpretationService._identify_institution(text)
+
+        assert result == InstitutionEnum.UNKNOWN

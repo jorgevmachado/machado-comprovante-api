@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from app.domain.finance.receipt.interpretation.interpreters.unknown import (
     UnknownInterpreter,
 )
@@ -86,25 +88,48 @@ class InterpretationService:
     def _identify_institution(text: str) -> InstitutionEnum:
         normalized_text = text.upper()
 
-        if (
-            "ITAU UNIBANCO" in normalized_text
-            or "ITAÚ UNIBANCO" in normalized_text
-            or "AUTENTICAÇÃO DIGITAL ITAÚ" in normalized_text
-        ):
+        origin_match = re.search(
+            r"\bORIGEM\b(.*?)(?=\bDESTINO\b|\Z)",
+            normalized_text,
+            re.DOTALL,
+        )
+
+        if origin_match:
+            origin_text = origin_match.group(1)
+
+            if re.search(r"NU\s+PAGAMENTOS", origin_text):
+                return InstitutionEnum.NUBANK
+
+            if re.search(r"ITA[ÚU]\s+UNIBANCO", origin_text):
+                return InstitutionEnum.ITAU
+
+            if re.search(
+                    r"CAIXA\s+ECON[ÔO]MICA\s+FEDERAL",
+                    origin_text,
+            ):
+                return InstitutionEnum.CAIXA
+
+            return InstitutionEnum.UNKNOWN
+
+        if re.search(r"ITA[ÚU]\s+UNIBANCO", normalized_text):
             return InstitutionEnum.ITAU
 
-        if (
-            "NU PAGAMENTOS SA" in normalized_text
-            or "NU PAGAMENTOS S.A." in normalized_text
-            or "NUBANK.COM.BR" in normalized_text
-        ):
+        if "AUTENTICAÇÃO DIGITAL ITAÚ" in normalized_text:
+            return InstitutionEnum.ITAU
+
+        if re.search(r"NU\s+PAGAMENTOS\s+S\.?A", normalized_text):
             return InstitutionEnum.NUBANK
 
-        if (
-            "CAIXA ECONOMICA FEDERAL" in normalized_text
-            or "CAIXA ECONÔMICA FEDERAL" in normalized_text
-            or "VIA INTERNET BANKING CAIXA" in normalized_text
+        if "NUBANK.COM.BR" in normalized_text:
+            return InstitutionEnum.NUBANK
+
+        if re.search(
+                r"CAIXA\s+ECON[ÔO]MICA\s+FEDERAL",
+                normalized_text,
         ):
+            return InstitutionEnum.CAIXA
+
+        if "VIA INTERNET BANKING CAIXA" in normalized_text:
             return InstitutionEnum.CAIXA
 
         return InstitutionEnum.UNKNOWN
