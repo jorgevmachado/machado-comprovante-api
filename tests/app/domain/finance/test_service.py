@@ -14,6 +14,7 @@ from app.domain.finance.payment.service import PaymentService
 from app.domain.finance.receipt.service import ReceiptService
 from app.domain.finance.schema import FinanceConfirmRequestSchema
 from app.domain.finance.service import FinanceService
+from app.models import utcnow
 from app.models.enums import ProcessingStatusEnum
 
 
@@ -84,6 +85,7 @@ class TestFinanceService:
         payment = SimpleNamespace(
             id=uuid4(),
             amount=Decimal("387.42"),
+            created_at=utcnow(),
             payment_date=date(2026, 9, 12),
         )
 
@@ -190,6 +192,7 @@ class TestFinanceService:
         payment = SimpleNamespace(
             id=uuid4(),
             amount=Decimal("95.00"),
+            created_at=utcnow(),
             payment_date=date(2026, 9, 12),
         )
 

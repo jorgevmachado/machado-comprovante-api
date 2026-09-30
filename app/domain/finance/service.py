@@ -97,6 +97,7 @@ class FinanceService:
                 payment=PaymentSchema(
                     id=payment.id,
                     amount=payment.amount,
+                    created_at=payment.created_at,
                     beneficiary=beneficiary_schema,
                     payment_date=payment.payment_date,
                     source_institution=source_institution_schema,

@@ -14,7 +14,7 @@ from app.domain.finance.beneficiary.schema import BeneficiarySchema
 from app.domain.finance.institution.schema import InstitutionSchema
 from app.domain.finance.payment.schema import PaymentSummaryMinMaxSchema, PaymentSchema
 from app.domain.finance.payment.service import PaymentService
-from app.models import Payment
+from app.models import Payment, utcnow
 from app.shared.schemas import FilterPage
 
 
@@ -500,6 +500,7 @@ class TestPaymentServiceSummaryMax:
             id=uuid4(),
             amount=Decimal("2000"),
             beneficiary=expected_beneficiary,
+            created_at=utcnow(),
             payment_date=date(2026, 9, 15),
             source_institution=expected_source_institution,
         )
@@ -515,6 +516,7 @@ class TestPaymentServiceSummaryMax:
             payment=PaymentSchema(
                 id=expected.id,
                 amount=expected.amount,
+                created_at=expected.created_at,
                 beneficiary=expected.beneficiary,
                 payment_date=expected.payment_date,
                 source_institution=expected.source_institution,
@@ -580,6 +582,7 @@ class TestPaymentServiceSummaryMin:
         expected = SimpleNamespace(
             id=uuid4(),
             amount=Decimal("2000"),
+            created_at=utcnow(),
             beneficiary=expected_beneficiary,
             payment_date=date(2026, 9, 15),
             source_institution=expected_source_institution,
@@ -596,6 +599,7 @@ class TestPaymentServiceSummaryMin:
             payment=PaymentSchema(
                 id=expected.id,
                 amount=expected.amount,
+                created_at=expected.created_at,
                 beneficiary=expected.beneficiary,
                 payment_date=expected.payment_date,
                 source_institution=expected.source_institution,

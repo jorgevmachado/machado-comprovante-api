@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from uuid import UUID
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 from app.domain.finance.beneficiary.schema import BeneficiarySchema
@@ -13,6 +13,7 @@ class PaymentSchema(BaseModel):
     amount: Decimal
     beneficiary: BeneficiarySchema
     payment_date: date
+    created_at: datetime
     source_institution: InstitutionSchema
     destination_institution: InstitutionSchema | None = None
 
