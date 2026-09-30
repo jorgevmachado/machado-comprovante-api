@@ -64,22 +64,32 @@ class TestFinanceService:
 
         receipt = SimpleNamespace(
             id=uuid4(),
+            created_at=utcnow(),
+            updated_at=None,
+            deleted_at=None,
+            file_name="receipt.pdf",
+            file_type="application/pdf",
+            file_size=1024,
+            extracted_data=None,
             processing_status=ProcessingStatusEnum.PROCESSED,
         )
 
         beneficiary = SimpleNamespace(
             id=uuid4(),
             name="Empresa Exemplo",
+            created_at=utcnow(),
         )
 
         source_institution = SimpleNamespace(
             id=uuid4(),
             name="Banco Exemplo",
+            created_at=utcnow(),
         )
 
         destination_institution = SimpleNamespace(
             id=uuid4(),
             name="Banco Destino",
+            created_at=utcnow(),
         )
 
         payment = SimpleNamespace(
@@ -90,6 +100,7 @@ class TestFinanceService:
         )
 
         receipt_service.validate_confirm_receipt.return_value = receipt
+        receipt_service.confirm_receipt.return_value = receipt
         beneficiary_service.resolve.return_value = beneficiary
 
         institution_service.resolve.side_effect = [
@@ -177,16 +188,26 @@ class TestFinanceService:
 
         receipt = SimpleNamespace(
             id=uuid4(),
+            updated_at=None,
+            deleted_at=None,
+            created_at=utcnow(),
+            file_name="receipt.pdf",
+            file_type="application/pdf",
+            file_size=1024,
+            extracted_data=None,
+            processing_status=ProcessingStatusEnum.PROCESSED
         )
 
         beneficiary = SimpleNamespace(
             id=uuid4(),
             name="Empresa Exemplo",
+            created_at=utcnow(),
         )
 
         source_institution = SimpleNamespace(
             id=uuid4(),
             name="Banco Exemplo",
+            created_at=utcnow(),
         )
 
         payment = SimpleNamespace(
@@ -197,6 +218,7 @@ class TestFinanceService:
         )
 
         receipt_service.validate_confirm_receipt.return_value = receipt
+        receipt_service.confirm_receipt.return_value = receipt
         beneficiary_service.resolve.return_value = beneficiary
         institution_service.resolve.return_value = source_institution
         payment_service.create.return_value = payment

@@ -5,12 +5,14 @@ from decimal import Decimal
 
 from app.domain.finance.beneficiary.schema import BeneficiarySchema
 from app.domain.finance.institution.schema import InstitutionSchema
+from app.domain.finance.receipt.schema import ReceiptSchema
 
 
 class PaymentSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
     amount: Decimal
+    receipt: ReceiptSchema
     beneficiary: BeneficiarySchema
     payment_date: date
     created_at: datetime

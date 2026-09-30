@@ -3,6 +3,8 @@ from app.domain.finance.beneficiary.service import BeneficiaryService
 from app.domain.finance.institution.schema import InstitutionSchema
 from app.domain.finance.payment.schema import PaymentSchema
 from app.domain.finance.payment.service import PaymentService
+from app.domain.finance.receipt.interpretation.schema import ExtractedReceiptData
+from app.domain.finance.receipt.schema import ReceiptSchema
 from app.domain.finance.receipt.service import ReceiptService
 from app.domain.finance.institution.service import InstitutionService
 from typing import Annotated
@@ -75,18 +77,24 @@ class FinanceService:
                 else None,
             )
 
-            await self.receipt_service.confirm_receipt(
+            receipt_updated = await self.receipt_service.confirm_receipt(
                 receipt=receipt, payload=payload.model_dump(mode="json")
             )
             beneficiary_schema = BeneficiarySchema(
-                id=beneficiary.id, name=beneficiary.name
+                id=beneficiary.id,
+                name=beneficiary.name,
+                created_at=beneficiary.created_at
             )
             source_institution_schema = InstitutionSchema(
-                id=source_institution.id, name=source_institution.name
+                id=source_institution.id,
+                name=source_institution.name,
+                created_at=source_institution.created_at
             )
             destination_institution_schema = (
                 InstitutionSchema(
-                    id=destination_institution.id, name=destination_institution.name
+                    id=destination_institution.id,
+                    name=destination_institution.name,
+                    created_at=destination_institution.created_at
                 )
                 if destination_institution
                 else None
@@ -97,6 +105,20 @@ class FinanceService:
                 payment=PaymentSchema(
                     id=payment.id,
                     amount=payment.amount,
+                    receipt=ReceiptSchema(
+                        id=receipt_updated.id,
+                        file_name=receipt_updated.file_name,
+                        file_type=receipt_updated.file_type,
+                        file_size=receipt_updated.file_size,
+                        created_at=receipt_updated.created_at,
+                        updated_at=receipt_updated.updated_at,
+                        deleted_at=receipt_updated.deleted_at,
+                        extracted_data=(
+                            ExtractedReceiptData.model_validate(receipt_updated.extracted_data)
+                            if receipt_updated.extracted_data is not None else None
+                        ),
+                        processing_status=receipt_updated.processing_status
+                    ),
                     created_at=payment.created_at,
                     beneficiary=beneficiary_schema,
                     payment_date=payment.payment_date,

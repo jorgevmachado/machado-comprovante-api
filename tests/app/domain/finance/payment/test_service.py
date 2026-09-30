@@ -14,7 +14,8 @@ from app.domain.finance.beneficiary.schema import BeneficiarySchema
 from app.domain.finance.institution.schema import InstitutionSchema
 from app.domain.finance.payment.schema import PaymentSummaryMinMaxSchema, PaymentSchema
 from app.domain.finance.payment.service import PaymentService
-from app.models import Payment, utcnow
+from app.domain.finance.receipt.schema import ReceiptSchema
+from app.models import Payment, utcnow, ProcessingStatusEnum
 from app.shared.schemas import FilterPage
 
 
@@ -492,13 +493,23 @@ class TestPaymentServiceSummaryMax:
             end_date=date(2026, 9, 30),
         )
 
-        expected_beneficiary = BeneficiarySchema(id=uuid4(), name="Beneficiary")
+        expected_beneficiary = BeneficiarySchema(id=uuid4(), name="Beneficiary", created_at=utcnow())
 
-        expected_source_institution = InstitutionSchema(id=uuid4(), name="Institution")
+        expected_source_institution = InstitutionSchema(id=uuid4(), name="Institution", created_at=utcnow())
+
+        expected_receipt = ReceiptSchema(
+            id=uuid4(),
+            created_at=utcnow(),
+            file_name="receipt.pdf",
+            file_type="application/pdf",
+            file_size=1024,
+            processing_status=ProcessingStatusEnum.PROCESSED
+        )
 
         expected = SimpleNamespace(
             id=uuid4(),
             amount=Decimal("2000"),
+            receipt=expected_receipt,
             beneficiary=expected_beneficiary,
             created_at=utcnow(),
             payment_date=date(2026, 9, 15),
@@ -518,6 +529,7 @@ class TestPaymentServiceSummaryMax:
                 amount=expected.amount,
                 created_at=expected.created_at,
                 beneficiary=expected.beneficiary,
+                receipt=expected.receipt,
                 payment_date=expected.payment_date,
                 source_institution=expected.source_institution,
             )
@@ -575,14 +587,24 @@ class TestPaymentServiceSummaryMin:
             end_date=date(2026, 9, 30),
         )
 
-        expected_beneficiary = BeneficiarySchema(id=uuid4(), name="Beneficiary")
+        expected_beneficiary = BeneficiarySchema(id=uuid4(), name="Beneficiary", created_at=utcnow())
 
-        expected_source_institution = InstitutionSchema(id=uuid4(), name="Institution")
+        expected_source_institution = InstitutionSchema(id=uuid4(), name="Institution", created_at=utcnow())
+
+        expected_receipt = ReceiptSchema(
+            id=uuid4(),
+            created_at=utcnow(),
+            file_name="receipt.pdf",
+            file_type="application/pdf",
+            file_size=1024,
+            processing_status=ProcessingStatusEnum.PROCESSED
+        )
 
         expected = SimpleNamespace(
             id=uuid4(),
             amount=Decimal("2000"),
             created_at=utcnow(),
+            receipt=expected_receipt,
             beneficiary=expected_beneficiary,
             payment_date=date(2026, 9, 15),
             source_institution=expected_source_institution,
@@ -599,6 +621,7 @@ class TestPaymentServiceSummaryMin:
             payment=PaymentSchema(
                 id=expected.id,
                 amount=expected.amount,
+                receipt=expected.receipt,
                 created_at=expected.created_at,
                 beneficiary=expected.beneficiary,
                 payment_date=expected.payment_date,

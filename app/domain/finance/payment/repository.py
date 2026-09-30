@@ -142,6 +142,7 @@ class PaymentRepository(BaseRepository[Payment]):
         query = select(self.model).options(
             selectinload(Payment.user),
             selectinload(Payment.beneficiary),
+            selectinload(Payment.receipt),
             selectinload(Payment.source_institution),
             selectinload(Payment.destination_institution),
         )
