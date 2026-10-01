@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import re
 
+from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
 from app.domain.finance.receipt.interpretation.interpreters.base import BaseInterpreter
 from app.domain.finance.receipt.interpretation.schema import ExtractedField
 
 
 class CaixaInterpreter(BaseInterpreter):
     @staticmethod
-    def _extract_source_institution(text: str) -> ExtractedField[str]:
+    def extract_source_institution(text: str, institution: InstitutionEnum = InstitutionEnum.UNKNOWN) -> ExtractedField[str]:
+        if institution == InstitutionEnum.CAIXA:
+            return CaixaInterpreter._extract_text("Caixa")
+
         match = re.search(
             r"Banco Recebedor:\s*(.+?)(?=\n|Pagador Final)",
             text,

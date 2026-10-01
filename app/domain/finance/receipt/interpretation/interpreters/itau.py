@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 
+from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
 from app.domain.finance.receipt.interpretation.interpreters.base import BaseInterpreter
 from app.domain.finance.receipt.interpretation.schema import ExtractedField
 
@@ -20,9 +21,12 @@ class ItauInterpreter(BaseInterpreter):
         return ItauInterpreter._extract_text(match.group(1))
 
     @staticmethod
-    def _extract_source_institution(
+    def extract_source_institution(
         text: str,
+        institution: InstitutionEnum = InstitutionEnum.UNKNOWN
     ) -> ExtractedField[str]:
+        if institution == InstitutionEnum.ITAU:
+            return ItauInterpreter._extract_text("Itaú")
         return ItauInterpreter._find_institution(
             text,
             "Itaú",

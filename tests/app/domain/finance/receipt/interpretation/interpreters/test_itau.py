@@ -1,3 +1,4 @@
+from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
 from app.domain.finance.receipt.interpretation.interpreters.itau import (
     ItauInterpreter,
 )
@@ -30,7 +31,7 @@ class TestItauInterpreter:
         assert result.value is None
 
     def test_extract_source_institution_from_itau_unibanco(self):
-        result = ItauInterpreter._extract_source_institution(
+        result = ItauInterpreter.extract_source_institution(
             "Beneficiário: ITAU UNIBANCO S.A."
         )
 
@@ -38,7 +39,7 @@ class TestItauInterpreter:
         assert result.value == "Itaú"
 
     def test_extract_source_institution_from_accented_itau_unibanco(self):
-        result = ItauInterpreter._extract_source_institution(
+        result = ItauInterpreter.extract_source_institution(
             "Beneficiário: ITAÚ UNIBANCO S.A."
         )
 
@@ -46,7 +47,7 @@ class TestItauInterpreter:
         assert result.value == "Itaú"
 
     def test_extract_source_institution_from_digital_authentication(self):
-        result = ItauInterpreter._extract_source_institution(
+        result = ItauInterpreter.extract_source_institution(
             "AUTENTICAÇÃO DIGITAL ITAÚ: ABC123XYZ"
         )
 
@@ -56,9 +57,18 @@ class TestItauInterpreter:
     def test_extract_source_institution_returns_not_found_when_itau_is_absent(
         self,
     ):
-        result = ItauInterpreter._extract_source_institution(
+        result = ItauInterpreter.extract_source_institution(
             "Beneficiário: BANCO EXEMPLO S.A."
         )
 
         assert result.status == ExtractionStatusEnum.NOT_FOUND
         assert result.value is None
+
+    def test_extract_source_institution_from_institution_param(self):
+        result = ItauInterpreter.extract_source_institution(
+            text="Beneficiário: ITAU UNIBANCO S.A.",
+            institution=InstitutionEnum.ITAU
+        )
+
+        assert result.status == ExtractionStatusEnum.FOUND
+        assert result.value == "Itaú"

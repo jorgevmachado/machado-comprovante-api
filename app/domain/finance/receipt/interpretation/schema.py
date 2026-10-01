@@ -11,11 +11,7 @@ from pydantic import BaseModel
 T = TypeVar("T")
 
 
-class InstitutionEnum(StrEnum):
-    ITAU = "itau"
-    CAIXA = "caixa"
-    NUBANK = "nubank"
-    UNKNOWN = "unknown"
+
 
 
 class ExtractionStatusEnum(StrEnum):

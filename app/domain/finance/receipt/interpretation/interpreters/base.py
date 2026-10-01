@@ -4,6 +4,7 @@ import re
 from datetime import datetime, date
 from decimal import Decimal, InvalidOperation
 
+from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
 from app.domain.finance.receipt.interpretation.schema import (
     ExtractedField,
     ExtractedReceiptData,
@@ -27,7 +28,7 @@ class BaseInterpreter:
         "DEZ": 12,
     }
 
-    def interpret(self, text: str) -> ExtractedReceiptData:
+    def interpret(self, text: str, institution: InstitutionEnum) -> ExtractedReceiptData:
         payer = self._extract_payer(text)
         effective_payer = self._extract_effective_payer(text)
         if (
@@ -58,7 +59,7 @@ class BaseInterpreter:
             transaction_id=self._extract_transaction_id(text),
             effective_payer=effective_payer,
             document_amount=document_amount,
-            source_institution=self._extract_source_institution(text),
+            source_institution=self.extract_source_institution(text, institution),
             destination_institution=self._extract_destination_institution(text),
         )
 
@@ -292,8 +293,11 @@ class BaseInterpreter:
             text,
             (
                 r"Valor pago:\s*R\$\s*([\d.]+,\d{2})",
-                r"Valor Pago\s*\(R\$\):\s*([\d.]+,\d{2})",
-                r"Valor\s+R\$\s*([\d.]+,\d{2})",
+            r"Valor Pago\s*\(R\$\):\s*([\d.]+,\d{2})",
+            r"Valor\s+R\$\s*([\d.]+,\d{2})",
+            r"Valor\s+Data\s*\r?\n\s*\d{2}/\d{2}/\d{2,4}\s*\r?\n\s*R\$\s*([\d.]+,\d{2})",
+            r"Valor\s+Data\s*\r?\n\s*R\$\s*([\d.]+,\d{2})\s+\d{2}/\d{2}/\d{4}",
+            r"R\$\s*([\d.]+,\d{2})",
             ),
         )
 
@@ -302,14 +306,19 @@ class BaseInterpreter:
         return BaseInterpreter._extract_text_field(
             text,
             (
-                r"Destino\s*\r?\n\s*(?:Nome\s+)?([^\r\n]+)",
-                r"Favorecido\s+(.+)",
-                r"Favoreci\s+(.+)",
-                r"Nome do beneficiário:\s*(.+?)(?=\n|$)",
-                r"Beneficiário\s+(.+?)(?=\s+CNPJ\b)",
-                r"Nome Fantasia:\s*(.+?)(?=\n|Razão Social:)",
-                r"Razão Social:\s*(.+?)(?=\n|CNPJ:)",
-                r"(Fatura do cartão Nubank)",
+                 r"Destino\s*\r?\n\s*(?:Nome\s+)?([^\r\n]+)",
+            r"Favorecido\s+(.+)",
+            r"Favoreci\s+(.+)",
+            r"Nome do beneficiário:\s*(.+?)(?=\n|$)",
+            r"Beneficiário\s+(.+?)(?=\s+CNPJ\b)",
+            r"Nome Fantasia:\s*(.+?)(?=\n|Razão Social:)",
+            r"Razão Social:\s*(.+?)(?=\n|CNPJ:)",
+            r"Nome da empresa\s*\r?\n\s*([^\r\n]+)",
+            r"Beneficiário original\s*/\s*Cedente\s*\r?\n"
+            r"Nome fantasia\s*\r?\n\s*[^\r\n]+\s*\r?\n"
+            r"Nome\s*/\s*Razão social\s*\r?\n\s*([^\r\n]+)",
+            r"Dados do recebedor\s*\r?\n\s*Nome\s*\r?\n\s*([^\r\n]+)",
+            r"(Fatura do cartão Nubank)",
             ),
         )
 
@@ -318,10 +327,12 @@ class BaseInterpreter:
         return BaseInterpreter._extract_date_field(
             text,
             (
-                r"Pagamento realizado em\s+(\d{2})/(\d{2})/(\d{4})",
-                r"Data do pagamento:\s*(\d{2})/(\d{2})/(\d{4})",
-                r"Data de Efetivação\s*/\s*Agendamento:\s*"
+                r"Pagamento realizado em\s*:?\s*(\d{2})/(\d{2})/(\d{4})",
+                r"Data do pagamento\s*:?\s*(\d{2})/(\d{2})/(\d{4})",
+                r"Data\s+d[ae]\s+Efetivação\s*/\s*Agendamento\s*:?\s*"
                 r"(\d{2})/(\d{2})/(\d{4})",
+                r"Data\s+de\s+d[ée]bito\s*:?\s*(\d{2})/(\d{2})/(\d{4})",
+                r"Data/\s*Hora\s*\r?\n\s*(\d{2})/(\d{2})/(\d{4})\s*-\s*\d{2}:\d{2}:\d{2}",
             ),
         )
 
@@ -367,7 +378,7 @@ class BaseInterpreter:
         )
 
     @staticmethod
-    def _extract_source_institution(text: str) -> ExtractedField[str]:
+    def extract_source_institution(text: str, institution: InstitutionEnum = InstitutionEnum.UNKNOWN) -> ExtractedField[str]:
         return BaseInterpreter._not_found()
 
     @staticmethod

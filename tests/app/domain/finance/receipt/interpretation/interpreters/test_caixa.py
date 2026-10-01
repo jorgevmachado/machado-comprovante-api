@@ -1,3 +1,4 @@
+from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
 from app.domain.finance.receipt.interpretation.interpreters.caixa import (
     CaixaInterpreter,
 )
@@ -15,7 +16,7 @@ CPF: 999.999.999-99
 Nome: NOME QUALQUER
 """
 
-        result = CaixaInterpreter._extract_source_institution(text)
+        result = CaixaInterpreter.extract_source_institution(text)
 
         assert result.status == ExtractionStatusEnum.FOUND
         assert result.value == "Caixa"
@@ -28,7 +29,7 @@ CPF: 999.999.999-99
 Nome: NOME QUALQUER
 """
 
-        result = CaixaInterpreter._extract_source_institution(text)
+        result = CaixaInterpreter.extract_source_institution(text)
 
         assert result.status == ExtractionStatusEnum.FOUND
         assert result.value == "Caixa"
@@ -43,7 +44,7 @@ CPF: 999.999.999-99
 Nome: NOME QUALQUER
 """
 
-        result = CaixaInterpreter._extract_source_institution(text)
+        result = CaixaInterpreter.extract_source_institution(text)
 
         assert result.status == ExtractionStatusEnum.FOUND
         assert result.value == "BANCO EXEMPLO S/A"
@@ -57,7 +58,20 @@ CPF: 999.999.999-99
 Nome: NOME QUALQUER
 """
 
-        result = CaixaInterpreter._extract_source_institution(text)
+        result = CaixaInterpreter.extract_source_institution(text)
 
         assert result.status == ExtractionStatusEnum.NOT_FOUND
         assert result.value is None
+
+    def test_extract_source_institution_from_institution(self):
+            text = """\
+    Banco Recebedor: CAIXA ECONOMICA FEDERAL
+    Pagador Final / Efetivo
+    CPF: 999.999.999-99
+    Nome: NOME QUALQUER
+    """
+
+            result = CaixaInterpreter.extract_source_institution(text, InstitutionEnum.CAIXA)
+
+            assert result.status == ExtractionStatusEnum.FOUND
+            assert result.value == "Caixa"

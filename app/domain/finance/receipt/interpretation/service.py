@@ -1,12 +1,12 @@
 from __future__ import annotations
-
 import re
 
+from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
+from app.domain.finance.receipt.interpretation.institutions.service import InstitutionsService
 from app.domain.finance.receipt.interpretation.interpreters.unknown import (
     UnknownInterpreter,
 )
 from app.domain.finance.receipt.interpretation.schema import (
-    InstitutionEnum,
     InterpretationResult,
     ExtractedReceiptData,
     ExtractedField,
@@ -34,21 +34,28 @@ class InterpretationService:
             data = self.unknown.invalid_interpret()
             return InterpretationValidator.validate(data)
 
-        institution = self._identify_institution(text)
+        print('# => text => ', text)
+
+        institution = InstitutionsService.identify(text)
+
+        print('# => institution => ', institution)
+
+        if institution == InstitutionEnum.UNKNOWN:
+            institution = self._identify_institution(text)
 
         if institution == InstitutionEnum.ITAU:
-            data = self.itau.interpret(text)
+            data = self.itau.interpret(text=text, institution=institution)
             return InterpretationValidator.validate(data)
 
         if institution == InstitutionEnum.NUBANK:
-            data = self.nubank.interpret(text)
+            data = self.nubank.interpret(text=text, institution=institution)
             return InterpretationValidator.validate(data)
 
         if institution == InstitutionEnum.CAIXA:
-            data = self.caixa.interpret(text)
+            data = self.caixa.interpret(text=text, institution=institution)
             return InterpretationValidator.validate(data)
 
-        data = self.unknown.interpret(text)
+        data = self.unknown.interpret(text=text, institution=InstitutionEnum.UNKNOWN)
         return InterpretationValidator.validate(data)
 
     def convert(self, data: dict[str, object]) -> ExtractedReceiptData:
@@ -93,7 +100,6 @@ class InterpretationService:
             normalized_text,
             re.DOTALL,
         )
-
         if origin_match:
             origin_text = origin_match.group(1)
 
@@ -118,8 +124,8 @@ class InterpretationService:
             return InstitutionEnum.NUBANK
 
         if re.search(
-            r"CAIXA\s+ECON[ÔO]MICA\s+FEDERAL",
-            normalized_text,
+                r"CAIXA\s+ECON[ÔO]MICA\s+FEDERAL",
+                normalized_text,
         ):
             return InstitutionEnum.CAIXA
 

@@ -1,6 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
+from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
 from app.domain.finance.receipt.interpretation.interpreters.base import BaseInterpreter
 from app.domain.finance.receipt.interpretation.schema import ExtractionStatusEnum
 
@@ -171,7 +172,7 @@ Nome: JANNY DOE
 Valor pago: R$ 120,00
 """
 
-        result = BaseInterpreter().interpret(text)
+        result = BaseInterpreter().interpret(text, InstitutionEnum.UNKNOWN)
 
         assert result.payer.value == "JANNY DOE"
         assert result.effective_payer.value == "JANNY DOE"
@@ -384,7 +385,7 @@ Tipo de conta Conta corrente
         assert result.value is None
 
     def test_extract_source_institution_returns_not_found(self):
-        result = BaseInterpreter._extract_source_institution("CAIXA ECONOMICA FEDERAL")
+        result = BaseInterpreter.extract_source_institution("CAIXA ECONOMICA FEDERAL")
 
         assert result.status == ExtractionStatusEnum.NOT_FOUND
         assert result.value is None

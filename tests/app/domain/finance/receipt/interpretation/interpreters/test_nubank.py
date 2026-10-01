@@ -1,5 +1,6 @@
 from datetime import date
 
+from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
 from app.domain.finance.receipt.interpretation.interpreters.nubank import (
     NubankInterpreter,
 )
@@ -70,7 +71,7 @@ class TestNubankInterpreter:
         assert result.value is None
 
     def test_extract_source_institution_from_nu_pagamentos(self):
-        result = NubankInterpreter._extract_source_institution(
+        result = NubankInterpreter.extract_source_institution(
             "Favorecido NU PAGAMENTOS SA"
         )
 
@@ -80,7 +81,7 @@ class TestNubankInterpreter:
     def test_extract_source_institution_from_nu_pagamentos_with_punctuation(
         self,
     ):
-        result = NubankInterpreter._extract_source_institution(
+        result = NubankInterpreter.extract_source_institution(
             "Favorecido NU PAGAMENTOS S.A."
         )
 
@@ -88,7 +89,7 @@ class TestNubankInterpreter:
         assert result.value == "Nubank"
 
     def test_extract_source_institution_from_nubank_domain(self):
-        result = NubankInterpreter._extract_source_institution(
+        result = NubankInterpreter.extract_source_institution(
             "Atendimento: NUBANK.COM.BR"
         )
 
@@ -98,9 +99,20 @@ class TestNubankInterpreter:
     def test_extract_source_institution_returns_not_found_when_nubank_is_absent(
         self,
     ):
-        result = NubankInterpreter._extract_source_institution(
+        result = NubankInterpreter.extract_source_institution(
             "Favorecido BANCO EXEMPLO S.A."
         )
 
         assert result.status == ExtractionStatusEnum.NOT_FOUND
         assert result.value is None
+
+    def test_extract_source_institution_returns_from_institution_param(
+        self,
+    ):
+        result = NubankInterpreter.extract_source_institution(
+            text="Favorecido BANCO EXEMPLO S.A.",
+            institution=InstitutionEnum.NUBANK
+        )
+
+        assert result.status == ExtractionStatusEnum.FOUND
+        assert result.value == "Nubank"
