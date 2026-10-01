@@ -14,7 +14,7 @@ class FilterPage(BaseModel):
     model_config = ConfigDict()
 
     page: Optional[int] = Field(None, ge=0)
-    order: Optional[Literal['asc', 'desc']] = Field(None)
+    order: Optional[Literal["asc", "desc"]] = Field(None)
     offset: Optional[int] = Field(None, ge=0)
     limit: Optional[int] = Field(None, ge=1)
     order_by: Optional[str] = Field(None)

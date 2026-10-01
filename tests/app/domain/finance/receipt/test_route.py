@@ -10,7 +10,10 @@ from app.domain.finance.receipt.route import (
     get_receipt,
     received_receipt,
     receipt_service,
-    received_receipt_batch, receipt_filter, list_all, update_receipt,
+    received_receipt_batch,
+    receipt_filter,
+    list_all,
+    update_receipt,
 )
 from app.domain.finance.receipt.service import ReceiptService
 from app.domain.finance.schema import FinanceConfirmRequestSchema
@@ -24,6 +27,7 @@ def build_update_payload() -> FinanceConfirmRequestSchema:
         source_institution="Banco Exemplo",
         destination_institution="Banco Destino",
     )
+
 
 class TestReceiptRoutes:
     @staticmethod

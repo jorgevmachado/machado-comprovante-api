@@ -5,8 +5,11 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.domain.finance.route import confirm, finance_service
-from app.domain.finance.schema import FinanceConfirmRequestSchema
+from app.domain.finance.route import confirm, finance_service, update_payment
+from app.domain.finance.schema import (
+    FinanceConfirmRequestSchema,
+    FinanceUpdatePaymentRequestSchema,
+)
 from app.domain.finance.service import FinanceService
 
 
@@ -57,6 +60,46 @@ class TestFinanceRoutes:
 
         service.confirm.assert_awaited_once_with(
             receipt_id=receipt_id,
+            payload=payload,
+            user=current_user,
+        )
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_update_payment_route_returns_service_result():
+        service = AsyncMock()
+
+        payment_id = "11111111-1111-1111-1111-111111111111"
+
+        current_user = SimpleNamespace(
+            id="22222222-2222-2222-2222-222222222222",
+        )
+
+        payload = FinanceUpdatePaymentRequestSchema(
+            amount="387.42",
+            payment_date="2026-09-12",
+            beneficiary="Empresa Exemplo",
+            source_institution="Banco Exemplo",
+            destination_institution="Banco Destino",
+        )
+
+        expected = SimpleNamespace(
+            id=payment_id,
+        )
+
+        service.update_payment.return_value = expected
+
+        result = await update_payment(
+            payment_id=payment_id,
+            service=service,
+            payload=payload,
+            current_user=current_user,
+        )
+
+        assert result is expected
+
+        service.update_payment.assert_awaited_once_with(
+            payment_id=payment_id,
             payload=payload,
             user=current_user,
         )

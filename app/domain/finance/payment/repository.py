@@ -34,9 +34,9 @@ class PaymentRepository(BaseRepository[Payment]):
                 return Payment.created_at
 
     def _order_by(
-            self,
-            query,
-            page_filter: Annotated[FilterPage, Query()] | None = None,
+        self,
+        query,
+        page_filter: Annotated[FilterPage, Query()] | None = None,
     ):
         order = getattr(page_filter, "order", None) if page_filter else None
         order_by = getattr(page_filter, "order_by", None) if page_filter else None

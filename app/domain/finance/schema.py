@@ -33,3 +33,12 @@ class FinanceConfirmResponseSchema(BaseModel):
     beneficiary: BeneficiarySchema
     source_institution: InstitutionSchema
     destination_institution: InstitutionSchema | None = None
+
+
+class FinanceUpdatePaymentRequestSchema(BaseModel):
+    payer: str | None = None
+    amount: Decimal | None = None
+    beneficiary: str | None = None
+    payment_date: date | None = None
+    source_institution: str | None = None
+    destination_institution: str | None = None

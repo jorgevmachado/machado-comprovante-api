@@ -12,7 +12,10 @@ from app.domain.finance.beneficiary.service import BeneficiaryService
 from app.domain.finance.institution.service import InstitutionService
 from app.domain.finance.payment.service import PaymentService
 from app.domain.finance.receipt.service import ReceiptService
-from app.domain.finance.schema import FinanceConfirmRequestSchema
+from app.domain.finance.schema import (
+    FinanceConfirmRequestSchema,
+    FinanceUpdatePaymentRequestSchema,
+)
 from app.domain.finance.service import FinanceService
 from app.models import utcnow
 from app.models.enums import ProcessingStatusEnum
@@ -40,6 +43,8 @@ class TestFinanceService:
         assert isinstance(service.beneficiary_service, BeneficiaryService)
         assert isinstance(service.institution_service, InstitutionService)
 
+
+class TestFinanceServiceConfirm:
     @staticmethod
     @pytest.mark.asyncio
     async def test_confirm_creates_payment_and_returns_response():
@@ -195,7 +200,7 @@ class TestFinanceService:
             file_type="application/pdf",
             file_size=1024,
             extracted_data=None,
-            processing_status=ProcessingStatusEnum.PROCESSED
+            processing_status=ProcessingStatusEnum.PROCESSED,
         )
 
         beneficiary = SimpleNamespace(
@@ -266,6 +271,137 @@ class TestFinanceService:
             await service.confirm(
                 receipt_id="receipt-id",
                 payload=build_confirm_payload(),
+                user=SimpleNamespace(id=uuid4()),
+            )
+
+        payment_service.create.assert_not_awaited()
+
+
+class TestFinanceServiceUpdatePayment:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_update_payment_calls_payment_service_update():
+        session = AsyncMock()
+        receipt_service = AsyncMock()
+        payment_service = AsyncMock()
+        beneficiary_service = AsyncMock()
+        institution_service = AsyncMock()
+
+        service = FinanceService(
+            session=session,
+            receipt_service=receipt_service,
+            payment_service=payment_service,
+            beneficiary_service=beneficiary_service,
+            institution_service=institution_service,
+        )
+
+        user = SimpleNamespace(id=uuid4())
+
+        receipt = SimpleNamespace(
+            id=uuid4(),
+            created_at=utcnow(),
+            updated_at=None,
+            deleted_at=None,
+            file_name="receipt.pdf",
+            file_type="application/pdf",
+            file_size=1024,
+            extracted_data=None,
+            processing_status=ProcessingStatusEnum.PROCESSED,
+        )
+
+        beneficiary = SimpleNamespace(
+            id=uuid4(),
+            name="New Beneficiary",
+            created_at=utcnow(),
+        )
+
+        source_institution = SimpleNamespace(
+            id=uuid4(),
+            name="New Source Bank",
+            created_at=utcnow(),
+        )
+
+        destination_institution = SimpleNamespace(
+            id=uuid4(),
+            name="New Destination Bank",
+            created_at=utcnow(),
+        )
+
+        payment = SimpleNamespace(
+            id=uuid4(),
+            amount=Decimal("150.00"),
+            receipt=receipt,
+            beneficiary=beneficiary,
+            source_institution=source_institution,
+            destination_institution=destination_institution,
+            created_at=utcnow(),
+            payment_date=date(2026, 9, 15),
+        )
+
+        payment_id = str(uuid4())
+        payload = FinanceUpdatePaymentRequestSchema(
+            payer="New Payer",
+            amount=Decimal("150.00"),
+            beneficiary="New Beneficiary",
+            payment_date=date(2026, 9, 15),
+            source_institution="New Source Bank",
+            destination_institution="New Destination Bank",
+        )
+
+        payment_service.update_payment.return_value = payment
+        receipt_service.update.update_receipt_payment.return_value = receipt
+
+        await service.update_payment(payment_id=payment_id, payload=payload, user=user)
+
+        payment_service.update_payment.assert_awaited_once_with(
+            payment_id=payment_id,
+            payload=payload,
+            user=user,
+        )
+
+        payment = await service.update_payment(
+            payment_id=payment_id, payload=payload, user=user
+        )
+
+        assert payment.amount == payload.amount
+        assert payment.beneficiary.name == payload.beneficiary
+        assert payment.payment_date == payload.payment_date
+        assert payment.source_institution.name == payload.source_institution
+        assert payment.destination_institution.name == payload.destination_institution
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_update_reraises_dependency_error():
+        session = AsyncMock()
+        receipt_service = AsyncMock()
+        payment_service = AsyncMock()
+        beneficiary_service = AsyncMock()
+        institution_service = AsyncMock()
+
+        service = FinanceService(
+            session=session,
+            receipt_service=receipt_service,
+            payment_service=payment_service,
+            beneficiary_service=beneficiary_service,
+            institution_service=institution_service,
+        )
+
+        payment_id = str(uuid4())
+        payload = FinanceUpdatePaymentRequestSchema(
+            payer="New Payer",
+            amount=Decimal("150.00"),
+            beneficiary="New Beneficiary",
+            payment_date=date(2026, 9, 15),
+            source_institution="New Source Bank",
+            destination_institution="New Destination Bank",
+        )
+
+        receipt_service.update_receipt_payment.side_effect = RuntimeError("boom")
+
+        with pytest.raises(RuntimeError, match="boom"):
+            await service.update_payment(
+                payment_id=payment_id,
+                payload=payload,
                 user=SimpleNamespace(id=uuid4()),
             )
 

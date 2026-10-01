@@ -16,6 +16,7 @@ from app.core.pagination import exception_pagination
 from app.core.service import BaseService
 from app.domain.finance.payment.repository import PaymentRepository
 from app.domain.finance.payment.schema import PaymentSchema, PaymentSummaryMinMaxSchema
+from app.domain.finance.schema import FinanceUpdatePaymentRequestSchema
 
 from app.models import Payment, User
 from app.shared.schemas import FilterPage
@@ -241,5 +242,37 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
                 self.logger_params,
                 operation="summary_beneficiary",
                 message="Summary beneficiary successfully",
+                user_request=user.username,
+            )
+
+    async def update_payment(
+        self, payment_id: str, payload: FinanceUpdatePaymentRequestSchema, user: User
+    ) -> Payment:
+        try:
+            payment = await self.find_by(
+                id=payment_id, user_id=str(user.id), without_throw=True
+            )
+            if payment is None:
+                raise HTTPException(
+                    status_code=HTTPStatus.NOT_FOUND, detail="Payment not found"
+                )
+            update_data = payload.model_dump(exclude_unset=True)
+            for key, value in update_data.items():
+                setattr(payment, key, value)
+            return await self.repository.save(entity=payment)
+        except Exception as exception:
+            handle_service_exception(
+                exception,
+                logger=self.logger_params.logger,
+                service=self.logger_params.service,
+                operation="update_payment",
+                user_request=user.username,
+                raise_exception=True,
+            )
+        finally:
+            log_service_success(
+                self.logger_params,
+                operation="update_payment",
+                message="Update payment successfully",
                 user_request=user.username,
             )

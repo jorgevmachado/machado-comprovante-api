@@ -11,73 +11,7 @@ from app.domain.finance.receipt.interpretation.service import (
 )
 
 
-class TestInterpretationService:
-    def test_identify_itau_by_unibanco_name(self):
-        result = InterpretationService._identify_institution(
-            "Instituição: ITAU UNIBANCO S.A."
-        )
-
-        assert result == InstitutionEnum.ITAU
-
-    def test_identify_itau_by_accented_unibanco_name(self):
-        result = InterpretationService._identify_institution(
-            "Instituição: ITAÚ UNIBANCO S.A."
-        )
-
-        assert result == InstitutionEnum.ITAU
-
-    def test_identify_itau_by_digital_authentication(self):
-        result = InterpretationService._identify_institution(
-            "AUTENTICAÇÃO DIGITAL ITAÚ: ABC123"
-        )
-
-        assert result == InstitutionEnum.ITAU
-
-    def test_identify_nubank_by_nu_pagamentos(self):
-        result = InterpretationService._identify_institution(
-            "Favorecido: NU PAGAMENTOS SA"
-        )
-
-        assert result == InstitutionEnum.NUBANK
-
-    def test_identify_nubank_by_nu_pagamentos_with_punctuation(self):
-        result = InterpretationService._identify_institution(
-            "Favorecido: NU PAGAMENTOS S.A."
-        )
-
-        assert result == InstitutionEnum.NUBANK
-
-    def test_identify_nubank_by_domain(self):
-        result = InterpretationService._identify_institution("Acesse NUBANK.COM.BR")
-
-        assert result == InstitutionEnum.NUBANK
-
-    def test_identify_caixa_by_economica_federal(self):
-        result = InterpretationService._identify_institution(
-            "Banco Recebedor: CAIXA ECONOMICA FEDERAL"
-        )
-
-        assert result == InstitutionEnum.CAIXA
-
-    def test_identify_caixa_by_accented_economica_federal(self):
-        result = InterpretationService._identify_institution(
-            "Banco Recebedor: CAIXA ECONÔMICA FEDERAL"
-        )
-
-        assert result == InstitutionEnum.CAIXA
-
-    def test_identify_caixa_by_internet_banking(self):
-        result = InterpretationService._identify_institution(
-            "Via Internet Banking CAIXA"
-        )
-
-        assert result == InstitutionEnum.CAIXA
-
-    def test_identify_unknown_institution(self):
-        result = InterpretationService._identify_institution("Banco Exemplo S.A.")
-
-        assert result == InstitutionEnum.UNKNOWN
-
+class TestInterpretationServiceInterpret:
     def test_interpret_uses_itau_interpreter(self):
         service = InterpretationService()
 
@@ -205,6 +139,8 @@ class TestInterpretationService:
         finally:
             InterpretationValidator.validate = original_validate
 
+
+class TestInterpretationServiceConvertField:
     @staticmethod
     def test_convert_field_returns_found_when_value_exists():
         value = "Empresa Exemplo"
@@ -223,14 +159,73 @@ class TestInterpretationService:
         assert result.value is None
         assert result.status == ExtractionStatusEnum.NOT_FOUND
 
-    def test_has_text_returns_true_when_text_exists(self):
-        assert InterpretationService._has_text("texto do comprovante") is True
 
-    def test_has_text_returns_false_for_empty_text(self):
-        assert InterpretationService._has_text("") is False
+class TestInterpretationServiceIdentifyInstitution:
+    def test_identify_itau_by_unibanco_name(self):
+        result = InterpretationService._identify_institution(
+            "Instituição: ITAU UNIBANCO S.A."
+        )
 
-    def test_has_text_returns_false_for_whitespace(self):
-        assert InterpretationService._has_text("   \n\t  ") is False
+        assert result == InstitutionEnum.ITAU
+
+    def test_identify_itau_by_accented_unibanco_name(self):
+        result = InterpretationService._identify_institution(
+            "Instituição: ITAÚ UNIBANCO S.A."
+        )
+
+        assert result == InstitutionEnum.ITAU
+
+    def test_identify_itau_by_digital_authentication(self):
+        result = InterpretationService._identify_institution(
+            "AUTENTICAÇÃO DIGITAL ITAÚ: ABC123"
+        )
+
+        assert result == InstitutionEnum.ITAU
+
+    def test_identify_nubank_by_nu_pagamentos(self):
+        result = InterpretationService._identify_institution(
+            "Favorecido: NU PAGAMENTOS SA"
+        )
+
+        assert result == InstitutionEnum.NUBANK
+
+    def test_identify_nubank_by_nu_pagamentos_with_punctuation(self):
+        result = InterpretationService._identify_institution(
+            "Favorecido: NU PAGAMENTOS S.A."
+        )
+
+        assert result == InstitutionEnum.NUBANK
+
+    def test_identify_nubank_by_domain(self):
+        result = InterpretationService._identify_institution("Acesse NUBANK.COM.BR")
+
+        assert result == InstitutionEnum.NUBANK
+
+    def test_identify_caixa_by_economica_federal(self):
+        result = InterpretationService._identify_institution(
+            "Banco Recebedor: CAIXA ECONOMICA FEDERAL"
+        )
+
+        assert result == InstitutionEnum.CAIXA
+
+    def test_identify_caixa_by_accented_economica_federal(self):
+        result = InterpretationService._identify_institution(
+            "Banco Recebedor: CAIXA ECONÔMICA FEDERAL"
+        )
+
+        assert result == InstitutionEnum.CAIXA
+
+    def test_identify_caixa_by_internet_banking(self):
+        result = InterpretationService._identify_institution(
+            "Via Internet Banking CAIXA"
+        )
+
+        assert result == InstitutionEnum.CAIXA
+
+    def test_identify_unknown_institution(self):
+        result = InterpretationService._identify_institution("Banco Exemplo S.A.")
+
+        assert result == InstitutionEnum.UNKNOWN
 
     def test_identify_nubank_origin_with_itau_destination(self):
         text = """
@@ -315,7 +310,9 @@ class TestInterpretationService:
 
         assert result == InstitutionEnum.UNKNOWN
 
-    def test_identify_institution_returns_nubank_when_itau_is_processing_institution(self):
+    def test_identify_institution_returns_nubank_when_itau_is_processing_institution(
+        self,
+    ):
         text = """
         Comprovante de pagamento
         06 AGO 2026 - 16:13:05
@@ -343,6 +340,16 @@ class TestInterpretationService:
         """
 
         assert (
-                InterpretationService._identify_institution(text)
-                == InstitutionEnum.NUBANK
+            InterpretationService._identify_institution(text) == InstitutionEnum.NUBANK
         )
+
+
+class TestInterpretationServiceHasText:
+    def test_has_text_returns_true_when_text_exists(self):
+        assert InterpretationService._has_text("texto do comprovante") is True
+
+    def test_has_text_returns_false_for_empty_text(self):
+        assert InterpretationService._has_text("") is False
+
+    def test_has_text_returns_false_for_whitespace(self):
+        assert InterpretationService._has_text("   \n\t  ") is False

@@ -104,8 +104,8 @@ class InterpretationService:
                 return InstitutionEnum.ITAU
 
             if re.search(
-                    r"CAIXA\s+ECON[ÔO]MICA\s+FEDERAL",
-                    origin_text,
+                r"CAIXA\s+ECON[ÔO]MICA\s+FEDERAL",
+                origin_text,
             ):
                 return InstitutionEnum.CAIXA
 
@@ -118,8 +118,8 @@ class InterpretationService:
             return InstitutionEnum.NUBANK
 
         if re.search(
-                r"CAIXA\s+ECON[ÔO]MICA\s+FEDERAL",
-                normalized_text,
+            r"CAIXA\s+ECON[ÔO]MICA\s+FEDERAL",
+            normalized_text,
         ):
             return InstitutionEnum.CAIXA
 

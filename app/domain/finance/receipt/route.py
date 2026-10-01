@@ -30,6 +30,7 @@ def receipt_service(session: Session) -> ReceiptService:
 Service = Annotated[ReceiptService, Depends(receipt_service)]
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
+
 def receipt_filter(
     page: int | None = None,
     limit: int | None = 12,
@@ -47,6 +48,7 @@ def receipt_filter(
         with_deleted=with_deleted,
     )
 
+
 @router.get(
     "",
     response_model=CustomLimitOffsetPage[ReceiptSchema] | list[ReceiptSchema],
@@ -57,11 +59,14 @@ async def list_all(
     current_user: CurrentUser,
     page_filter: FilterPage = Depends(receipt_filter),
 ):
-    return await service.list_all(page_filter=FilterPage.build(
-        user_id=current_user.id,
-        page_filter=page_filter,
-    ),
-    user_request=current_user.username)
+    return await service.list_all(
+        page_filter=FilterPage.build(
+            user_id=current_user.id,
+            page_filter=page_filter,
+        ),
+        user_request=current_user.username,
+    )
+
 
 @router.post(
     "/upload",
@@ -104,5 +109,7 @@ async def update_receipt(
     current_user: CurrentUser,
 ):
     return await service.update_receipt(
-        receipt_id=receipt_id, payload=payload.model_dump(mode="json"), user=current_user
+        receipt_id=receipt_id,
+        payload=payload.model_dump(mode="json"),
+        user=current_user,
     )

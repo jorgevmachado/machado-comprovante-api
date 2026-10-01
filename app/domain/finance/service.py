@@ -16,8 +16,9 @@ from app.core.database import get_session
 from app.domain.finance.schema import (
     FinanceConfirmResponseSchema,
     FinanceConfirmRequestSchema,
+    FinanceUpdatePaymentRequestSchema,
 )
-from app.models import ProcessingStatusEnum
+from app.models import ProcessingStatusEnum, User
 
 Session = Annotated[AsyncSession, Depends(get_session)]
 
@@ -42,7 +43,7 @@ class FinanceService:
         )
 
     async def confirm(
-        self, receipt_id: str, payload: FinanceConfirmRequestSchema, user
+        self, receipt_id: str, payload: FinanceConfirmRequestSchema, user: User
     ) -> FinanceConfirmResponseSchema:
         try:
             receipt = await self.receipt_service.validate_confirm_receipt(
@@ -83,18 +84,18 @@ class FinanceService:
             beneficiary_schema = BeneficiarySchema(
                 id=beneficiary.id,
                 name=beneficiary.name,
-                created_at=beneficiary.created_at
+                created_at=beneficiary.created_at,
             )
             source_institution_schema = InstitutionSchema(
                 id=source_institution.id,
                 name=source_institution.name,
-                created_at=source_institution.created_at
+                created_at=source_institution.created_at,
             )
             destination_institution_schema = (
                 InstitutionSchema(
                     id=destination_institution.id,
                     name=destination_institution.name,
-                    created_at=destination_institution.created_at
+                    created_at=destination_institution.created_at,
                 )
                 if destination_institution
                 else None
@@ -114,10 +115,13 @@ class FinanceService:
                         updated_at=receipt_updated.updated_at,
                         deleted_at=receipt_updated.deleted_at,
                         extracted_data=(
-                            ExtractedReceiptData.model_validate(receipt_updated.extracted_data)
-                            if receipt_updated.extracted_data is not None else None
+                            ExtractedReceiptData.model_validate(
+                                receipt_updated.extracted_data
+                            )
+                            if receipt_updated.extracted_data is not None
+                            else None
                         ),
-                        processing_status=receipt_updated.processing_status
+                        processing_status=receipt_updated.processing_status,
                     ),
                     created_at=payment.created_at,
                     beneficiary=beneficiary_schema,
@@ -128,5 +132,32 @@ class FinanceService:
                 source_institution=source_institution_schema,
                 destination_institution=destination_institution_schema,
             )
+        except Exception as e:
+            raise e
+
+    async def update_payment(
+        self,
+        payment_id: str,
+        payload: FinanceUpdatePaymentRequestSchema,
+        user: User,
+    ):
+        try:
+            payment = await self.payment_service.update_payment(
+                payment_id=payment_id, payload=payload, user=user
+            )
+            payment.receipt = await self.receipt_service.update_receipt_payment(
+                user=user,
+                receipt_id=payment.receipt.id,
+                payload={
+                    "paid_amount": payment.amount,
+                    "payment_date": payment.payment_date,
+                    "beneficiary": payment.beneficiary.name,
+                    "source_institution": payment.source_institution.name,
+                    "destination_institution": payment.destination_institution.name
+                    if payment.destination_institution
+                    else None,
+                },
+            )
+            return payment
         except Exception as e:
             raise e

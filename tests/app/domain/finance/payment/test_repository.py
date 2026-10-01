@@ -1046,6 +1046,7 @@ class TestPaymentRepositorySummaryBeneficiary:
         session.scalars.assert_awaited_once()
         scalars_result.all.assert_called_once_with()
 
+
 class TestPaymentRepositoryGetOrderColumn:
     def test_should_return_payment_date_column(self):
         result = PaymentRepository._get_order_column("payment_date")
