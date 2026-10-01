@@ -42,6 +42,7 @@ class InterpretationService:
 
         if institution == InstitutionEnum.UNKNOWN:
             institution = self._identify_institution(text)
+            print('# => identify_institution => ', institution)
 
         if institution == InstitutionEnum.ITAU:
             data = self.itau.interpret(text=text, institution=institution)

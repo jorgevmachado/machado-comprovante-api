@@ -292,7 +292,8 @@ class BaseInterpreter:
         return BaseInterpreter._extract_money_field(
             text,
             (
-                r"Valor pago:\s*R\$\s*([\d.]+,\d{2})",
+                r"Comprovante de Pix\s*\r?\n\s*R\$\s*([\d.]+,\d{2})",
+            r"Valor pago:\s*R\$\s*([\d.]+,\d{2})",
             r"Valor Pago\s*\(R\$\):\s*([\d.]+,\d{2})",
             r"Valor\s+R\$\s*([\d.]+,\d{2})",
             r"Valor\s+Data\s*\r?\n\s*\d{2}/\d{2}/\d{2,4}\s*\r?\n\s*R\$\s*([\d.]+,\d{2})",
@@ -306,19 +307,20 @@ class BaseInterpreter:
         return BaseInterpreter._extract_text_field(
             text,
             (
-                 r"Destino\s*\r?\n\s*(?:Nome\s+)?([^\r\n]+)",
-            r"Favorecido\s+(.+)",
-            r"Favoreci\s+(.+)",
-            r"Nome do beneficiário:\s*(.+?)(?=\n|$)",
-            r"Beneficiário\s+(.+?)(?=\s+CNPJ\b)",
-            r"Nome Fantasia:\s*(.+?)(?=\n|Razão Social:)",
-            r"Razão Social:\s*(.+?)(?=\n|CNPJ:)",
-            r"Nome da empresa\s*\r?\n\s*([^\r\n]+)",
-            r"Beneficiário original\s*/\s*Cedente\s*\r?\n"
-            r"Nome fantasia\s*\r?\n\s*[^\r\n]+\s*\r?\n"
-            r"Nome\s*/\s*Razão social\s*\r?\n\s*([^\r\n]+)",
-            r"Dados do recebedor\s*\r?\n\s*Nome\s*\r?\n\s*([^\r\n]+)",
-            r"(Fatura do cartão Nubank)",
+                r"Para\s*\r?\n\s*([^\r\n]+)",
+                r"Destino\s*\r?\n\s*(?:Nome\s+)?([^\r\n]+)",
+                r"Favorecido\s+(.+)",
+                r"Favoreci\s+(.+)",
+                r"Nome do beneficiário:\s*(.+?)(?=\n|$)",
+                r"Beneficiário\s+(.+?)(?=\s+CNPJ\b)",
+                r"Nome Fantasia:\s*(.+?)(?=\n|Razão Social:)",
+                r"Razão Social:\s*(.+?)(?=\n|CNPJ:)",
+                r"Nome da empresa\s*\r?\n\s*([^\r\n]+)",
+                r"Beneficiário original\s*/\s*Cedente\s*\r?\n"
+                r"Nome fantasia\s*\r?\n\s*[^\r\n]+\s*\r?\n"
+                r"Nome\s*/\s*Razão social\s*\r?\n\s*([^\r\n]+)",
+                r"Dados do recebedor\s*\r?\n\s*Nome\s*\r?\n\s*([^\r\n]+)",
+                r"(Fatura do cartão Nubank)",
             ),
         )
 
