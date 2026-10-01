@@ -142,22 +142,56 @@ class FinanceService:
         user: User,
     ):
         try:
-            payment = await self.payment_service.update_payment(
-                payment_id=payment_id, payload=payload, user=user
+
+            payment =  await self.payment_service.find_by(id=payment_id, user_id=str(user.id))
+
+            raw_payload: dict[str, object] = {}
+
+            if payload.amount is not None:
+                raw_payload["amount"] = payload.amount
+
+            if payload.payment_date is not None:
+                raw_payload["payment_date"] = payload.payment_date
+
+            if payload.beneficiary is not None:
+                beneficiary = await self.beneficiary_service.resolve(
+                    name=payload.beneficiary
+                )
+                raw_payload["beneficiary_id"] = beneficiary.id
+
+            if  payload.source_institution is not None:
+                source_institution = await self.institution_service.resolve(
+                    name=payload.source_institution
+                )
+                raw_payload["source_institution_id"] = source_institution.id
+
+            if  payload.destination_institution is not None:
+                destination_institution = await self.institution_service.resolve(
+                    name=payload.destination_institution
+                )
+                raw_payload["destination_institution_id"] = destination_institution.id
+
+            if not raw_payload:
+                return payment
+
+            updated_payment = await self.payment_service.update_payment(
+                payment_id=payment_id, payload=raw_payload, user=user
             )
+
             payment.receipt = await self.receipt_service.update_receipt_payment(
                 user=user,
-                receipt_id=payment.receipt.id,
+                receipt_id=updated_payment.receipt.id,
                 payload={
-                    "paid_amount": payment.amount,
-                    "payment_date": payment.payment_date,
-                    "beneficiary": payment.beneficiary.name,
-                    "source_institution": payment.source_institution.name,
-                    "destination_institution": payment.destination_institution.name
-                    if payment.destination_institution
+                    "payer": payload.payer,
+                    "paid_amount": updated_payment.amount,
+                    "payment_date": updated_payment.payment_date,
+                    "beneficiary": updated_payment.beneficiary.name,
+                    "source_institution": updated_payment.source_institution.name,
+                    "destination_institution": updated_payment.destination_institution.name
+                    if updated_payment.destination_institution
                     else None,
                 },
             )
-            return payment
+            return updated_payment
         except Exception as e:
             raise e

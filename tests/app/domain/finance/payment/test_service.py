@@ -15,7 +15,6 @@ from app.domain.finance.institution.schema import InstitutionSchema
 from app.domain.finance.payment.schema import PaymentSummaryMinMaxSchema, PaymentSchema
 from app.domain.finance.payment.service import PaymentService
 from app.domain.finance.receipt.schema import ReceiptSchema
-from app.domain.finance.schema import FinanceUpdatePaymentRequestSchema
 from app.models import Payment, utcnow, ProcessingStatusEnum
 from app.shared.schemas import FilterPage
 
@@ -800,10 +799,11 @@ class TestPaymentServiceUpdatePayment:
         service = PaymentService(repository)
 
         payment_id = uuid4()
-        payload = FinanceUpdatePaymentRequestSchema(
-            amount=Decimal("150.00"),
-            payment_date=date(2026, 9, 15),
-        )
+
+        payload: dict[str, object] = {
+            "amount": Decimal("150.00"),
+            "payment_date": date(2026, 9, 15),
+        }
 
         expected = SimpleNamespace(id=uuid4())
 
@@ -826,10 +826,10 @@ class TestPaymentServiceUpdatePayment:
 
         payment_id = uuid4()
         user = SimpleNamespace(id=uuid4(), username="testuser")
-        payload = FinanceUpdatePaymentRequestSchema(
-            amount=Decimal("150.00"),
-            payment_date=date(2026, 9, 15),
-        )
+        payload: dict[str, object] = {
+            "amount": Decimal("150.00"),
+            "payment_date": date(2026, 9, 15),
+        }
 
         service.find_by = AsyncMock(return_value=None)
 

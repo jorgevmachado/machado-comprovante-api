@@ -16,7 +16,6 @@ from app.core.pagination import exception_pagination
 from app.core.service import BaseService
 from app.domain.finance.payment.repository import PaymentRepository
 from app.domain.finance.payment.schema import PaymentSchema, PaymentSummaryMinMaxSchema
-from app.domain.finance.schema import FinanceUpdatePaymentRequestSchema
 
 from app.models import Payment, User
 from app.shared.schemas import FilterPage
@@ -246,7 +245,7 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
             )
 
     async def update_payment(
-        self, payment_id: str, payload: FinanceUpdatePaymentRequestSchema, user: User
+        self, payment_id: str, payload: dict[str, object], user: User
     ) -> Payment:
         try:
             payment = await self.find_by(
@@ -256,8 +255,7 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
                 raise HTTPException(
                     status_code=HTTPStatus.NOT_FOUND, detail="Payment not found"
                 )
-            update_data = payload.model_dump(exclude_unset=True)
-            for key, value in update_data.items():
+            for key, value in payload.items():
                 setattr(payment, key, value)
             return await self.repository.save(entity=payment)
         except Exception as exception:
