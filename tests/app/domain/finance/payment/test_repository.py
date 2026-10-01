@@ -290,9 +290,9 @@ class TestPaymentRepositoryList:
             ) as build_filter,
             patch.object(
                 repository,
-                "_apply_order_by",
+                "_order_by",
                 side_effect=lambda query, page_filter: query,
-            ) as apply_order_by,
+            ) as _order_by,
             patch(
                 "app.domain.finance.payment.repository.is_paginate",
                 return_value=False,
@@ -306,7 +306,7 @@ class TestPaymentRepositoryList:
         assert result == expected
 
         build_filter.assert_called_once()
-        apply_order_by.assert_called_once()
+        _order_by.assert_called_once()
 
         session.scalars.assert_awaited_once()
         scalars_result.all.assert_called_once_with()
@@ -335,9 +335,9 @@ class TestPaymentRepositoryList:
             ) as build_filter,
             patch.object(
                 repository,
-                "_apply_order_by",
+                "_order_by",
                 side_effect=lambda query, page_filter: query,
-            ) as apply_order_by,
+            ) as _order_by,
             patch(
                 "app.domain.finance.payment.repository.is_paginate",
                 return_value=False,
@@ -352,7 +352,7 @@ class TestPaymentRepositoryList:
 
         build_filter.assert_called_once()
 
-        apply_order_by.assert_called_once_with(
+        _order_by.assert_called_once_with(
             build_filter.call_args.args[0],
             None,
         )
@@ -382,9 +382,9 @@ class TestPaymentRepositoryList:
             ) as build_filter,
             patch.object(
                 repository,
-                "_apply_order_by",
+                "_order_by",
                 return_value=ordered_query,
-            ) as apply_order_by,
+            ) as _order_by,
             patch(
                 "app.domain.finance.payment.repository.is_paginate",
                 return_value=False,
@@ -409,7 +409,7 @@ class TestPaymentRepositoryList:
         assert build_filter_args[1] == user_id
         assert build_filter_args[2] is page_filter
 
-        apply_order_by.assert_called_once_with(
+        _order_by.assert_called_once_with(
             filtered_query,
             page_filter,
         )
@@ -1045,3 +1045,135 @@ class TestPaymentRepositorySummaryBeneficiary:
 
         session.scalars.assert_awaited_once()
         scalars_result.all.assert_called_once_with()
+
+
+class TestPaymentRepositoryGetOrderColumn:
+    def test_should_return_payment_date_column(self):
+        result = PaymentRepository._get_order_column("payment_date")
+
+        assert result is Payment.payment_date
+
+    def test_should_return_amount_column(self):
+        result = PaymentRepository._get_order_column("amount")
+
+        assert result is Payment.amount
+
+    def test_should_return_created_at_column_when_order_by_is_invalid(self):
+        result = PaymentRepository._get_order_column("invalid")
+
+        assert result is Payment.created_at
+
+    def test_should_return_created_at_column_when_order_by_is_none(self):
+        result = PaymentRepository._get_order_column()
+
+        assert result is Payment.created_at
+
+
+class TestPaymentRepositoryOrderBy:
+    def test_should_order_by_payment_date_ascending(self):
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        query = select(Payment)
+        page_filter = FilterPage.build(
+            order="asc",
+            order_by="payment_date",
+        )
+
+        result = repository._order_by(
+            query=query,
+            page_filter=page_filter,
+        )
+
+        compiled = result.compile()
+
+        assert "payments.payment_date ASC" in str(compiled)
+
+    def test_should_order_by_amount_descending(self):
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        query = select(Payment)
+        page_filter = FilterPage.build(
+            order="desc",
+            order_by="amount",
+        )
+
+        result = repository._order_by(
+            query=query,
+            page_filter=page_filter,
+        )
+
+        compiled = result.compile()
+
+        assert "payments.amount DESC" in str(compiled)
+
+    def test_should_order_by_created_at_when_order_by_is_invalid(self):
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        query = select(Payment)
+        page_filter = FilterPage.build(
+            order="asc",
+            order_by="invalid",
+        )
+
+        result = repository._order_by(
+            query=query,
+            page_filter=page_filter,
+        )
+
+        compiled = result.compile()
+
+        assert "payments.created_at ASC" in str(compiled)
+
+    def test_should_apply_default_order_when_order_and_order_by_are_none(self):
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        query = select(Payment)
+        page_filter = FilterPage()
+
+        expected = MagicMock()
+
+        with patch.object(
+            repository,
+            "_apply_order_by",
+            return_value=expected,
+        ) as apply_order_by:
+            result = repository._order_by(
+                query=query,
+                page_filter=page_filter,
+            )
+
+        assert result is expected
+
+        apply_order_by.assert_called_once_with(
+            query=query,
+            page_filter=page_filter,
+        )
+
+    def test_should_apply_default_order_when_page_filter_is_none(self):
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        query = select(Payment)
+
+        expected = MagicMock()
+
+        with patch.object(
+            repository,
+            "_apply_order_by",
+            return_value=expected,
+        ) as apply_order_by:
+            result = repository._order_by(
+                query=query,
+                page_filter=None,
+            )
+
+        assert result is expected
+
+        apply_order_by.assert_called_once_with(
+            query=query,
+            page_filter=None,
+        )

@@ -243,3 +243,34 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
                 message="Summary beneficiary successfully",
                 user_request=user.username,
             )
+
+    async def update_payment(
+        self, payment_id: str, payload: dict[str, object], user: User
+    ) -> Payment:
+        try:
+            payment = await self.find_by(
+                id=payment_id, user_id=str(user.id), without_throw=True
+            )
+            if payment is None:
+                raise HTTPException(
+                    status_code=HTTPStatus.NOT_FOUND, detail="Payment not found"
+                )
+            for key, value in payload.items():
+                setattr(payment, key, value)
+            return await self.repository.save(entity=payment)
+        except Exception as exception:
+            handle_service_exception(
+                exception,
+                logger=self.logger_params.logger,
+                service=self.logger_params.service,
+                operation="update_payment",
+                user_request=user.username,
+                raise_exception=True,
+            )
+        finally:
+            log_service_success(
+                self.logger_params,
+                operation="update_payment",
+                message="Update payment successfully",
+                user_request=user.username,
+            )

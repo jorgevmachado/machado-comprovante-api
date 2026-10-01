@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from uuid import UUID
 from datetime import datetime, date
 
@@ -14,6 +14,7 @@ from app.models import ProcessingStatusEnum
 
 
 class ReceiptSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: UUID
     file_name: str
     file_type: str

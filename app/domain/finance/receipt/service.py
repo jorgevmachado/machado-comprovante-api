@@ -20,6 +20,7 @@ from app.domain.finance.receipt.interpretation.schema import (
     ExtractedReceiptData,
 )
 from app.domain.finance.receipt.interpretation.service import InterpretationService
+from app.domain.finance.receipt.interpretation.validation import InterpretationValidator
 
 from app.domain.finance.receipt.repository import (
     ReceiptRepository,
@@ -76,11 +77,7 @@ class ReceiptService(BaseService[ReceiptRepository, Receipt]):
                 if not interpretation.errors
                 else ProcessingStatusEnum.FAILED
             )
-            interpretation_data = (
-                interpretation.data.model_dump(mode="json")
-                if processing_status == ProcessingStatusEnum.RECEIVED
-                else None
-            )
+            interpretation_data = interpretation.data.model_dump(mode="json")
             if receipt:
                 receipt.file_name = file.filename
                 receipt.file_type = file.content_type
@@ -273,3 +270,64 @@ class ReceiptService(BaseService[ReceiptRepository, Receipt]):
             processed=processed,
             processing=processing,
         )
+
+    async def update_receipt(
+        self, receipt_id: str, payload: dict[str, object], user: User
+    ) -> Receipt:
+        receipt = await self.find_by(
+            id=receipt_id, user_id=str(user.id), without_throw=True
+        )
+        if not receipt:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND, detail="Receipt not found"
+            )
+        if (
+            receipt.processing_status == ProcessingStatusEnum.PROCESSED
+            or receipt.processing_status == ProcessingStatusEnum.PROCESSING
+        ):
+            raise HTTPException(
+                status_code=HTTPStatus.CONFLICT,
+                detail="Receipt is processed or in processing and cannot be updated",
+            )
+
+        extracted_data = self.interpretation_service.convert(payload)
+        validated = InterpretationValidator.validate(extracted_data)
+        receipt.extracted_data = extracted_data.model_dump(mode="json")
+        receipt.processing_status = (
+            ProcessingStatusEnum.RECEIVED
+            if not validated.errors
+            else ProcessingStatusEnum.FAILED
+        )
+        return await self.repository.save(entity=receipt)
+
+    async def update_receipt_payment(
+        self, receipt_id: UUID, user: User, payload: dict[str, object]
+    ) -> Receipt:
+        try:
+            receipt = await self.find_by(
+                id=str(receipt_id), user_id=str(user.id), without_throw=True
+            )
+            if receipt is None:
+                raise HTTPException(
+                    status_code=HTTPStatus.NOT_FOUND, detail="Receipt not found"
+                )
+            receipt.extracted_data = self.interpretation_service.convert(
+                payload
+            ).model_dump(mode="json")
+            return await self.repository.save(entity=receipt)
+        except Exception as exception:
+            handle_service_exception(
+                exception,
+                logger=self.logger_params.logger,
+                service=self.logger_params.service,
+                operation="update_payment",
+                user_request=user.username,
+                raise_exception=True,
+            )
+        finally:
+            log_service_success(
+                self.logger_params,
+                operation="update_payment",
+                message="Update payment successfully",
+                user_request=user.username,
+            )

@@ -355,6 +355,7 @@ class BaseRepository[ModelT]:
         raw_filters.pop("offset", None)
         raw_filters.pop("limit", None)
         raw_filters.pop("page", None)
+        raw_filters.pop("order", None)
         raw_filters.pop("order_by", None)
         raw_filters.pop("clean_cache", None)
         return raw_filters

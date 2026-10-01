@@ -1,6 +1,6 @@
 # Epic 015 — API e OpenAPI
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
@@ -12,8 +12,8 @@ Documentar e padronizar a API pública, garantindo visibilidade do contrato e re
 
 | ID | Task | Prioridade | Status |
 |---|---|---|---|
-| TASK-078 | Documentar endpoints OpenAPI | P0 | TODO |
-| TASK-079 | Padronizar respostas HTTP | P0 | TODO |
+| TASK-078 | Documentar endpoints OpenAPI | P0 | DONE |
+| TASK-079 | Padronizar respostas HTTP | P0 | DONE |
 
 ## Ordem de implementação
 
@@ -39,10 +39,10 @@ Este Epic contempla:
 
 O Epic será considerado `DONE` quando:
 
-* [ ] Os endpoints estiverem documentados no OpenAPI.;
-* [ ] As respostas HTTP estiverem padronizadas e consistentes.;
-* [ ] A API pública estiver alinhada ao contrato da aplicação e aos testes aplicáveis.;
+* [x] Os endpoints estiverem documentados no OpenAPI.;
+* [x] As respostas HTTP estiverem padronizadas e consistentes.;
+* [x] A API pública estiver alinhada ao contrato da aplicação e aos testes aplicáveis.;
 
-* [ ] Todos os testes relacionados estiverem passando;
-* [ ] A documentação do Epic estiver atualizada;
-* [ ] Nenhuma regra de negócio foi alterada sem respaldo da documentação.
+* [x] Todos os testes relacionados estiverem passando;
+* [x] A documentação do Epic estiver atualizada;
+* [x] Nenhuma regra de negócio foi alterada sem respaldo da documentação.

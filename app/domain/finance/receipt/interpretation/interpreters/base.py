@@ -302,11 +302,14 @@ class BaseInterpreter:
         return BaseInterpreter._extract_text_field(
             text,
             (
+                r"Destino\s*\r?\n\s*(?:Nome\s+)?([^\r\n]+)",
                 r"Favorecido\s+(.+)",
+                r"Favoreci\s+(.+)",
                 r"Nome do beneficiário:\s*(.+?)(?=\n|$)",
                 r"Beneficiário\s+(.+?)(?=\s+CNPJ\b)",
                 r"Nome Fantasia:\s*(.+?)(?=\n|Razão Social:)",
                 r"Razão Social:\s*(.+?)(?=\n|CNPJ:)",
+                r"(Fatura do cartão Nubank)",
             ),
         )
 

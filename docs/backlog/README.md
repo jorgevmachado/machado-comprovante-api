@@ -228,7 +228,7 @@ Cobrir os módulos críticos do sistema com testes automatizados de domínio, in
 **Status:** `TODO`
 ---
 
-# 18. [Épico O — API e OpenAPI](./epics/015-api-e-openapi/README.md)
+# 18. [Épico O — API e OpenAPI](epics/done/015-api-e-openapi/README.md)
 
 Objetivo:
 

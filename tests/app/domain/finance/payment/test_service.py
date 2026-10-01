@@ -14,7 +14,8 @@ from app.domain.finance.beneficiary.schema import BeneficiarySchema
 from app.domain.finance.institution.schema import InstitutionSchema
 from app.domain.finance.payment.schema import PaymentSummaryMinMaxSchema, PaymentSchema
 from app.domain.finance.payment.service import PaymentService
-from app.models import Payment
+from app.domain.finance.receipt.schema import ReceiptSchema
+from app.models import Payment, utcnow, ProcessingStatusEnum
 from app.shared.schemas import FilterPage
 
 
@@ -492,14 +493,29 @@ class TestPaymentServiceSummaryMax:
             end_date=date(2026, 9, 30),
         )
 
-        expected_beneficiary = BeneficiarySchema(id=uuid4(), name="Beneficiary")
+        expected_beneficiary = BeneficiarySchema(
+            id=uuid4(), name="Beneficiary", created_at=utcnow()
+        )
 
-        expected_source_institution = InstitutionSchema(id=uuid4(), name="Institution")
+        expected_source_institution = InstitutionSchema(
+            id=uuid4(), name="Institution", created_at=utcnow()
+        )
+
+        expected_receipt = ReceiptSchema(
+            id=uuid4(),
+            created_at=utcnow(),
+            file_name="receipt.pdf",
+            file_type="application/pdf",
+            file_size=1024,
+            processing_status=ProcessingStatusEnum.PROCESSED,
+        )
 
         expected = SimpleNamespace(
             id=uuid4(),
             amount=Decimal("2000"),
+            receipt=expected_receipt,
             beneficiary=expected_beneficiary,
+            created_at=utcnow(),
             payment_date=date(2026, 9, 15),
             source_institution=expected_source_institution,
         )
@@ -515,7 +531,9 @@ class TestPaymentServiceSummaryMax:
             payment=PaymentSchema(
                 id=expected.id,
                 amount=expected.amount,
+                created_at=expected.created_at,
                 beneficiary=expected.beneficiary,
+                receipt=expected.receipt,
                 payment_date=expected.payment_date,
                 source_institution=expected.source_institution,
             )
@@ -573,13 +591,28 @@ class TestPaymentServiceSummaryMin:
             end_date=date(2026, 9, 30),
         )
 
-        expected_beneficiary = BeneficiarySchema(id=uuid4(), name="Beneficiary")
+        expected_beneficiary = BeneficiarySchema(
+            id=uuid4(), name="Beneficiary", created_at=utcnow()
+        )
 
-        expected_source_institution = InstitutionSchema(id=uuid4(), name="Institution")
+        expected_source_institution = InstitutionSchema(
+            id=uuid4(), name="Institution", created_at=utcnow()
+        )
+
+        expected_receipt = ReceiptSchema(
+            id=uuid4(),
+            created_at=utcnow(),
+            file_name="receipt.pdf",
+            file_type="application/pdf",
+            file_size=1024,
+            processing_status=ProcessingStatusEnum.PROCESSED,
+        )
 
         expected = SimpleNamespace(
             id=uuid4(),
             amount=Decimal("2000"),
+            created_at=utcnow(),
+            receipt=expected_receipt,
             beneficiary=expected_beneficiary,
             payment_date=date(2026, 9, 15),
             source_institution=expected_source_institution,
@@ -596,6 +629,8 @@ class TestPaymentServiceSummaryMin:
             payment=PaymentSchema(
                 id=expected.id,
                 amount=expected.amount,
+                receipt=expected.receipt,
+                created_at=expected.created_at,
                 beneficiary=expected.beneficiary,
                 payment_date=expected.payment_date,
                 source_institution=expected.source_institution,
@@ -753,4 +788,62 @@ class TestPaymentServiceSummaryBeneficiary:
             user_id=user.id,
             beneficiary="Amazon",
             page_filter=page_filter,
+        )
+
+
+class TestPaymentServiceUpdatePayment:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_update_payment_calls_repository_update():
+        repository = AsyncMock()
+        service = PaymentService(repository)
+
+        payment_id = uuid4()
+
+        payload: dict[str, object] = {
+            "amount": Decimal("150.00"),
+            "payment_date": date(2026, 9, 15),
+        }
+
+        expected = SimpleNamespace(id=uuid4())
+
+        repository.save.return_value = expected
+
+        result = await service.update_payment(
+            payment_id=str(payment_id),
+            payload=payload,
+            user=SimpleNamespace(id=uuid4(), username="jorge"),
+        )
+
+        assert result is expected
+        repository.save.assert_awaited_once()
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_update_payment_raises_when_payment_does_not_exist():
+        repository = AsyncMock()
+        service = PaymentService(repository)
+
+        payment_id = uuid4()
+        user = SimpleNamespace(id=uuid4(), username="testuser")
+        payload: dict[str, object] = {
+            "amount": Decimal("150.00"),
+            "payment_date": date(2026, 9, 15),
+        }
+
+        service.find_by = AsyncMock(return_value=None)
+
+        with pytest.raises(HTTPException) as exc_info:
+            await service.update_payment(
+                payment_id=str(payment_id),
+                payload=payload,
+                user=user,
+            )
+        assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
+        assert exc_info.value.detail == "Payment not found"
+
+        service.find_by.assert_awaited_once_with(
+            id=str(payment_id),
+            user_id=str(user.id),
+            without_throw=True,
         )

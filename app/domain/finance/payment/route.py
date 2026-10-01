@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Literal
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends
@@ -36,6 +36,7 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 
 def payment_filter(
     page: int | None = None,
+    order: Literal["asc", "desc"] | None = None,
     limit: int | None = 12,
     offset: int | None = None,
     order_by: str | None = None,
@@ -50,6 +51,7 @@ def payment_filter(
 ) -> FilterPage:
     return FilterPage.build(
         page=page,
+        order=order,
         limit=limit,
         offset=offset,
         order_by=order_by,

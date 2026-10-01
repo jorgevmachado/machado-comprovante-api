@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from app.models import User
     from app.models.beneficiary import Beneficiary
     from app.models.institution import Institution
+    from app.models.receipt import Receipt
 
 
 @table_registry.mapped_as_dataclass
@@ -30,6 +31,13 @@ class Payment:
     )
 
     receipt_id: Mapped[UUID] = mapped_column(ForeignKey("receipts.id"), nullable=False)
+
+    receipt: Mapped["Receipt"] = relationship(
+        init=False,
+        lazy=default_lazy,
+        back_populates="payments",
+    )
+
     beneficiary_id: Mapped[UUID] = mapped_column(
         ForeignKey("beneficiaries.id"), nullable=False
     )

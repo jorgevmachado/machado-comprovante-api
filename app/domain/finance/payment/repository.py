@@ -23,6 +23,31 @@ class PaymentRepository(BaseRepository[Payment]):
     def _get_name_code(name: str) -> str:
         return to_snake_case(name)
 
+    @staticmethod
+    def _get_order_column(order_by: str | None = None):
+        match order_by:
+            case "payment_date":
+                return Payment.payment_date
+            case "amount":
+                return Payment.amount
+            case _:
+                return Payment.created_at
+
+    def _order_by(
+        self,
+        query,
+        page_filter: Annotated[FilterPage, Query()] | None = None,
+    ):
+        order = getattr(page_filter, "order", None) if page_filter else None
+        order_by = getattr(page_filter, "order_by", None) if page_filter else None
+
+        if order is None and order_by is None:
+            return self._apply_order_by(query=query, page_filter=page_filter)
+
+        column = self._get_order_column(order_by)
+        query = query.order_by(asc(column) if order == "asc" else desc(column))
+        return query
+
     def _build_filter(
         self,
         query,
@@ -74,7 +99,7 @@ class PaymentRepository(BaseRepository[Payment]):
             selectinload(Payment.destination_institution),
         )
         query = self._build_filter(query, user_id, page_filter)
-        query = self._apply_order_by(query, page_filter)
+        query = self._order_by(query, page_filter)
         if page_filter is not None and is_paginate(page_filter):
             return await self.list_paginate(query, page_filter)
         result = await self.session.scalars(query)
@@ -117,15 +142,12 @@ class PaymentRepository(BaseRepository[Payment]):
         query = select(self.model).options(
             selectinload(Payment.user),
             selectinload(Payment.beneficiary),
+            selectinload(Payment.receipt),
             selectinload(Payment.source_institution),
             selectinload(Payment.destination_institution),
         )
-
-        if order_by == "asc":
-            query = query.order_by(asc(Payment.amount)).limit(1)
-        else:
-            query = query.order_by(desc(Payment.amount)).limit(1)
-
+        direction = asc if order_by == "asc" else desc
+        query = query.order_by(direction(Payment.amount)).limit(1)
         page_filter = self._only_filter_date(page_filter)
         query = self._build_filter(query, user_id, page_filter)
         result = await self.session.scalars(query)

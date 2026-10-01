@@ -1,4 +1,4 @@
-from typing import Any, Optional, TypeVar
+from typing import Any, Optional, TypeVar, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
 
@@ -14,6 +14,7 @@ class FilterPage(BaseModel):
     model_config = ConfigDict()
 
     page: Optional[int] = Field(None, ge=0)
+    order: Optional[Literal["asc", "desc"]] = Field(None)
     offset: Optional[int] = Field(None, ge=0)
     limit: Optional[int] = Field(None, ge=1)
     order_by: Optional[str] = Field(None)

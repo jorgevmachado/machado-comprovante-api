@@ -8,9 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import get_current_user
 from app.core.database import get_session
+from app.domain.finance.payment.schema import PaymentSchema
 from app.domain.finance.schema import (
     FinanceConfirmRequestSchema,
     FinanceConfirmResponseSchema,
+    FinanceUpdatePaymentRequestSchema,
 )
 from app.domain.finance.service import FinanceService
 from app.domain.finance.receipt.route import router as receipt_router
@@ -53,4 +55,20 @@ async def confirm(
 ):
     return await service.confirm(
         receipt_id=receipt_id, payload=payload, user=current_user
+    )
+
+
+@router.put(
+    "/payment/{payment_id}",
+    response_model=PaymentSchema,
+    status_code=HTTPStatus.OK,
+)
+async def update_payment(
+    payment_id: str,
+    service: Service,
+    payload: FinanceUpdatePaymentRequestSchema,
+    current_user: CurrentUser,
+):
+    return await service.update_payment(
+        payment_id=payment_id, payload=payload, user=current_user
     )

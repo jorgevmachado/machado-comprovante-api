@@ -1,24 +1,24 @@
-# TASK-079 — Padronizar respostas HTTP
+# TASK-078 — Documentar endpoints OpenAPI
 
-**Status:** `TODO`
+**Status:** `DONE`
 
 **Prioridade:** `P0`
 
 **Dependências:**
-- TASK-078
+- Nenhuma.
 
 ## Objetivo
 
-Padronizar respostas HTTP conforme as regras do domínio, arquitetura e backlog do MVP.
+Documentar endpoints OpenAPI conforme as regras do domínio, arquitetura e backlog do MVP.
 
 ## Referências
 
-- [05-domain.md](../../../../05-domain.md)
-- [06-database.md](../../../../06-database.md)
-- [07-api.md](../../../../07-api.md)
-- [08-backend-architecture.md](../../../../08-backend-architecture.md)
-- [09-domain-contracts.md](../../../../09-domain-contracts.md)
-- `README.md`
+- [05-domain.md](../../../../../05-domain.md)
+- [06-database.md](../../../../../06-database.md)
+- [07-api.md](../../../../../07-api.md)
+- [08-backend-architecture.md](../../../../../08-backend-architecture.md)
+- [09-domain-contracts.md](../../../../../09-domain-contracts.md)
+- `../../../../../../README.md`
 
 ## Escopo
 
@@ -29,12 +29,12 @@ Padronizar respostas HTTP conforme as regras do domínio, arquitetura e backlog 
 
 ## Critérios de aceite
 
-* [ ] A funcionalidade foi implementada conforme o contrato do MVP;
-* [ ] O comportamento foi validado em cenários principais;
-* [ ] A regra de negócio relevante foi respeitada;
-* [ ] Os contratos de entrada/saída foram aplicados corretamente;
-* [ ] Os testes relacionados estiveram passando;
-* [ ] A documentação foi atualizada quando necessário.
+* [x] A funcionalidade foi implementada conforme o contrato do MVP;
+* [x] O comportamento foi validado em cenários principais;
+* [x] A regra de negócio relevante foi respeitada;
+* [x] Os contratos de entrada/saída foram aplicados corretamente;
+* [x] Os testes relacionados estiveram passando;
+* [x] A documentação foi atualizada quando necessário.
 
 ## Implementação
 
@@ -42,7 +42,7 @@ Registrar aqui os principais pontos implementados durante a execução da task.
 
 ## Dependências para conclusão
 
-* TASK-078 concluída antes da finalização desta task.
+* Nenhuma.
 
 ## Notas
 
@@ -50,7 +50,7 @@ Nenhuma.
 
 ---
 
-**Status final:** `TODO`
+**Status final:** `DONE`
 
 ## Status disponíveis
 

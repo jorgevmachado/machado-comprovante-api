@@ -23,10 +23,18 @@
       <a href="#getting-started">Getting Started</a>
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#environment-configuration">Environment Configuration</a></li>
+        <li><a href="#generate-the-secret-key">Generate the Secret Key</a></li>
         <li><a href="#installation">Installation</a></li>
+        <li><a href="#local-infrastructure">Local Infrastructure</a></li>
+        <li><a href="#running-the-application">Running the Application</a></li>
       </ul>
     </li>
+    <li><a href="#docker">Docker</a></li>
+    <li><a href="#production-docker-environment">Production Docker Environment</a></li>
     <li><a href="#usage">Usage</a></li>
+    <li><a href="#testing">Testing</a></li>
+    <li><a href="#ci">Continuous Integration</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#technical-decisions">Technical Decisions</a></li>
@@ -53,6 +61,7 @@ Main capabilities include:
 
 * JWT authentication;
 * receipt upload and processing;
+* batch receipt processing;
 * PDF text extraction;
 * PDF-to-image conversion for OCR fallback;
 * image OCR;
@@ -63,8 +72,13 @@ Main capabilities include:
 * PostgreSQL persistence;
 * asynchronous database operations;
 * pagination;
-* caching support;
-* automated tests.
+* Redis caching support;
+* duplicate receipt detection;
+* receipt reprocessing for failed processing;
+* automated tests;
+* Docker-based development and production environments;
+* OpenAPI documentation;
+* continuous integration with GitHub Actions.
 
 ---
 
@@ -190,12 +204,7 @@ app/
 
 Routes define the HTTP API and delegate operations to the appropriate service.
 
-Finance operations are exposed through the `finance` route:
-
-```text
-POST /finance/receipt/upload
-POST /finance/receipt/{receipt_id}/confirm
-```
+Finance operations are exposed through the `finance` route.
 
 ### Services
 
@@ -250,7 +259,8 @@ The `app/core` modules provide shared infrastructure, including:
 * `FinanceService` as the orchestrator for multi-entity financial operations.
 * Repository layer dedicated to persistence.
 * Async-first database and I/O operations.
-* PostgreSQL as the primary database.
+* PostgreSQL as the primary application database.
+* SQLite used where appropriate for isolated tests/local test scenarios.
 * Deterministic document processing before AI fallback.
 * Local OCR instead of a paid OCR API.
 * `pdfplumber` for direct PDF text extraction.
@@ -259,8 +269,10 @@ The `app/core` modules provide shared infrastructure, including:
 * Environment-driven configuration using Pydantic Settings.
 * JWT authentication.
 * Alembic for database migrations.
+* Redis for caching.
+* Docker Compose for local infrastructure and production-container validation.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+---
 
 <!-- API ROUTE MAP -->
 
@@ -276,13 +288,26 @@ The `app/core` modules provide shared infrastructure, including:
 #### Receipt
 
 * `POST /finance/receipt/upload` — Upload and process a payment receipt.
+* `POST /finance/receipt/upload/batch` — Upload and process multiple payment receipts.
 * `POST /finance/receipt/{receipt_id}/confirm` — Confirm the extracted receipt data and create the corresponding payment.
 
 The confirmation operation coordinates Receipt, Payment, Beneficiary, and Institution.
 
-> For a complete list and details of all endpoints, see the interactive API documentation at `/docs` after running the project.
+The complete and authoritative API contract is available through the generated OpenAPI documentation.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+After starting the application, access:
+
+```text
+http://localhost:8000/docs
+```
+
+or:
+
+```text
+http://localhost:8000/redoc
+```
+
+---
 
 <!-- TECHNICAL DECISIONS -->
 
@@ -309,7 +334,7 @@ The project prioritizes simplicity, low cost, maintainability, and the use of fr
 * **pdfplumber** — Extraction of text from text-based PDF documents.
 * **pdf2image** — Conversion of PDF pages into images when direct text extraction is unavailable.
 * **Pillow** — Image loading and processing.
-* **pytesseract** — Python interface for Tesseract OCR.
+* **pytesseract** — Python interface to Tesseract OCR.
 * **Tesseract OCR** — Local and open-source OCR engine for extracting text from images and scanned documents.
 * **Poppler** — PDF rendering backend required by `pdf2image`.
 
@@ -339,10 +364,12 @@ The application does not depend on a paid OCR service for the MVP.
 
 * **Poetry** — Dependency and environment management.
 * **Ruff** — Linting and formatting.
+* **Make** — Common development commands.
+* **Docker Compose** — Local PostgreSQL/Redis infrastructure.
 
 These choices are intended to keep the project simple and inexpensive while providing a foundation that can evolve as the application grows.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+---
 
 <!-- BUILT WITH -->
 
@@ -380,8 +407,11 @@ These choices are intended to keep the project simple and inexpensive while prov
 * freezegun
 * testcontainers
 * Ruff
+* Docker
+* Docker Compose
+* GitHub Actions
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+---
 
 <!-- GETTING STARTED -->
 
@@ -391,11 +421,17 @@ To run the project locally, follow the steps below.
 
 ### Prerequisites
 
+The local development environment requires:
+
 1. Python 3.13
 2. Poetry
-3. Tesseract OCR
-4. Poppler
-5. PostgreSQL or SQLite
+3. Docker
+4. Docker Compose
+5. Git
+6. Tesseract OCR
+7. Poppler
+
+PostgreSQL and Redis do not need to be installed directly on the host because the development Docker Compose file provides both services.
 
 ### Tesseract OCR
 
@@ -438,87 +474,181 @@ Verify the installation:
 pdftoppm -v
 ```
 
-### Environment
+---
 
-Create a `.env` file at the project root:
+## Environment Configuration
 
-```env
-ALGORITHM=HS256
-SECRET_KEY=change-me
-DATABASE_URL=sqlite+aiosqlite:///./dev.db
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-```
+Create a `.env` file at the project root.
 
-For PostgreSQL:
+The repository provides `.env.example` as the reference configuration.
 
 ```env
-DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/machadoComprovanteDB
+SECRET_KEY="change-me"
+ALGORITHM="HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+POSTGRES_USER=machadoComprovante
+POSTGRES_PASSWORD=machadoComprovante
+POSTGRES_DB=machadoComprovanteDB
+DATABASE_URL="postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}"
+
+REDIS_HOST="127.0.0.1"
+REDIS_PORT=6379
+REDIS_CACHE_TTL_SECONDS=3600
+
+RECEIPT_BATCH_MAX_FILES=10
+RECEIPT_MAX_FILE_SIZE_MB=10
+RECEIPT_BATCH_MAX_SIZE_MB=25
 ```
 
-### Installation
+Do not commit `.env` or `.env.prod` to Git.
 
-You can use the Makefile for common tasks:
+Both files are intentionally ignored by `.gitignore`.
 
-* Install dependencies:
+### Generate the Secret Key
 
-  ```bash
-  make install
-  ```
+Never use `change-me` outside a local development environment.
 
-* Run database migrations:
-
-  ```bash
-  make migrate
-  ```
-
-* Start the API:
-
-  ```bash
-  make run
-  ```
-
-* Run tests:
-
-  ```bash
-  make test
-  ```
-
-* Lint:
-
-  ```bash
-  make lint
-  ```
-
-* Format:
-
-  ```bash
-  make format
-  ```
-
-Or manually:
+Generate a cryptographically secure secret key with Python:
 
 ```bash
-git clone https://github.com/yourusername/machado-comprovante-api.git
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+```
+
+Example:
+
+```text
+<generated-secret-key>
+```
+
+Copy the generated value to the `SECRET_KEY` variable in `.env`:
+
+```env
+SECRET_KEY="<generated-secret-key>"
+```
+
+For production, generate a new secret key specifically for the production environment.
+
+Do not reuse the production secret in `.env.example`, source code, tests, GitHub repositories, or documentation.
+
+---
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone <repository-url>
 cd machado-comprovante-api
 ```
 
-Install dependencies:
+Install Python 3.13 and configure Poetry to use it:
 
 ```bash
 poetry env use 3.13
+```
+
+Install project dependencies:
+
+```bash
 poetry install
 ```
 
-Run migrations:
+Alternatively, use the Makefile:
+
+```bash
+make install
+```
+
+Create the local environment file:
+
+```bash
+cp .env.example .env
+```
+
+Generate a local `SECRET_KEY`:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+```
+
+Replace `change-me` in `.env` with the generated value.
+
+---
+
+## Local Infrastructure
+
+The development environment uses Docker Compose for PostgreSQL and Redis.
+
+Start the infrastructure:
+
+```bash
+docker compose up -d
+```
+
+Check the services:
+
+```bash
+docker compose ps
+```
+
+The development services are available at:
+
+```text
+PostgreSQL: 127.0.0.1:5432
+Redis:      127.0.0.1:6379
+```
+
+The API itself runs locally through Python/Poetry.
+
+Stop the infrastructure:
+
+```bash
+docker compose down
+```
+
+To remove the PostgreSQL development volume as well:
+
+```bash
+docker compose down -v
+```
+
+> The `-v` option permanently removes the PostgreSQL data stored in the development volume.
+
+---
+
+## Database Migrations
+
+With PostgreSQL running and the `.env` configured:
 
 ```bash
 alembic upgrade head
 ```
 
-Start the API:
+Or:
+
+```bash
+make migrate
+```
+
+The application uses Alembic to manage database schema versions.
+
+New migrations should be created through Alembic and committed to the repository.
+
+---
+
+## Running the Application
+
+Start the API locally:
 
 ```bash
 fastapi dev app/main.py
+```
+
+Or:
+
+```bash
+make run
 ```
 
 The API will be available at:
@@ -531,10 +661,177 @@ Interactive API documentation:
 
 ```text
 http://localhost:8000/docs
+```
+
+Alternative documentation:
+
+```text
 http://localhost:8000/redoc
 ```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+---
+
+<!-- DOCKER -->
+
+## Docker
+
+The project includes a `Dockerfile` containing the runtime dependencies required by the application, including:
+
+* Python 3.13;
+* Tesseract OCR;
+* Portuguese Tesseract language data;
+* Poppler;
+* Poetry dependencies.
+
+The Docker image installs only production dependencies.
+
+Build the image:
+
+```bash
+docker build -t machado-comprovante-api .
+```
+
+Run the container only when the required external PostgreSQL and Redis services are available.
+
+For normal local development, use the development Docker Compose environment described above.
+
+---
+
+<!-- PRODUCTION DOCKER ENVIRONMENT -->
+
+## Production Docker Environment
+
+The repository contains a separate `docker-compose.prod.yml`.
+
+The development `docker-compose.yml` must remain dedicated to local development and should not be changed to production configuration.
+
+The production Compose environment contains:
+
+```text
+API
+PostgreSQL
+Redis
+```
+
+The services communicate through the Docker Compose network.
+
+The production configuration uses:
+
+* PostgreSQL 17.2;
+* Redis 8.6.1;
+* persistent PostgreSQL storage;
+* PostgreSQL healthcheck;
+* Redis healthcheck;
+* API dependency on healthy PostgreSQL and Redis services;
+* Alembic migrations during API startup;
+* Uvicorn as the production application server.
+
+### Production Environment File
+
+Create `.env.prod` locally or directly on the production host.
+
+Do not commit it.
+
+The production environment file contains application and PostgreSQL variables, while Docker Compose provides the internal service addresses:
+
+```env
+SECRET_KEY="<production-secret>"
+ALGORITHM="HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+REDIS_CACHE_TTL_SECONDS=3600
+
+RECEIPT_BATCH_MAX_FILES=10
+RECEIPT_MAX_FILE_SIZE_MB=10
+RECEIPT_BATCH_MAX_SIZE_MB=25
+
+POSTGRES_USER=machadoComprovante
+POSTGRES_PASSWORD="<production-password>"
+POSTGRES_DB=machadoComprovanteDB
+```
+
+The production Compose file internally configures:
+
+```text
+DATABASE_URL → postgres:5432
+REDIS_HOST   → redis
+REDIS_PORT   → 6379
+```
+
+Do not use `127.0.0.1` for these connections inside the production containers.
+
+### Production Secret
+
+Generate the production secret with:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+```
+
+Use a different secret from the development environment.
+
+### Validate Production Configuration
+
+Before starting the production environment:
+
+```bash
+docker compose \
+  --env-file .env.prod \
+  -f docker-compose.prod.yml \
+  config
+```
+
+Start the production environment:
+
+```bash
+docker compose \
+  --env-file .env.prod \
+  -f docker-compose.prod.yml \
+  up --build
+```
+
+Run it in the background:
+
+```bash
+docker compose \
+  --env-file .env.prod \
+  -f docker-compose.prod.yml \
+  up --build -d
+```
+
+Check the services:
+
+```bash
+docker compose \
+  --env-file .env.prod \
+  -f docker-compose.prod.yml \
+  ps
+```
+
+Check API logs:
+
+```bash
+docker compose \
+  --env-file .env.prod \
+  -f docker-compose.prod.yml \
+  logs -f api
+```
+
+The API container automatically executes:
+
+```text
+Alembic migrations
+      ↓
+Uvicorn
+      ↓
+FastAPI
+```
+
+The production Docker environment has been validated locally.
+
+External hosting infrastructure is intentionally not defined yet.
+
+---
 
 <!-- USAGE -->
 
@@ -549,6 +846,7 @@ The API allows users to:
 5. Correct information when necessary.
 6. Confirm the receipt.
 7. Register the corresponding payment.
+8. Query registered payments.
 
 Example processing flow:
 
@@ -572,27 +870,128 @@ Resolve Institutions
 Create Payment
 ```
 
+### Batch Processing
+
+The batch endpoint accepts multiple receipt files.
+
+The application validates:
+
+* maximum number of files;
+* maximum individual file size;
+* maximum total batch size;
+* supported content types;
+* duplicate files.
+
+Current limits are configured through:
+
+```env
+RECEIPT_BATCH_MAX_FILES=10
+RECEIPT_MAX_FILE_SIZE_MB=10
+RECEIPT_BATCH_MAX_SIZE_MB=25
+```
+
 For API exploration and testing, use the interactive documentation available at `/docs`.
 
-To run the tests:
+---
+
+<!-- TESTING -->
+
+## Testing
+
+Run the complete test suite:
 
 ```bash
 pytest -v
 ```
 
-For linting:
+Or:
+
+```bash
+make test
+```
+
+Run tests with coverage:
+
+```bash
+pytest --cov=app
+```
+
+Run linting:
 
 ```bash
 ruff check .
 ```
 
-For formatting:
+Or:
+
+```bash
+make lint
+```
+
+Run formatting:
 
 ```bash
 ruff format .
 ```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+Or:
+
+```bash
+make format
+```
+
+The project uses:
+
+* pytest;
+* pytest-asyncio;
+* pytest-cov;
+* factory-boy;
+* freezegun;
+* testcontainers.
+
+Integration tests can use ephemeral infrastructure through Testcontainers.
+
+---
+
+<!-- CI -->
+
+## Continuous Integration
+
+The project uses GitHub Actions for continuous integration.
+
+The CI pipeline runs independently for:
+
+```text
+Lint
+  ↓
+Ruff
+
+Test
+  ↓
+Pytest
+```
+
+CI is executed for pushes to:
+
+```text
+main
+develop
+```
+
+and for pull requests targeting these branches.
+
+Required application secrets are configured through GitHub Actions Secrets rather than committed to the repository.
+
+The current CI configuration uses:
+
+* `ALGORITHM`;
+* `SECRET_KEY`;
+* `DATABASE_URL`;
+* `ACCESS_TOKEN_EXPIRE_MINUTES`.
+
+The `main` branch requires the CI checks to pass before merging pull requests.
+
+---
 
 <!-- ROADMAP -->
 
@@ -611,16 +1010,23 @@ ruff format .
 * [x] Deterministic receipt interpretation
 * [x] Receipt confirmation flow
 * [x] Payment creation during receipt confirmation
+* [x] Batch receipt processing
+* [x] Duplicate receipt detection
+* [x] Docker runtime
+* [x] Production Docker Compose
+* [x] GitHub Actions CI
+* [x] OpenAPI documentation
 * [ ] Image preprocessing
 * [ ] AI fallback for ambiguous receipts
 * [ ] External file storage
 * [ ] PWA / mobile upload flow
 * [ ] Finance dashboard
 * [ ] Advanced payment queries
+* [ ] External production hosting
 
-See the [open issues](https://github.com/yourusername/machado-comprovante-api/issues) for the full list of proposed features and known issues.
+See the project issues for the full list of proposed features and known issues.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+---
 
 <!-- CONTRIBUTING -->
 
@@ -652,7 +1058,7 @@ Contributions are welcome! Follow the steps below to collaborate:
 
 Suggestions for improvements can also be opened as issues with the tag `enhancement`.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+---
 
 <!-- LICENSE -->
 
@@ -660,9 +1066,9 @@ Suggestions for improvements can also be opened as issues with the tag `enhancem
 
 This project is licensed under the MIT License.
 
-See the [LICENSE](./LICENSE) file for details.
+See the `LICENSE` file for details.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+---
 
 <!-- CONTACT -->
 
@@ -670,9 +1076,7 @@ See the [LICENSE](./LICENSE) file for details.
 
 Jorge Machado - [jorge.vmachado@gmail.com](mailto:jorge.vmachado@gmail.com)
 
-Project Link: https://github.com/yourusername/machado-comprovante-api
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+---
 
 <!-- ACKNOWLEDGMENTS -->
 
@@ -680,19 +1084,19 @@ Project Link: https://github.com/yourusername/machado-comprovante-api
 
 This project uses and is inspired by the following open-source projects and technologies:
 
-* [FastAPI](https://fastapi.tiangolo.com/)
-* [SQLAlchemy](https://www.sqlalchemy.org/)
-* [pdfplumber](https://github.com/jsvine/pdfplumber)
-* [pdf2image](https://github.com/Belval/pdf2image)
-* [Pillow](https://python-pillow.org/)
-* [pytesseract](https://github.com/madmaze/pytesseract)
-* [Tesseract OCR](https://github.com/tesseract-ocr/tesseract)
-* [Pydantic](https://docs.pydantic.dev/)
-* [Alembic](https://alembic.sqlalchemy.org/)
-* [Poetry](https://python-poetry.org/)
-* [Img Shields](https://shields.io)
+* FastAPI
+* SQLAlchemy
+* pdfplumber
+* pdf2image
+* Pillow
+* pytesseract
+* Tesseract OCR
+* Pydantic
+* Alembic
+* Poetry
+* Img Shields
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+---
 
 <!-- MARKDOWN LINKS & IMAGES -->
 
