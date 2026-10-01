@@ -34,15 +34,10 @@ class InterpretationService:
             data = self.unknown.invalid_interpret()
             return InterpretationValidator.validate(data)
 
-        print('# => text => ', text)
-
         institution = InstitutionsService.identify(text)
-
-        print('# => institution => ', institution)
 
         if institution == InstitutionEnum.UNKNOWN:
             institution = self._identify_institution(text)
-            print('# => identify_institution => ', institution)
 
         if institution == InstitutionEnum.ITAU:
             data = self.itau.interpret(text=text, institution=institution)
