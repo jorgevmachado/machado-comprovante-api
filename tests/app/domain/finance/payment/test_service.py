@@ -12,7 +12,9 @@ from fastapi import HTTPException
 
 from app.domain.finance.beneficiary.schema import BeneficiarySchema
 from app.domain.finance.institution.schema import InstitutionSchema
-from app.domain.finance.payment.schema import PaymentSummaryMinMaxSchema, PaymentSchema
+from app.domain.finance.payment.schema import PaymentSummaryMinMaxSchema, PaymentSchema, PaymentDashboardRequestSchema, \
+    PaymentDashboardResponseSchema, PaymentDashboardPeriodSchema, PaymentDashboardSummarySchema, \
+    PaymentDashboardMonthlySchema, PaymentDashboardInstitutionSchema, PaymentDashboardBeneficiarySchema
 from app.domain.finance.payment.service import PaymentService
 from app.domain.finance.receipt.schema import ReceiptSchema
 from app.models import Payment, utcnow, ProcessingStatusEnum
@@ -846,4 +848,145 @@ class TestPaymentServiceUpdatePayment:
             id=str(payment_id),
             user_id=str(user.id),
             without_throw=True,
+        )
+
+class TestPaymentServiceGetDashboard:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_get_dashboard_returns_dashboard_response():
+        repository = AsyncMock()
+        service = PaymentService(repository)
+
+        user = SimpleNamespace(
+            id=uuid4(),
+            username="jorge",
+        )
+
+        beneficiary_id = uuid4()
+        institution_id = uuid4()
+
+        params = PaymentDashboardRequestSchema(
+            start_date=date(2026, 1, 1),
+            end_date=date(2026, 9, 30),
+            institution="itau",
+            beneficiary_id=beneficiary_id,
+        )
+
+        repository.dashboard_summary.return_value = {
+            "total": Decimal("5000.00"),
+            "count": 10,
+            "average": Decimal("500.00"),
+            "highest": Decimal("1500.00"),
+        }
+
+        repository.dashboard_monthly.return_value = [
+            {
+                "period": "2026-01",
+                "total": Decimal("1000.00"),
+                "count": 2,
+            },
+            {
+                "period": "2026-02",
+                "total": Decimal("4000.00"),
+                "count": 8,
+            },
+        ]
+
+        repository.dashboard_institutions.return_value = [
+            {
+                "institution_id": institution_id,
+                "institution": "itau",
+                "total": Decimal("5000.00"),
+                "count": 10,
+            },
+        ]
+
+        repository.dashboard_beneficiaries.return_value = [
+            {
+                "beneficiary_id": beneficiary_id,
+                "name": "Amazon",
+                "total": Decimal("5000.00"),
+                "count": 10,
+            },
+        ]
+
+        result = await service.get_dashboard(
+            params=params,
+            user=user,
+        )
+
+        assert isinstance(result, PaymentDashboardResponseSchema)
+
+        assert result.period == PaymentDashboardPeriodSchema(
+            start_date=date(2026, 1, 1),
+            end_date=date(2026, 9, 30),
+        )
+
+        assert result.summary == PaymentDashboardSummarySchema(
+            total=Decimal("5000.00"),
+            count=10,
+            average=Decimal("500.00"),
+            highest=Decimal("1500.00"),
+        )
+
+        assert result.monthly == [
+            PaymentDashboardMonthlySchema(
+                period="2026-01",
+                total=Decimal("1000.00"),
+                count=2,
+            ),
+            PaymentDashboardMonthlySchema(
+                period="2026-02",
+                total=Decimal("4000.00"),
+                count=8,
+            ),
+        ]
+
+        assert result.institutions == [
+            PaymentDashboardInstitutionSchema(
+                institution="itau",
+                total=Decimal("5000.00"),
+                count=10,
+            ),
+        ]
+
+        assert result.beneficiaries == [
+            PaymentDashboardBeneficiarySchema(
+                beneficiary_id=beneficiary_id,
+                name="Amazon",
+                total=Decimal("5000.00"),
+                count=10,
+            ),
+        ]
+
+        repository.dashboard_summary.assert_awaited_once_with(
+            user_id=user.id,
+            end_date=params.end_date,
+            start_date=params.start_date,
+            institution=params.institution,
+            beneficiary_id=params.beneficiary_id,
+        )
+
+        repository.dashboard_monthly.assert_awaited_once_with(
+            user_id=user.id,
+            start_date=params.start_date,
+            end_date=params.end_date,
+            institution=params.institution,
+            beneficiary_id=params.beneficiary_id,
+        )
+
+        repository.dashboard_institutions.assert_awaited_once_with(
+            user_id=user.id,
+            start_date=params.start_date,
+            end_date=params.end_date,
+            institution=params.institution,
+            beneficiary_id=params.beneficiary_id,
+        )
+
+        repository.dashboard_beneficiaries.assert_awaited_once_with(
+            user_id=user.id,
+            start_date=params.start_date,
+            end_date=params.end_date,
+            institution=params.institution,
+            beneficiary_id=params.beneficiary_id,
         )

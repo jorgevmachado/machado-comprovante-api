@@ -1177,3 +1177,521 @@ class TestPaymentRepositoryOrderBy:
             query=query,
             page_filter=None,
         )
+
+
+class TestPaymentRepositoryBuildDashboardFilter:
+    def test_should_filter_by_user_and_date_range(self):
+        user_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        query = select(Payment)
+
+        result = repository._build_dashboard_filter(
+            query=query,
+            user_id=user_id,
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+        )
+
+        compiled = result.compile(
+            compile_kwargs={"literal_binds": True},
+        )
+        sql = str(compiled)
+
+        assert f"payments.user_id = '{user_id.hex}'" in sql
+        assert "payments.payment_date >= '2026-09-01'" in sql
+        assert "payments.payment_date <= '2026-09-30'" in sql
+        assert "JOIN institutions" not in sql
+
+    def test_should_filter_by_institution(self):
+        user_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        query = select(Payment)
+
+        result = repository._build_dashboard_filter(
+            query=query,
+            user_id=user_id,
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+            institution="Itaú Unibanco",
+        )
+
+        compiled = result.compile(
+            compile_kwargs={"literal_binds": True},
+        )
+        sql = str(compiled)
+
+        assert f"payments.user_id = '{user_id.hex}'" in sql
+        assert "payments.payment_date >= '2026-09-01'" in sql
+        assert "payments.payment_date <= '2026-09-30'" in sql
+        assert "JOIN institutions" in sql
+        assert "institutions.name_code = 'itau_unibanco'" in sql
+
+    def test_should_filter_by_beneficiary(self):
+        user_id = uuid4()
+        beneficiary_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        query = select(Payment)
+
+        result = repository._build_dashboard_filter(
+            query=query,
+            user_id=user_id,
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+            beneficiary_id=beneficiary_id,
+        )
+
+        compiled = result.compile(
+            compile_kwargs={"literal_binds": True},
+        )
+        sql = str(compiled)
+
+        assert f"payments.user_id = '{user_id.hex}'" in sql
+        assert "payments.payment_date >= '2026-09-01'" in sql
+        assert "payments.payment_date <= '2026-09-30'" in sql
+        assert f"payments.beneficiary_id = '{beneficiary_id.hex}'" in sql
+        assert "JOIN institutions" not in sql
+
+    def test_should_apply_all_dashboard_filters(self):
+        user_id = uuid4()
+        beneficiary_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        query = select(Payment)
+
+        result = repository._build_dashboard_filter(
+            query=query,
+            user_id=user_id,
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+            institution="Itaú Unibanco",
+            beneficiary_id=beneficiary_id,
+        )
+
+        compiled = result.compile(
+            compile_kwargs={"literal_binds": True},
+        )
+        sql = str(compiled)
+
+        assert f"payments.user_id = '{user_id.hex}'" in sql
+        assert "payments.payment_date >= '2026-09-01'" in sql
+        assert "payments.payment_date <= '2026-09-30'" in sql
+        assert "JOIN institutions" in sql
+        assert "institutions.name_code = 'itau_unibanco'" in sql
+        assert f"payments.beneficiary_id = '{beneficiary_id.hex}'" in sql
+
+    def test_should_not_apply_optional_dashboard_filters_when_not_provided(self):
+        user_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        query = select(Payment)
+
+        result = repository._build_dashboard_filter(
+            query=query,
+            user_id=user_id,
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+            institution=None,
+            beneficiary_id=None,
+        )
+
+        compiled = result.compile(
+            compile_kwargs={"literal_binds": True},
+        )
+        sql = str(compiled)
+
+        assert f"payments.user_id = '{user_id.hex}'" in sql
+        assert "payments.payment_date >= '2026-09-01'" in sql
+        assert "payments.payment_date <= '2026-09-30'" in sql
+        assert "JOIN institutions" not in sql
+
+
+class TestPaymentRepositoryDashboardSummary:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_dashboard_summary():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+        start_date = date(2026, 9, 1)
+        end_date = date(2026, 9, 30)
+        institution = "Itaú"
+        beneficiary_id = uuid4()
+
+        row = SimpleNamespace(
+            count=10,
+            total=Decimal("5000.00"),
+            average=Decimal("500.00"),
+            highest=Decimal("1500.00"),
+        )
+
+        execute_result = MagicMock()
+        execute_result.one.return_value = row
+        session.execute.return_value = execute_result
+
+        filtered_query = MagicMock()
+
+        with patch.object(
+            repository,
+            "_build_dashboard_filter",
+            return_value=filtered_query,
+        ) as build_filter:
+            result = await repository.dashboard_summary(
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+                institution=institution,
+                beneficiary_id=beneficiary_id,
+            )
+
+        assert result == {
+            "count": 10,
+            "total": Decimal("5000.00"),
+            "average": Decimal("500.00"),
+            "highest": Decimal("1500.00"),
+        }
+
+        build_filter.assert_called_once_with(
+            query=ANY,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            institution=institution,
+            beneficiary_id=beneficiary_id,
+        )
+
+        session.execute.assert_awaited_once_with(
+            filtered_query,
+        )
+
+        execute_result.one.assert_called_once_with()
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_dashboard_summary_with_zero_values():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+
+        row = SimpleNamespace(
+            count=0,
+            total=Decimal("0"),
+            average=Decimal("0"),
+            highest=Decimal("0"),
+        )
+
+        execute_result = MagicMock()
+        execute_result.one.return_value = row
+        session.execute.return_value = execute_result
+
+        with patch.object(
+            repository,
+            "_build_dashboard_filter",
+            side_effect=lambda query, **kwargs: query,
+        ):
+            result = await repository.dashboard_summary(
+                user_id=user_id,
+                start_date=date(2026, 9, 1),
+                end_date=date(2026, 9, 30),
+            )
+
+        assert result == {
+            "count": 0,
+            "total": Decimal("0"),
+            "average": Decimal("0"),
+            "highest": Decimal("0"),
+        }
+
+
+class TestPaymentRepositoryDashboardMonthly:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_dashboard_monthly():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+        start_date = date(2026, 1, 1)
+        end_date = date(2026, 9, 30)
+
+        rows = [
+            SimpleNamespace(
+                period="2026-01",
+                count=2,
+                total=Decimal("1000.00"),
+            ),
+            SimpleNamespace(
+                period="2026-02",
+                count=3,
+                total=Decimal("2000.00"),
+            ),
+        ]
+
+        execute_result = MagicMock()
+        execute_result.__iter__.return_value = iter(rows)
+        session.execute.return_value = execute_result
+
+        filtered_query = MagicMock()
+
+        with patch.object(
+            repository,
+            "_build_dashboard_filter",
+            return_value=filtered_query,
+        ) as build_filter:
+            result = await repository.dashboard_monthly(
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+                institution="Itaú",
+                beneficiary_id=uuid4(),
+            )
+
+        assert result == [
+            {
+                "period": "2026-01",
+                "count": 2,
+                "total": Decimal("1000.00"),
+            },
+            {
+                "period": "2026-02",
+                "count": 3,
+                "total": Decimal("2000.00"),
+            },
+        ]
+
+        build_filter.assert_called_once_with(
+            query=ANY,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            institution="Itaú",
+            beneficiary_id=ANY,
+        )
+
+        session.execute.assert_awaited_once_with(
+            filtered_query.group_by.return_value.order_by.return_value,
+        )
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_empty_list_when_there_are_no_monthly_results():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        execute_result = MagicMock()
+        execute_result.__iter__.return_value = iter([])
+        session.execute.return_value = execute_result
+
+        with patch.object(
+            repository,
+            "_build_dashboard_filter",
+            side_effect=lambda query, **kwargs: query,
+        ):
+            result = await repository.dashboard_monthly(
+                user_id=uuid4(),
+                start_date=date(2026, 9, 1),
+                end_date=date(2026, 9, 30),
+            )
+
+        assert result == []
+
+
+class TestPaymentRepositoryDashboardInstitutions:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_dashboard_institutions():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+        institution_id = uuid4()
+
+        rows = [
+            SimpleNamespace(
+                institution_id=institution_id,
+                institution="itau",
+                count=5,
+                total=Decimal("3000.00"),
+            ),
+            SimpleNamespace(
+                institution_id=uuid4(),
+                institution="nubank",
+                count=3,
+                total=Decimal("1500.00"),
+            ),
+        ]
+
+        execute_result = MagicMock()
+        execute_result.__iter__.return_value = iter(rows)
+        session.execute.return_value = execute_result
+
+        filtered_query = MagicMock()
+
+        with patch.object(
+            repository,
+            "_build_dashboard_filter",
+            return_value=filtered_query,
+        ) as build_filter:
+            result = await repository.dashboard_institutions(
+                user_id=user_id,
+                start_date=date(2026, 1, 1),
+                end_date=date(2026, 9, 30),
+                institution="Itaú",
+                beneficiary_id=uuid4(),
+            )
+
+        assert result == [
+            {
+                "institution_id": institution_id,
+                "institution": "itau",
+                "count": 5,
+                "total": Decimal("3000.00"),
+            },
+            {
+                "institution_id": rows[1].institution_id,
+                "institution": "nubank",
+                "count": 3,
+                "total": Decimal("1500.00"),
+            },
+        ]
+
+        build_filter.assert_called_once_with(
+            query=ANY,
+            user_id=user_id,
+            start_date=date(2026, 1, 1),
+            end_date=date(2026, 9, 30),
+            institution="Itaú",
+            beneficiary_id=ANY,
+        )
+
+        session.execute.assert_awaited_once_with(
+            filtered_query.group_by.return_value.order_by.return_value,
+        )
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_empty_list_when_there_are_no_institution_results():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        execute_result = MagicMock()
+        execute_result.__iter__.return_value = iter([])
+        session.execute.return_value = execute_result
+
+        with patch.object(
+            repository,
+            "_build_dashboard_filter",
+            side_effect=lambda query, **kwargs: query,
+        ):
+            result = await repository.dashboard_institutions(
+                user_id=uuid4(),
+                start_date=date(2026, 9, 1),
+                end_date=date(2026, 9, 30),
+            )
+
+        assert result == []
+
+
+class TestPaymentRepositoryDashboardBeneficiaries:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_dashboard_beneficiaries():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+        beneficiary_id = uuid4()
+
+        rows = [
+            SimpleNamespace(
+                beneficiary_id=beneficiary_id,
+                name="Amazon",
+                count=4,
+                total=Decimal("2500.00"),
+            ),
+            SimpleNamespace(
+                beneficiary_id=uuid4(),
+                name="Mercado Livre",
+                count=2,
+                total=Decimal("800.00"),
+            ),
+        ]
+
+        execute_result = MagicMock()
+        execute_result.__iter__.return_value = iter(rows)
+        session.execute.return_value = execute_result
+
+        filtered_query = MagicMock()
+
+        with patch.object(
+            repository,
+            "_build_dashboard_filter",
+            return_value=filtered_query,
+        ) as build_filter:
+            result = await repository.dashboard_beneficiaries(
+                user_id=user_id,
+                start_date=date(2026, 1, 1),
+                end_date=date(2026, 9, 30),
+                institution="Itaú",
+                beneficiary_id=beneficiary_id,
+            )
+
+        assert result == [
+            {
+                "beneficiary_id": beneficiary_id,
+                "name": "Amazon",
+                "count": 4,
+                "total": Decimal("2500.00"),
+            },
+            {
+                "beneficiary_id": rows[1].beneficiary_id,
+                "name": "Mercado Livre",
+                "count": 2,
+                "total": Decimal("800.00"),
+            },
+        ]
+
+        build_filter.assert_called_once_with(
+            query=ANY,
+            user_id=user_id,
+            start_date=date(2026, 1, 1),
+            end_date=date(2026, 9, 30),
+            institution="Itaú",
+            beneficiary_id=beneficiary_id,
+        )
+
+        session.execute.assert_awaited_once_with(
+            filtered_query.group_by.return_value.order_by.return_value,
+        )
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_empty_list_when_there_are_no_beneficiary_results():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        execute_result = MagicMock()
+        execute_result.__iter__.return_value = iter([])
+        session.execute.return_value = execute_result
+
+        with patch.object(
+            repository,
+            "_build_dashboard_filter",
+            side_effect=lambda query, **kwargs: query,
+        ):
+            result = await repository.dashboard_beneficiaries(
+                user_id=uuid4(),
+                start_date=date(2026, 9, 1),
+                end_date=date(2026, 9, 30),
+            )
+
+        assert result == []

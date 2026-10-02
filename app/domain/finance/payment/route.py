@@ -4,7 +4,7 @@ from datetime import date
 from typing import Annotated, Literal
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
@@ -15,7 +15,7 @@ from app.domain.finance.payment.schema import (
     PaymentSummaryCountSchema,
     PaymentSummaryTotalSchema,
     PaymentSummaryMinMaxSchema,
-    PaymentSummaryBeneficiaryTotalSchema,
+    PaymentSummaryBeneficiaryTotalSchema, PaymentDashboardResponseSchema, PaymentDashboardRequestSchema,
 )
 from app.domain.finance.payment.service import PaymentService
 from app.models import User
@@ -142,3 +142,12 @@ async def summary_beneficiary(
     page_filter: Annotated[FilterPage, Depends(payment_filter)],
 ):
     return await service.summary_beneficiary(page_filter=page_filter, user=current_user)
+
+
+@router.get("/dashboard", response_model=PaymentDashboardResponseSchema, status_code=HTTPStatus.OK)
+async def get_dashboard(
+    params: Annotated[PaymentDashboardRequestSchema, Query()],
+    service: Service,
+    current_user: CurrentUser,
+):
+    return await service.get_dashboard(params=params, user=current_user)

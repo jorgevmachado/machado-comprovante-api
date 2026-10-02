@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Annotated, cast
 from uuid import UUID
 
-from sqlalchemy import select, desc, asc
+from sqlalchemy import select, desc, asc, func
 from sqlalchemy.orm import selectinload
 
 
@@ -178,3 +179,188 @@ class PaymentRepository(BaseRepository[Payment]):
             "total": sum(payment.amount for payment in result.all()),
             "beneficiary": beneficiary,
         }
+
+    def _build_dashboard_filter(
+            self,
+            query,
+            user_id: UUID,
+            start_date: date,
+            end_date: date,
+            institution: str | None = None,
+            beneficiary_id: UUID | None = None,
+    ):
+        query = query.where(
+            Payment.user_id == user_id,
+            Payment.payment_date >= start_date,
+            Payment.payment_date <= end_date,
+        )
+
+        if institution:
+            query = query.join(Payment.source_institution).where(
+                Institution.name_code == self._get_name_code(institution)
+            )
+
+        if beneficiary_id:
+            query = query.where(Payment.beneficiary_id == beneficiary_id)
+
+        return query
+
+    async def dashboard_summary(
+            self,
+            user_id: UUID,
+            start_date: date,
+            end_date: date,
+            institution: str | None = None,
+            beneficiary_id: UUID | None = None,
+    ):
+        query = select(
+            func.count(Payment.id).label("count"),
+            func.coalesce(func.sum(Payment.amount), 0).label("total"),
+            func.coalesce(func.avg(Payment.amount), 0).label("average"),
+            func.coalesce(func.max(Payment.amount), 0).label("highest"),
+        )
+
+        query = self._build_dashboard_filter(
+            query=query,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            institution=institution,
+            beneficiary_id=beneficiary_id,
+        )
+
+        result = await self.session.execute(query)
+        row = result.one()
+
+        return {
+            "count": row.count,
+            "total": row.total,
+            "average": row.average,
+            "highest": row.highest,
+        }
+
+    async def dashboard_monthly(
+        self,
+        user_id: UUID,
+        start_date: date,
+        end_date: date,
+        institution: str | None = None,
+        beneficiary_id: UUID | None = None,
+    ):
+        period = func.to_char(Payment.payment_date, "YYYY-MM").label("period")
+
+        query = select(
+            period,
+            func.count(Payment.id).label("count"),
+            func.coalesce(func.sum(Payment.amount), 0).label("total"),
+        )
+
+        query = self._build_dashboard_filter(
+            query=query,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            institution=institution,
+            beneficiary_id=beneficiary_id,
+        )
+
+        query = query.group_by(period).order_by(period)
+
+        result = await self.session.execute(query)
+
+        return [
+            {
+                "period": row.period,
+                "count": row.count,
+                "total": row.total,
+            }
+            for row in result
+        ]
+
+    async def dashboard_institutions(
+        self,
+        user_id: UUID,
+        start_date: date,
+        end_date: date,
+        institution: str | None = None,
+        beneficiary_id: UUID | None = None,
+    ):
+        query = select(
+            Institution.id.label("institution_id"),
+            Institution.name_code.label("institution"),
+            func.count(Payment.id).label("count"),
+            func.coalesce(func.sum(Payment.amount), 0).label("total"),
+        ).join(
+            Payment.source_institution
+        )
+
+        query = self._build_dashboard_filter(
+            query=query,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            institution=institution,
+            beneficiary_id=beneficiary_id,
+        )
+
+        query = (
+            query
+            .group_by(Institution.id, Institution.name_code)
+            .order_by(desc(func.sum(Payment.amount)))
+        )
+
+        result = await self.session.execute(query)
+
+        return [
+            {
+                "institution_id": row.institution_id,
+                "institution": row.institution,
+                "count": row.count,
+                "total": row.total,
+            }
+            for row in result
+        ]
+
+    async def dashboard_beneficiaries(
+        self,
+        user_id: UUID,
+        start_date: date,
+        end_date: date,
+        institution: str | None = None,
+        beneficiary_id: UUID | None = None,
+    ):
+        query = select(
+            Beneficiary.id.label("beneficiary_id"),
+            Beneficiary.name.label("name"),
+            func.count(Payment.id).label("count"),
+            func.coalesce(func.sum(Payment.amount), 0).label("total"),
+        ).join(
+            Payment.beneficiary
+        )
+
+        query = self._build_dashboard_filter(
+            query=query,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            institution=institution,
+            beneficiary_id=beneficiary_id,
+        )
+
+        query = (
+            query
+            .group_by(Beneficiary.id, Beneficiary.name)
+            .order_by(desc(func.sum(Payment.amount)))
+        )
+
+        result = await self.session.execute(query)
+
+        return [
+            {
+                "beneficiary_id": row.beneficiary_id,
+                "name": row.name,
+                "count": row.count,
+                "total": row.total,
+            }
+            for row in result
+        ]

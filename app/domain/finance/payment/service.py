@@ -15,7 +15,9 @@ from app.core.logging import LoggingParams, log_service_success
 from app.core.pagination import exception_pagination
 from app.core.service import BaseService
 from app.domain.finance.payment.repository import PaymentRepository
-from app.domain.finance.payment.schema import PaymentSchema, PaymentSummaryMinMaxSchema
+from app.domain.finance.payment.schema import PaymentSchema, PaymentSummaryMinMaxSchema, PaymentDashboardRequestSchema, \
+    PaymentDashboardResponseSchema, PaymentDashboardPeriodSchema, PaymentDashboardSummarySchema, \
+    PaymentDashboardMonthlySchema, PaymentDashboardInstitutionSchema, PaymentDashboardBeneficiarySchema
 
 from app.models import Payment, User
 from app.shared.schemas import FilterPage
@@ -274,3 +276,78 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
                 message="Update payment successfully",
                 user_request=user.username,
             )
+
+    async def get_dashboard(
+            self,
+            params: PaymentDashboardRequestSchema,
+            user: User,
+    ) -> PaymentDashboardResponseSchema:
+        summary = await self.repository.dashboard_summary(
+            user_id=user.id,
+            end_date=params.end_date,
+            start_date=params.start_date,
+            institution=params.institution,
+            beneficiary_id=params.beneficiary_id,
+        )
+
+        monthly = await self.repository.dashboard_monthly(
+            user_id=user.id,
+            start_date=params.start_date,
+            end_date=params.end_date,
+            institution=params.institution,
+            beneficiary_id=params.beneficiary_id,
+        )
+
+        institutions = await self.repository.dashboard_institutions(
+            user_id=user.id,
+            start_date=params.start_date,
+            end_date=params.end_date,
+            institution=params.institution,
+            beneficiary_id=params.beneficiary_id,
+        )
+
+        beneficiaries = await self.repository.dashboard_beneficiaries(
+            user_id=user.id,
+            start_date=params.start_date,
+            end_date=params.end_date,
+            institution=params.institution,
+            beneficiary_id=params.beneficiary_id,
+        )
+
+        return PaymentDashboardResponseSchema(
+            period=PaymentDashboardPeriodSchema(
+                start_date=params.start_date,
+                end_date=params.end_date,
+            ),
+            summary=PaymentDashboardSummarySchema(
+                total=summary["total"],
+                count=summary["count"],
+                average=summary["average"],
+                highest=summary["highest"],
+            ),
+            monthly=[
+                PaymentDashboardMonthlySchema(
+                    period=item["period"],
+                    total=item["total"],
+                    count=item["count"],
+                )
+                for item in monthly
+            ],
+            institutions=[
+                PaymentDashboardInstitutionSchema(
+                    institution=item["institution"],
+                    total=item["total"],
+                    count=item["count"],
+                )
+                for item in institutions
+            ],
+            beneficiaries=[
+                PaymentDashboardBeneficiarySchema(
+                    beneficiary_id=item["beneficiary_id"],
+                    name=item["name"],
+                    total=item["total"],
+                    count=item["count"],
+                )
+                for item in beneficiaries
+            ],
+        )
