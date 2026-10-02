@@ -11,6 +11,7 @@ import pytest
 from fastapi import HTTPException
 
 from app.domain.finance.beneficiary.schema import BeneficiarySchema
+from app.domain.finance.category.schema import CategorySchema
 from app.domain.finance.institution.schema import InstitutionSchema
 from app.domain.finance.payment.schema import PaymentSummaryMinMaxSchema, PaymentSchema, PaymentDashboardRequestSchema, \
     PaymentDashboardResponseSchema, PaymentDashboardPeriodSchema, PaymentDashboardSummarySchema, \
@@ -84,12 +85,14 @@ class TestPaymentServiceCreate:
 
         user_id = uuid4()
         receipt_id = uuid4()
+        category_id = uuid4()
         beneficiary_id = uuid4()
         source_institution_id = uuid4()
         destination_institution_id = uuid4()
 
         amount = Decimal("387.42")
         payment_date = date(2026, 9, 12)
+        description = "Payment description"
 
         expected = SimpleNamespace(id=uuid4())
         repository.save.return_value = expected
@@ -97,8 +100,10 @@ class TestPaymentServiceCreate:
         result = await service.create(
             user_id=user_id,
             receipt_id=receipt_id,
+            category_id=category_id,
             amount=amount,
             payment_date=payment_date,
+            description=description,
             beneficiary_id=beneficiary_id,
             source_institution_id=source_institution_id,
             destination_institution_id=destination_institution_id,
@@ -112,12 +117,14 @@ class TestPaymentServiceCreate:
 
         assert isinstance(payment, Payment)
         assert payment.amount == amount
+        assert payment.description == description
         assert payment.user_id == user_id
         assert payment.receipt_id == receipt_id
         assert payment.payment_date == payment_date
         assert payment.beneficiary_id == beneficiary_id
         assert payment.source_institution_id == source_institution_id
         assert payment.destination_institution_id == destination_institution_id
+        assert payment.category_id == category_id
 
     @staticmethod
     @pytest.mark.asyncio
@@ -127,6 +134,7 @@ class TestPaymentServiceCreate:
 
         user_id = uuid4()
         receipt_id = uuid4()
+        category_id = uuid4()
         beneficiary_id = uuid4()
         source_institution_id = uuid4()
 
@@ -135,9 +143,11 @@ class TestPaymentServiceCreate:
         await service.create(
             user_id=user_id,
             receipt_id=receipt_id,
+            category_id=category_id,
             amount=Decimal("95.00"),
             payment_date=date(2026, 9, 12),
             beneficiary_id=beneficiary_id,
+            description=None,
             source_institution_id=source_institution_id,
             destination_institution_id=None,
         )
@@ -147,7 +157,6 @@ class TestPaymentServiceCreate:
         payment = repository.save.await_args.kwargs["entity"]
 
         assert payment.destination_institution_id is None
-
 
 class TestPaymentServiceList:
     @staticmethod
@@ -499,6 +508,10 @@ class TestPaymentServiceSummaryMax:
             id=uuid4(), name="Beneficiary", created_at=utcnow()
         )
 
+        expected_category = CategorySchema(
+            id=uuid4(), name="Category", created_at=utcnow()
+        )
+
         expected_source_institution = InstitutionSchema(
             id=uuid4(), name="Institution", created_at=utcnow()
         )
@@ -516,8 +529,10 @@ class TestPaymentServiceSummaryMax:
             id=uuid4(),
             amount=Decimal("2000"),
             receipt=expected_receipt,
+            category=expected_category,
             beneficiary=expected_beneficiary,
             created_at=utcnow(),
+            description=None,
             payment_date=date(2026, 9, 15),
             source_institution=expected_source_institution,
         )
@@ -533,9 +548,11 @@ class TestPaymentServiceSummaryMax:
             payment=PaymentSchema(
                 id=expected.id,
                 amount=expected.amount,
+                category=expected.category,
                 created_at=expected.created_at,
                 beneficiary=expected.beneficiary,
                 receipt=expected.receipt,
+                description=None,
                 payment_date=expected.payment_date,
                 source_institution=expected.source_institution,
             )
@@ -597,6 +614,10 @@ class TestPaymentServiceSummaryMin:
             id=uuid4(), name="Beneficiary", created_at=utcnow()
         )
 
+        expected_category = CategorySchema(
+            id=uuid4(), name="Category", created_at=utcnow()
+        )
+
         expected_source_institution = InstitutionSchema(
             id=uuid4(), name="Institution", created_at=utcnow()
         )
@@ -616,6 +637,8 @@ class TestPaymentServiceSummaryMin:
             created_at=utcnow(),
             receipt=expected_receipt,
             beneficiary=expected_beneficiary,
+            category=expected_category,
+            description=None,
             payment_date=date(2026, 9, 15),
             source_institution=expected_source_institution,
         )
@@ -636,6 +659,8 @@ class TestPaymentServiceSummaryMin:
                 beneficiary=expected.beneficiary,
                 payment_date=expected.payment_date,
                 source_institution=expected.source_institution,
+                category=expected.category,
+                description=expected.description,
             )
         )
 

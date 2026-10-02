@@ -48,9 +48,11 @@ class BaseInterpreter:
             fine=self._extract_fine(text),
             payer=payer,
             barcode=self._extract_barcode(text),
+            category=self._extract_category(text),
             due_date=self._extract_due_date(text),
             discount=self._extract_discount(text),
             interest=self._extract_interest(text),
+            description=self._extract_description(text),
             paid_amount=paid_amount,
             beneficiary=self._extract_beneficiary(text),
             payment_date=self._extract_payment_date(text),
@@ -68,11 +70,13 @@ class BaseInterpreter:
             fine=self._not_found(),
             payer=self._not_found(),
             barcode=self._not_found(),
+            category=self._not_found(),
             due_date=self._not_found(),
             discount=self._not_found(),
             interest=self._not_found(),
             paid_amount=self._not_found(),
             beneficiary=self._not_found(),
+            description=self._not_found(),
             payment_date=self._not_found(),
             total_charges=self._not_found(),
             authentication=self._not_found(),
@@ -258,6 +262,14 @@ class BaseInterpreter:
             if not value:
                 return BaseInterpreter._ambiguous()
             return BaseInterpreter._extract_text(value)
+        return BaseInterpreter._not_found()
+
+    @staticmethod
+    def _extract_category(text: str) -> ExtractedField[str]:
+        return BaseInterpreter._not_found()
+
+    @staticmethod
+    def _extract_description(text: str) -> ExtractedField[str]:
         return BaseInterpreter._not_found()
 
     @staticmethod

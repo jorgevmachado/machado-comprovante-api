@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 from decimal import Decimal
 
-from sqlalchemy import DateTime, ForeignKey, Numeric, Date
+from sqlalchemy import DateTime, ForeignKey, Numeric, Date, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import default_lazy, table_registry
@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from app.models.beneficiary import Beneficiary
     from app.models.institution import Institution
     from app.models.receipt import Receipt
+    from app.models.category import Category
 
 
 @table_registry.mapped_as_dataclass
@@ -48,6 +49,16 @@ class Payment:
         back_populates="payments",
     )
 
+    category_id: Mapped[UUID] = mapped_column(
+        ForeignKey("categories.id"), nullable=False
+    )
+
+    category: Mapped["Category"] = relationship(
+        init=False,
+        lazy=default_lazy,
+        back_populates="payments",
+    )
+
     source_institution_id: Mapped[UUID] = mapped_column(
         ForeignKey("institutions.id"), nullable=False
     )
@@ -74,6 +85,8 @@ class Payment:
         foreign_keys=[destination_institution_id],
         back_populates="destination_payments",
     )
+
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     amount: Mapped[Decimal] = mapped_column(
         Numeric(12, 2),

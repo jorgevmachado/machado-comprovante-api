@@ -4,6 +4,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from app.domain.finance.beneficiary.schema import BeneficiarySchema
+from app.domain.finance.category.schema import CategorySchema
 from app.domain.finance.institution.schema import InstitutionSchema
 from app.domain.finance.receipt.schema import ReceiptSchema
 
@@ -13,10 +14,12 @@ class PaymentSchema(BaseModel):
     id: UUID
     amount: Decimal
     receipt: ReceiptSchema
+    category: CategorySchema
     beneficiary: BeneficiarySchema
     payment_date: date
     created_at: datetime
     source_institution: InstitutionSchema
+    description: str | None = None
     destination_institution: InstitutionSchema | None = None
 
 

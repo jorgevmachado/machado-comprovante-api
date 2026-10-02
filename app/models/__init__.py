@@ -8,6 +8,7 @@ from app.models.institution import Institution
 from app.models.beneficiary import Beneficiary
 from app.models.receipt import Receipt
 from app.models.payment import Payment
+from app.models.category import Category
 
 __all__ = [
     "User",
@@ -18,6 +19,7 @@ __all__ = [
     "Beneficiary",
     "Receipt",
     "Payment",
+    "Category",
     "StatusEnum",
     "ProcessingStatusEnum",
     "utcnow",

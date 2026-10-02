@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from app.models.password import Password
     from app.models.authentication import Authentication
     from app.models.payment import Payment
+    from app.models.category import Category
 
 
 @table_registry.mapped_as_dataclass
@@ -71,6 +72,14 @@ class User:
     )
 
     payments: Mapped[list["Payment"]] = relationship(
+        lazy=default_lazy,
+        default_factory=list,
+        init=False,
+        repr=False,
+        back_populates="user",
+    )
+
+    categories: Mapped[list["Category"]] = relationship(
         lazy=default_lazy,
         default_factory=list,
         init=False,

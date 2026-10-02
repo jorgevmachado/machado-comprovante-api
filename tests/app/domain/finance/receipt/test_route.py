@@ -23,6 +23,7 @@ def build_update_payload() -> FinanceConfirmRequestSchema:
     return FinanceConfirmRequestSchema(
         paid_amount="387.42",
         payment_date="2026-09-12",
+        category="Categoria Exemplo",
         beneficiary="Empresa Exemplo",
         source_institution="Banco Exemplo",
         destination_institution="Banco Destino",

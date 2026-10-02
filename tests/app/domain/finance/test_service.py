@@ -9,6 +9,7 @@ from uuid import uuid4
 import pytest
 
 from app.domain.finance.beneficiary.service import BeneficiaryService
+from app.domain.finance.category.service import CategoryService
 from app.domain.finance.institution.service import InstitutionService
 from app.domain.finance.payment.service import PaymentService
 from app.domain.finance.receipt.service import ReceiptService
@@ -25,6 +26,7 @@ def build_confirm_payload() -> FinanceConfirmRequestSchema:
     return FinanceConfirmRequestSchema(
         paid_amount=Decimal("387.42"),
         payment_date=date(2026, 9, 12),
+        category="Categoria Exemplo",
         beneficiary="Empresa Exemplo",
         source_institution="Banco Exemplo",
         destination_institution="Banco Destino",
@@ -38,6 +40,7 @@ class TestFinanceService:
 
         service = FinanceService(session)
 
+        assert isinstance(service.category_service, CategoryService)
         assert isinstance(service.receipt_service, ReceiptService)
         assert isinstance(service.payment_service, PaymentService)
         assert isinstance(service.beneficiary_service, BeneficiaryService)
@@ -52,6 +55,7 @@ class TestFinanceServiceConfirm:
 
         receipt_service = AsyncMock()
         payment_service = AsyncMock()
+        category_service = AsyncMock()
         beneficiary_service = AsyncMock()
         institution_service = AsyncMock()
 
@@ -59,6 +63,7 @@ class TestFinanceServiceConfirm:
             session=session,
             receipt_service=receipt_service,
             payment_service=payment_service,
+            category_service=category_service,
             beneficiary_service=beneficiary_service,
             institution_service=institution_service,
         )
@@ -77,6 +82,12 @@ class TestFinanceServiceConfirm:
             file_size=1024,
             extracted_data=None,
             processing_status=ProcessingStatusEnum.PROCESSED,
+        )
+
+        category = SimpleNamespace(
+            id=uuid4(),
+            name="Categoria Exemplo",
+            created_at=utcnow(),
         )
 
         beneficiary = SimpleNamespace(
@@ -106,6 +117,9 @@ class TestFinanceServiceConfirm:
 
         receipt_service.validate_confirm_receipt.return_value = receipt
         receipt_service.confirm_receipt.return_value = receipt
+
+        category_service.resolve.return_value = category
+
         beneficiary_service.resolve.return_value = beneficiary
 
         institution_service.resolve.side_effect = [
@@ -122,6 +136,9 @@ class TestFinanceServiceConfirm:
             payload=payload,
             user=user,
         )
+
+        assert result.category.id == category.id
+        assert result.category.name == category.name
 
         assert result.beneficiary.id == beneficiary.id
         assert result.beneficiary.name == beneficiary.name
@@ -151,6 +168,11 @@ class TestFinanceServiceConfirm:
             name=payload.beneficiary,
         )
 
+        category_service.resolve.assert_awaited_once_with(
+            name=payload.category,
+            user_id=user.id,
+        )
+
         assert institution_service.resolve.await_count == 2
         institution_service.resolve.assert_any_await(
             name=payload.source_institution,
@@ -163,6 +185,8 @@ class TestFinanceServiceConfirm:
             amount=payload.paid_amount,
             user_id=user.id,
             receipt_id=receipt.id,
+            category_id=category.id,
+            description=None,
             payment_date=payload.payment_date,
             beneficiary_id=beneficiary.id,
             source_institution_id=source_institution.id,
@@ -175,6 +199,7 @@ class TestFinanceServiceConfirm:
         session = AsyncMock()
 
         receipt_service = AsyncMock()
+        category_service = AsyncMock()
         payment_service = AsyncMock()
         beneficiary_service = AsyncMock()
         institution_service = AsyncMock()
@@ -184,11 +209,18 @@ class TestFinanceServiceConfirm:
             receipt_service=receipt_service,
             payment_service=payment_service,
             beneficiary_service=beneficiary_service,
+            category_service=category_service,
             institution_service=institution_service,
         )
 
         user = SimpleNamespace(
             id=uuid4(),
+        )
+
+        category = SimpleNamespace(
+            id=uuid4(),
+            name="Categoria Exemplo",
+            created_at=utcnow(),
         )
 
         receipt = SimpleNamespace(
@@ -225,12 +257,14 @@ class TestFinanceServiceConfirm:
         receipt_service.validate_confirm_receipt.return_value = receipt
         receipt_service.confirm_receipt.return_value = receipt
         beneficiary_service.resolve.return_value = beneficiary
+        category_service.resolve.return_value = category
         institution_service.resolve.return_value = source_institution
         payment_service.create.return_value = payment
 
         payload = FinanceConfirmRequestSchema(
             paid_amount=Decimal("95.00"),
             payment_date=date(2026, 9, 12),
+            category="Categoria Exemplo",
             beneficiary="Empresa Exemplo",
             source_institution="Banco Exemplo",
             destination_institution=None,
@@ -253,6 +287,7 @@ class TestFinanceServiceConfirm:
     async def test_confirm_reraises_dependency_error():
         session = AsyncMock()
         receipt_service = AsyncMock()
+        category_service = AsyncMock()
         payment_service = AsyncMock()
         beneficiary_service = AsyncMock()
         institution_service = AsyncMock()
@@ -260,6 +295,7 @@ class TestFinanceServiceConfirm:
         service = FinanceService(
             session=session,
             receipt_service=receipt_service,
+            category_service=category_service,
             payment_service=payment_service,
             beneficiary_service=beneficiary_service,
             institution_service=institution_service,
@@ -283,6 +319,7 @@ class TestFinanceServiceUpdatePayment:
     async def test_should_update_payment_and_receipt_with_all_fields():
         session = AsyncMock()
         receipt_service = AsyncMock()
+        category_service = AsyncMock()
         payment_service = AsyncMock()
         beneficiary_service = AsyncMock()
         institution_service = AsyncMock()
@@ -290,6 +327,7 @@ class TestFinanceServiceUpdatePayment:
         service = FinanceService(
             session=session,
             receipt_service=receipt_service,
+            category_service=category_service,
             payment_service=payment_service,
             beneficiary_service=beneficiary_service,
             institution_service=institution_service,
@@ -300,6 +338,7 @@ class TestFinanceServiceUpdatePayment:
         payload = FinanceUpdatePaymentRequestSchema(
             payer="New Payer",
             amount=Decimal("150.00"),
+            category="New Category",
             beneficiary="New Beneficiary",
             payment_date=date(2026, 9, 15),
             source_institution="New Source Bank",
@@ -307,6 +346,14 @@ class TestFinanceServiceUpdatePayment:
         )
 
         payment_service.find_by.return_value = SimpleNamespace(id=payment_id)
+
+        category = SimpleNamespace(
+            id=uuid4(),
+            name="New Category",
+            created_at=utcnow(),
+        )
+
+        category_service.resolve.return_value = category
 
         beneficiary = SimpleNamespace(
             id=uuid4(),
@@ -349,6 +396,7 @@ class TestFinanceServiceUpdatePayment:
             id=uuid4(),
             amount=Decimal("150.00"),
             receipt=receipt,
+            category=category,
             beneficiary=beneficiary,
             source_institution=source_institution,
             destination_institution=destination_institution,
@@ -363,6 +411,7 @@ class TestFinanceServiceUpdatePayment:
         expected_payload = {
             "amount": payload.amount,
             "payment_date": payload.payment_date,
+            "category_id": category.id,
             "beneficiary_id": beneficiary.id,
             "source_institution_id": source_institution.id,
             "destination_institution_id": destination_institution.id,
@@ -373,6 +422,11 @@ class TestFinanceServiceUpdatePayment:
         payment_service.find_by.assert_awaited_once_with(
             id=str(payment_id),
             user_id=str(user.id),
+        )
+
+        category_service.resolve.assert_awaited_once_with(
+            user_id=user.id,
+            name=payload.category,
         )
 
         beneficiary_service.resolve.assert_awaited_once_with(
@@ -397,6 +451,7 @@ class TestFinanceServiceUpdatePayment:
     async def test_should_return_payment_when_there_is_nothing_to_update():
         session = AsyncMock()
         receipt_service = AsyncMock()
+        category_service = AsyncMock()
         payment_service = AsyncMock()
         beneficiary_service = AsyncMock()
         institution_service = AsyncMock()
@@ -404,6 +459,7 @@ class TestFinanceServiceUpdatePayment:
         service = FinanceService(
             session=session,
             receipt_service=receipt_service,
+            category_service=category_service,
             payment_service=payment_service,
             beneficiary_service=beneficiary_service,
             institution_service=institution_service,
@@ -414,6 +470,7 @@ class TestFinanceServiceUpdatePayment:
         payload = FinanceUpdatePaymentRequestSchema(
             payer=None,
             amount=None,
+            category=None,
             beneficiary=None,
             payment_date=None,
             source_institution=None,
@@ -423,6 +480,12 @@ class TestFinanceServiceUpdatePayment:
         beneficiary = SimpleNamespace(
             id=uuid4(),
             name="New Beneficiary",
+            created_at=utcnow(),
+        )
+
+        category = SimpleNamespace(
+            id=uuid4(),
+            name="New Category",
             created_at=utcnow(),
         )
 
@@ -455,6 +518,7 @@ class TestFinanceServiceUpdatePayment:
             amount=Decimal("150.00"),
             receipt=receipt,
             beneficiary=beneficiary,
+            category=category,
             source_institution=source_institution,
             destination_institution=destination_institution,
             created_at=utcnow(),
@@ -472,6 +536,7 @@ class TestFinanceServiceUpdatePayment:
 
         payment_service.update_payment.assert_not_awaited()
         receipt_service.update_receipt_payment.assert_not_awaited()
+        category_service.resolve.assert_not_awaited()
         beneficiary_service.resolve.assert_not_awaited()
         institution_service.resolve.assert_not_awaited()
 
@@ -482,6 +547,7 @@ class TestFinanceServiceUpdatePayment:
     async def test_should_update_only_amount():
         session = AsyncMock()
         receipt_service = AsyncMock()
+        category_service = AsyncMock()
         payment_service = AsyncMock()
         beneficiary_service = AsyncMock()
         institution_service = AsyncMock()
@@ -489,6 +555,7 @@ class TestFinanceServiceUpdatePayment:
         service = FinanceService(
             session=session,
             receipt_service=receipt_service,
+            category_service=category_service,
             payment_service=payment_service,
             beneficiary_service=beneficiary_service,
             institution_service=institution_service,
@@ -503,6 +570,12 @@ class TestFinanceServiceUpdatePayment:
             payment_date=None,
             source_institution=None,
             destination_institution=None,
+        )
+
+        category = SimpleNamespace(
+            id=uuid4(),
+            name="New Category",
+            created_at=utcnow(),
         )
 
         beneficiary = SimpleNamespace(
@@ -539,6 +612,7 @@ class TestFinanceServiceUpdatePayment:
             id=payment_id,
             amount=Decimal("150.00"),
             receipt=receipt,
+            category=category,
             beneficiary=beneficiary,
             source_institution=source_institution,
             destination_institution=destination_institution,
@@ -570,6 +644,7 @@ class TestFinanceServiceUpdatePayment:
                 "payer": payload.payer,
                 "paid_amount": payment.amount,
                 "payment_date": payment.payment_date,
+                "category": payment.category.name,
                 "beneficiary": payment.beneficiary.name,
                 "source_institution": payment.source_institution.name,
                 "destination_institution": payment.destination_institution.name
@@ -578,6 +653,7 @@ class TestFinanceServiceUpdatePayment:
             },
             user=user,
         )
+        category_service.resolve.assert_not_awaited()
         beneficiary_service.resolve.assert_not_awaited()
         institution_service.resolve.assert_not_awaited()
 
@@ -588,6 +664,7 @@ class TestFinanceServiceUpdatePayment:
     async def test_should_update_only_payment_date():
         session = AsyncMock()
         receipt_service = AsyncMock()
+        category_service = AsyncMock()
         payment_service = AsyncMock()
         beneficiary_service = AsyncMock()
         institution_service = AsyncMock()
@@ -598,6 +675,7 @@ class TestFinanceServiceUpdatePayment:
             payment_service=payment_service,
             beneficiary_service=beneficiary_service,
             institution_service=institution_service,
+            category_service=category_service,
         )
 
         user = SimpleNamespace(id=uuid4())
@@ -609,6 +687,12 @@ class TestFinanceServiceUpdatePayment:
             payment_date=date(2026, 9, 15),
             source_institution=None,
             destination_institution=None,
+        )
+
+        category = SimpleNamespace(
+            id=uuid4(),
+            name="New Category",
+            created_at=utcnow(),
         )
 
         beneficiary = SimpleNamespace(
@@ -645,6 +729,7 @@ class TestFinanceServiceUpdatePayment:
             id=payment_id,
             amount=Decimal("150.00"),
             receipt=receipt,
+            category=category,
             beneficiary=beneficiary,
             source_institution=source_institution,
             destination_institution=destination_institution,
@@ -676,6 +761,7 @@ class TestFinanceServiceUpdatePayment:
                 "payer": payload.payer,
                 "paid_amount": payment.amount,
                 "payment_date": payment.payment_date,
+                "category": payment.category.name,
                 "beneficiary": payment.beneficiary.name,
                 "source_institution": payment.source_institution.name,
                 "destination_institution": payment.destination_institution.name
@@ -684,6 +770,7 @@ class TestFinanceServiceUpdatePayment:
             },
             user=user,
         )
+        category_service.resolve.assert_not_awaited()
         beneficiary_service.resolve.assert_not_awaited()
         institution_service.resolve.assert_not_awaited()
 
@@ -694,12 +781,14 @@ class TestFinanceServiceUpdatePayment:
     async def test_should_update_only_beneficiary():
         session = AsyncMock()
         receipt_service = AsyncMock()
+        category_service = AsyncMock()
         payment_service = AsyncMock()
         beneficiary_service = AsyncMock()
         institution_service = AsyncMock()
 
         service = FinanceService(
             session=session,
+            category_service=category_service,
             receipt_service=receipt_service,
             payment_service=payment_service,
             beneficiary_service=beneficiary_service,
@@ -712,11 +801,19 @@ class TestFinanceServiceUpdatePayment:
         beneficiary = SimpleNamespace(
             id=uuid4(),
             name="New Beneficiary",
+            created_at=utcnow()
+        )
+
+        category = SimpleNamespace(
+            id=uuid4(),
+            name="New Category",
+            created_at=utcnow()
         )
 
         payment = SimpleNamespace(
             id=payment_id,
             amount=Decimal("100.00"),
+            category=category,
             payment_date=date(2026, 9, 15),
             receipt=SimpleNamespace(id=uuid4()),
             beneficiary=beneficiary,
@@ -754,6 +851,7 @@ class TestFinanceServiceUpdatePayment:
     @pytest.mark.asyncio
     async def test_should_update_only_source_institution():
         session = AsyncMock()
+        category_service = AsyncMock()
         receipt_service = AsyncMock()
         payment_service = AsyncMock()
         beneficiary_service = AsyncMock()
@@ -761,6 +859,7 @@ class TestFinanceServiceUpdatePayment:
 
         service = FinanceService(
             session=session,
+            category_service=category_service,
             receipt_service=receipt_service,
             payment_service=payment_service,
             beneficiary_service=beneficiary_service,
@@ -780,6 +879,7 @@ class TestFinanceServiceUpdatePayment:
             payment_date=date(2026, 9, 15),
             receipt=SimpleNamespace(id=uuid4()),
             beneficiary=SimpleNamespace(name="Beneficiary"),
+            category=SimpleNamespace(name="Category"),
             source_institution=institution,
             destination_institution=SimpleNamespace(name="Destination"),
         )
@@ -814,6 +914,7 @@ class TestFinanceServiceUpdatePayment:
     @pytest.mark.asyncio
     async def test_should_update_only_destination_institution():
         session = AsyncMock()
+        category_service = AsyncMock()
         receipt_service = AsyncMock()
         payment_service = AsyncMock()
         beneficiary_service = AsyncMock()
@@ -821,6 +922,7 @@ class TestFinanceServiceUpdatePayment:
 
         service = FinanceService(
             session=session,
+            category_service=category_service,
             receipt_service=receipt_service,
             payment_service=payment_service,
             beneficiary_service=beneficiary_service,
@@ -840,6 +942,7 @@ class TestFinanceServiceUpdatePayment:
             payment_date=date(2026, 9, 15),
             receipt=SimpleNamespace(id=uuid4()),
             beneficiary=SimpleNamespace(name="Beneficiary"),
+            category=SimpleNamespace(name="Category"),
             source_institution=SimpleNamespace(name="Source"),
             destination_institution=institution,
         )
@@ -874,6 +977,7 @@ class TestFinanceServiceUpdatePayment:
     @pytest.mark.asyncio
     async def test_should_update_receipt_without_destination_institution():
         session = AsyncMock()
+        category_service = AsyncMock()
         receipt_service = AsyncMock()
         payment_service = AsyncMock()
         beneficiary_service = AsyncMock()
@@ -885,6 +989,7 @@ class TestFinanceServiceUpdatePayment:
             payment_service=payment_service,
             beneficiary_service=beneficiary_service,
             institution_service=institution_service,
+            category_service=category_service,
         )
 
         user = SimpleNamespace(id=uuid4())
@@ -893,17 +998,26 @@ class TestFinanceServiceUpdatePayment:
         beneficiary = SimpleNamespace(
             id=uuid4(),
             name="Beneficiary",
+            created_at=utcnow()
+        )
+
+        category = SimpleNamespace(
+            id=uuid4(),
+            name="Category",
+            created_at=utcnow()
         )
 
         source_institution = SimpleNamespace(
             id=uuid4(),
             name="Source",
+            created_at=utcnow()
         )
 
         payment = SimpleNamespace(
             amount=Decimal("100.00"),
             payment_date=date(2026, 9, 15),
             receipt=SimpleNamespace(id=uuid4()),
+            category=category,
             beneficiary=beneficiary,
             source_institution=source_institution,
             destination_institution=None,
@@ -912,6 +1026,7 @@ class TestFinanceServiceUpdatePayment:
         payload = FinanceUpdatePaymentRequestSchema(
             payer="Payer",
             amount=Decimal("100.00"),
+            category=category.name,
             beneficiary=beneficiary.name,
             payment_date=date(2026, 9, 15),
             source_institution=source_institution.name,
@@ -921,6 +1036,7 @@ class TestFinanceServiceUpdatePayment:
         payment_service.update_payment.return_value = payment
 
         beneficiary_service.resolve.return_value = beneficiary
+        category_service.resolve.return_value = category
         institution_service.resolve.return_value = source_institution
 
         receipt_service.update_receipt_payment.return_value = payment.receipt
@@ -938,6 +1054,7 @@ class TestFinanceServiceUpdatePayment:
                 "payer": payload.payer,
                 "paid_amount": payment.amount,
                 "payment_date": payment.payment_date,
+                "category": category.name,
                 "beneficiary": beneficiary.name,
                 "source_institution": source_institution.name,
                 "destination_institution": None,
@@ -949,6 +1066,7 @@ class TestFinanceServiceUpdatePayment:
     async def test_update_reraises_dependency_error():
         session = AsyncMock()
         receipt_service = AsyncMock()
+        category_service = AsyncMock()
         payment_service = AsyncMock()
         beneficiary_service = AsyncMock()
         institution_service = AsyncMock()
@@ -958,6 +1076,7 @@ class TestFinanceServiceUpdatePayment:
             receipt_service=receipt_service,
             payment_service=payment_service,
             beneficiary_service=beneficiary_service,
+            category_service=category_service,
             institution_service=institution_service,
         )
 
@@ -965,6 +1084,7 @@ class TestFinanceServiceUpdatePayment:
         payload = FinanceUpdatePaymentRequestSchema(
             payer="New Payer",
             amount=Decimal("150.00"),
+            category="New Category",
             beneficiary="New Beneficiary",
             payment_date=date(2026, 9, 15),
             source_institution="New Source Bank",

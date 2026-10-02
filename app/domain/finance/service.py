@@ -1,5 +1,7 @@
 from app.domain.finance.beneficiary.schema import BeneficiarySchema
 from app.domain.finance.beneficiary.service import BeneficiaryService
+from app.domain.finance.category.schema import CategorySchema
+from app.domain.finance.category.service import CategoryService
 from app.domain.finance.institution.schema import InstitutionSchema
 from app.domain.finance.payment.schema import PaymentSchema
 from app.domain.finance.payment.service import PaymentService
@@ -29,12 +31,14 @@ class FinanceService:
         session: Session,
         receipt_service: ReceiptService | None = None,
         payment_service: PaymentService | None = None,
+        category_service: CategoryService | None = None,
         beneficiary_service: BeneficiaryService | None = None,
         institution_service: InstitutionService | None = None,
     ):
         self.session = session
         self.receipt_service = receipt_service or ReceiptService.from_session(session)
         self.payment_service = payment_service or PaymentService.from_session(session)
+        self.category_service = category_service or CategoryService.from_session(session)
         self.beneficiary_service = (
             beneficiary_service or BeneficiaryService.from_session(session)
         )
@@ -54,6 +58,12 @@ class FinanceService:
                 receipt=receipt,
                 status=ProcessingStatusEnum.PROCESSING,
             )
+
+            category = await self.category_service.resolve(
+                name=payload.category,
+                user_id=user.id,
+            )
+
             beneficiary = await self.beneficiary_service.resolve(
                 name=payload.beneficiary
             )
@@ -70,6 +80,8 @@ class FinanceService:
                 amount=payload.paid_amount,
                 user_id=user.id,
                 receipt_id=receipt.id,
+                category_id=category.id,
+                description=payload.description,
                 payment_date=payload.payment_date,
                 beneficiary_id=beneficiary.id,
                 source_institution_id=source_institution.id,
@@ -81,6 +93,13 @@ class FinanceService:
             receipt_updated = await self.receipt_service.confirm_receipt(
                 receipt=receipt, payload=payload.model_dump(mode="json")
             )
+
+            category_schema = CategorySchema(
+                id=category.id,
+                name=category.name,
+                created_at=category.created_at,
+            )
+
             beneficiary_schema = BeneficiarySchema(
                 id=beneficiary.id,
                 name=beneficiary.name,
@@ -102,6 +121,7 @@ class FinanceService:
             )
 
             return FinanceConfirmResponseSchema(
+                category=category_schema,
                 beneficiary=beneficiary_schema,
                 payment=PaymentSchema(
                     id=payment.id,
@@ -128,6 +148,7 @@ class FinanceService:
                     payment_date=payment.payment_date,
                     source_institution=source_institution_schema,
                     destination_institution=destination_institution_schema,
+                    category=category_schema,
                 ),
                 source_institution=source_institution_schema,
                 destination_institution=destination_institution_schema,
@@ -159,6 +180,13 @@ class FinanceService:
                 )
                 raw_payload["beneficiary_id"] = beneficiary.id
 
+            if payload.category is not None:
+                category = await self.category_service.resolve(
+                    user_id=user.id,
+                    name=payload.category
+                )
+                raw_payload["category_id"] = category.id
+
             if  payload.source_institution is not None:
                 source_institution = await self.institution_service.resolve(
                     name=payload.source_institution
@@ -183,9 +211,10 @@ class FinanceService:
                 receipt_id=updated_payment.receipt.id,
                 payload={
                     "payer": payload.payer,
+                    "category": updated_payment.category.name,
                     "paid_amount": updated_payment.amount,
-                    "payment_date": updated_payment.payment_date,
                     "beneficiary": updated_payment.beneficiary.name,
+                    "payment_date": updated_payment.payment_date,
                     "source_institution": updated_payment.source_institution.name,
                     "destination_institution": updated_payment.destination_institution.name
                     if updated_payment.destination_institution

@@ -10,10 +10,6 @@ from pydantic import BaseModel
 
 T = TypeVar("T")
 
-
-
-
-
 class ExtractionStatusEnum(StrEnum):
     FOUND = "FOUND"
     NOT_FOUND = "NOT_FOUND"
@@ -32,6 +28,8 @@ class ExtractedReceiptData(BaseModel):
     due_date: ExtractedField[date]
     discount: ExtractedField[Decimal]
     interest: ExtractedField[Decimal]
+    category: ExtractedField[str]
+    description: ExtractedField[str]
     paid_amount: ExtractedField[Decimal]
     beneficiary: ExtractedField[str]
     payment_date: ExtractedField[date]

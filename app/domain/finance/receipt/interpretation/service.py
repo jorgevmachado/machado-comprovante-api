@@ -56,6 +56,8 @@ class InterpretationService:
 
     def convert(self, data: dict[str, object]) -> ExtractedReceiptData:
         return ExtractedReceiptData(
+            category=self._convert_field(data.get("category")),
+            description=self._convert_field(data.get("description")),
             payment_date=self._convert_field(data.get("payment_date")),
             document_amount=self._convert_field(data.get("document_amount")),
             paid_amount=self._convert_field(data.get("paid_amount")),

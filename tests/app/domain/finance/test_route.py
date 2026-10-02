@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -15,8 +16,9 @@ from app.domain.finance.service import FinanceService
 
 def build_confirm_payload() -> FinanceConfirmRequestSchema:
     return FinanceConfirmRequestSchema(
-        paid_amount="387.42",
+        paid_amount=Decimal("387.42"),
         payment_date="2026-09-12",
+        category="Categoria Exemplo",
         beneficiary="Empresa Exemplo",
         source_institution="Banco Exemplo",
         destination_institution="Banco Destino",
@@ -76,8 +78,9 @@ class TestFinanceRoutes:
         )
 
         payload = FinanceUpdatePaymentRequestSchema(
-            amount="387.42",
+            amount=Decimal("387.42"),
             payment_date="2026-09-12",
+            category="Categoria Exemplo",
             beneficiary="Empresa Exemplo",
             source_institution="Banco Exemplo",
             destination_institution="Banco Destino",

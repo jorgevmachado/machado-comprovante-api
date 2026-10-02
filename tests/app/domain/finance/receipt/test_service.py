@@ -71,6 +71,14 @@ def create_interpretation(
             value=Decimal("95.00"),
             status=ExtractionStatusEnum.FOUND,
         ),
+        category=ExtractedField(
+            value="CATEGORIA EXEMPLO",
+            status=ExtractionStatusEnum.FOUND,
+        ),
+        description=ExtractedField(
+            value="DESCRIÇÃO EXEMPLO",
+            status=ExtractionStatusEnum.FOUND,
+        ),
         beneficiary=ExtractedField(
             value="EMPRESA EXEMPLO",
             status=ExtractionStatusEnum.FOUND,
@@ -617,6 +625,14 @@ class TestReceiptServiceGetReceipt:
                 "value": "95.00",
                 "status": "FOUND",
             },
+            "category": {
+                "value": "CATEGORIA EXEMPLO",
+                "status": "FOUND",
+            },
+            "description": {
+                "value": "DESCRIÇÃO EXEMPLO",
+                "status": "FOUND",
+            },
             "beneficiary": {
                 "value": "EMPRESA EXEMPLO",
                 "status": "FOUND",
@@ -1010,6 +1026,14 @@ class TestReceiptServiceUpdateReceipt:
                 "value": "95.00",
                 "status": "FOUND",
             },
+            "category": {
+                "value": "CATEGORIA EXEMPLO",
+                "status": "FOUND",
+            },
+            "description": {
+                "value": "DESCRIÇÃO EXEMPLO",
+                "status": "FOUND",
+            },
             "beneficiary": {
                 "value": "EMPRESA EXEMPLO",
                 "status": "FOUND",
@@ -1141,6 +1165,14 @@ class TestReceiptServiceUpdateReceiptPayment:
             },
             "paid_amount": {
                 "value": "95.00",
+                "status": "FOUND",
+            },
+            "category": {
+                "value": "CATEGORIA EXEMPLO",
+                "status": "FOUND",
+            },
+            "description": {
+                "value": "DESCRIÇÃO EXEMPLO",
                 "status": "FOUND",
             },
             "beneficiary": {

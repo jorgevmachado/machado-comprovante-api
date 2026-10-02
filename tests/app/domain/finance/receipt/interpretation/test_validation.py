@@ -15,7 +15,9 @@ def build_data(
     *,
     payment_date_status: ExtractionStatusEnum = ExtractionStatusEnum.FOUND,
     paid_amount_status: ExtractionStatusEnum = ExtractionStatusEnum.FOUND,
+    category_status: ExtractionStatusEnum = ExtractionStatusEnum.FOUND,
     beneficiary_status: ExtractionStatusEnum = ExtractionStatusEnum.FOUND,
+    description_status: ExtractionStatusEnum = ExtractionStatusEnum.FOUND,
     source_institution_status: ExtractionStatusEnum = ExtractionStatusEnum.FOUND,
 ) -> ExtractedReceiptData:
     return ExtractedReceiptData(
@@ -34,6 +36,14 @@ def build_data(
         beneficiary=ExtractedField(
             value="EMPRESA EXEMPLO",
             status=beneficiary_status,
+        ),
+        description=ExtractedField(
+            value="DESCRIÇÃO EXEMPLO",
+            status=description_status,
+        ),
+        category=ExtractedField(
+            value="Categoria EXEMPLO",
+            status=category_status,
         ),
         source_institution=ExtractedField(
             value="Banco Exemplo",

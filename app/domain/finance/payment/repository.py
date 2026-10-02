@@ -12,7 +12,7 @@ from fastapi import Query
 
 from app.core.pagination import is_paginate
 from app.core.repository.base import BaseRepository
-from app.models import Beneficiary, Institution, Payment
+from app.models import Beneficiary, Institution, Payment, Category
 from app.shared.schemas import FilterPage
 from app.shared.utils.string import to_snake_case
 
@@ -56,6 +56,7 @@ class PaymentRepository(BaseRepository[Payment]):
         page_filter: Annotated[FilterPage, Query()] | None = None,
     ):
         relations = {
+            "category": Category,
             "beneficiary": Beneficiary,
             "destination_institution": Institution,
             "source_institution": Institution,
@@ -96,6 +97,7 @@ class PaymentRepository(BaseRepository[Payment]):
         query = select(self.model).options(
             selectinload(Payment.user),
             selectinload(Payment.beneficiary),
+            selectinload(Payment.category),
             selectinload(Payment.source_institution),
             selectinload(Payment.destination_institution),
         )
@@ -112,6 +114,7 @@ class PaymentRepository(BaseRepository[Payment]):
         query = select(self.model).options(
             selectinload(Payment.user),
             selectinload(Payment.beneficiary),
+            selectinload(Payment.category),
             selectinload(Payment.source_institution),
             selectinload(Payment.destination_institution),
         )
@@ -126,6 +129,7 @@ class PaymentRepository(BaseRepository[Payment]):
         query = select(self.model).options(
             selectinload(Payment.user),
             selectinload(Payment.beneficiary),
+            selectinload(Payment.category),
             selectinload(Payment.source_institution),
             selectinload(Payment.destination_institution),
         )
@@ -143,6 +147,7 @@ class PaymentRepository(BaseRepository[Payment]):
         query = select(self.model).options(
             selectinload(Payment.user),
             selectinload(Payment.beneficiary),
+            selectinload(Payment.category),
             selectinload(Payment.receipt),
             selectinload(Payment.source_institution),
             selectinload(Payment.destination_institution),
@@ -165,6 +170,7 @@ class PaymentRepository(BaseRepository[Payment]):
             .options(
                 selectinload(Payment.user),
                 selectinload(Payment.beneficiary),
+                selectinload(Payment.category),
                 selectinload(Payment.source_institution),
                 selectinload(Payment.destination_institution),
             )

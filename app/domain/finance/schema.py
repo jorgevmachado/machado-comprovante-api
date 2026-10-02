@@ -4,11 +4,13 @@ from decimal import Decimal
 from pydantic import BaseModel
 
 from app.domain.finance.beneficiary.schema import BeneficiarySchema
+from app.domain.finance.category.schema import CategorySchema
 from app.domain.finance.payment.schema import PaymentSchema
 from app.domain.finance.institution.schema import InstitutionSchema
 
 
 class FinanceConfirmRequestSchema(BaseModel):
+    category: str
     beneficiary: str
     paid_amount: Decimal
     payment_date: date
@@ -21,6 +23,7 @@ class FinanceConfirmRequestSchema(BaseModel):
     due_date: date | None = None
     discount: Decimal | None = None
     interest: Decimal | None = None
+    description: str | None = None
     total_charges: Decimal | None = None
     authentication: str | None = None
     transaction_id: str | None = None
@@ -30,6 +33,7 @@ class FinanceConfirmRequestSchema(BaseModel):
 
 class FinanceConfirmResponseSchema(BaseModel):
     payment: PaymentSchema
+    category: CategorySchema
     beneficiary: BeneficiarySchema
     source_institution: InstitutionSchema
     destination_institution: InstitutionSchema | None = None
@@ -38,6 +42,7 @@ class FinanceConfirmResponseSchema(BaseModel):
 class FinanceUpdatePaymentRequestSchema(BaseModel):
     payer: str | None = None
     amount: Decimal | None = None
+    category: str | None = None
     beneficiary: str | None = None
     payment_date: date | None = None
     source_institution: str | None = None

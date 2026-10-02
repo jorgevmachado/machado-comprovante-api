@@ -30,6 +30,7 @@ def upgrade() -> None:
         sa.Column("source_institution_id", sa.Uuid(), nullable=False),
         sa.Column("payment_date", sa.Date(), nullable=False),
         sa.Column("destination_institution_id", sa.Uuid(), nullable=True),
+        sa.Column("description", sa.Text(), nullable=True),
         sa.Column("amount", sa.Numeric(precision=12, scale=2), nullable=False),
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
