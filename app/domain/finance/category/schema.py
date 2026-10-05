@@ -12,3 +12,8 @@ class CategorySchema(BaseModel):
     created_at: datetime
     updated_at: datetime | None = None
     deleted_at: datetime | None = None
+
+class CategoryPersistSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    name: str
+    description: str | None = None

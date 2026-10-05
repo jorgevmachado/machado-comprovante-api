@@ -2,15 +2,20 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
+from uuid import uuid4
 
 import pytest
 
+from app.domain.finance.category.schema import CategoryPersistSchema
 from app.shared.schemas import FilterPage
 
 from app.domain.finance.category.route import (
     list_all,
     category_filter,
     category_service,
+    find_one,
+    create,
+    update,
 )
 from app.domain.finance.category.service import CategoryService
 
@@ -57,3 +62,71 @@ async def test_finance_category_route_list_all_paginate_and_filter() -> None:
         == FilterPage.build(page_filter=page_filter).model_dump()
     )
     assert service.list.await_args.kwargs["user"] == current_user
+
+
+@pytest.mark.asyncio
+async def test_finance_category_route_find_by_id() -> None:
+    service = AsyncMock()
+    category_id = uuid4()
+    expected = SimpleNamespace(id=category_id, name="Category Name")
+    service.find_by.return_value = expected
+    current_user = SimpleNamespace(id="user-id", username="Finance User")
+
+    result = await find_one(
+        param=str(category_id),
+        service=service,
+        current_user=current_user,
+    )
+
+    assert result is expected
+    service.find_by.assert_awaited_once_with(
+        id=str(category_id),
+        user_id=str(current_user.id),
+        user_request=current_user.username
+    )
+
+@pytest.mark.asyncio
+async def test_finance_category_route_create() -> None:
+    service = AsyncMock()
+    expected = SimpleNamespace(id=uuid4(), name="New Category")
+    service.create.return_value = expected
+    current_user = SimpleNamespace(id="user-id", username="Finance User")
+
+    payload = CategoryPersistSchema(name="New Category")
+
+    result = await create(
+        service=service,
+        payload=payload,
+        current_user=current_user,
+    )
+
+    assert result is expected
+    service.create.assert_awaited_once_with(
+        user_id=str(current_user.id),
+        name=payload.name,
+        description=payload.description
+    )
+
+@pytest.mark.asyncio
+async def test_finance_category_route_update() -> None:
+    service = AsyncMock()
+    category_id = uuid4()
+    expected = SimpleNamespace(id=category_id, name="New Category")
+    service.update.return_value = expected
+    current_user = SimpleNamespace(id="user-id", username="Finance User")
+
+    payload = CategoryPersistSchema(name="New Category")
+
+    result = await update(
+        service=service,
+        payload=payload,
+        category_id=str(category_id),
+        current_user=current_user,
+    )
+
+    assert result is expected
+    service.update.assert_awaited_once_with(
+        param=str(category_id),
+        update_schema=payload,
+        user_request=current_user.username
+    )

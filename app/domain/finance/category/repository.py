@@ -9,7 +9,7 @@ from fastapi import Query
 from app.core.pagination import is_paginate
 from app.core.repository.base import BaseRepository
 from app.models import (
-    Payment,
+    User,
     Category,
 )
 from app.shared.schemas import FilterPage
@@ -24,8 +24,8 @@ class CategoryRepository(BaseRepository[Category]):
     ):
         query = (
             select(Category)
-            .join(Category.payments)
-            .where(Payment.user_id == user_id)
+            .join(Category.user)
+            .where(User.id == user_id)
         )
         if page_filter is not None and is_paginate(page_filter):
             raw_filter = page_filter.model_dump(exclude_none=True)

@@ -54,3 +54,6 @@ backup:
 
 restore-backup:
 	poetry run python scripts/restore_database.py
+
+organize-payment-documents:
+	poetry run python scripts/organize-payment-documents.py --source-dir "$(SOURCE_DIR)"

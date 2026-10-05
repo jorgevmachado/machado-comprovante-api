@@ -189,35 +189,6 @@ class TestCategoryRepositoryList:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_should_join_payments_and_use_distinct():
-        session = AsyncMock()
-        repository = CategoryRepository(session)
-
-        user_id = uuid4()
-
-        scalars_result = MagicMock()
-        scalars_result.all.return_value = []
-        session.scalars.return_value = scalars_result
-
-        with patch(
-            "app.domain.finance.category.repository.is_paginate",
-            return_value=False,
-        ):
-            await repository.list(
-                user_id=user_id,
-                page_filter=None,
-            )
-
-        query = session.scalars.await_args.args[0]
-
-        compiled = query.compile(compile_kwargs={"literal_binds": True})
-        sql = str(compiled)
-
-        assert "JOIN payments" in sql
-        assert "SELECT DISTINCT" in sql
-
-    @staticmethod
-    @pytest.mark.asyncio
     async def test_should_not_apply_name_filter_when_name_is_not_provided():
         session = AsyncMock()
         repository = CategoryRepository(session)
@@ -259,15 +230,48 @@ class TestCategoryRepositoryList:
 
     @staticmethod
     @pytest.mark.asyncio
+    async def test_should_join_user_and_use_distinct():
+        session = AsyncMock()
+        repository = CategoryRepository(session)
+
+        user_id = uuid4()
+
+        scalars_result = MagicMock()
+        scalars_result.all.return_value = []
+        session.scalars.return_value = scalars_result
+
+        with patch(
+                "app.domain.finance.category.repository.is_paginate",
+                return_value=False,
+        ):
+            await repository.list(
+                user_id=user_id,
+                page_filter=None,
+            )
+
+        query = session.scalars.await_args.args[0]
+
+        compiled = query.compile(compile_kwargs={"literal_binds": True})
+        sql = str(compiled)
+
+        assert "JOIN users" in sql
+        assert "SELECT DISTINCT" in sql
+
+    @staticmethod
+    @pytest.mark.asyncio
     async def test_should_filter_by_user_id():
         session = AsyncMock()
         repository = CategoryRepository(session)
 
         user_id = uuid4()
 
+        scalars_result = MagicMock()
+        scalars_result.all.return_value = []
+        session.scalars.return_value = scalars_result
+
         with patch(
-            "app.domain.finance.category.repository.is_paginate",
-            return_value=False,
+                "app.domain.finance.category.repository.is_paginate",
+                return_value=False,
         ):
             await repository.list(
                 user_id=user_id,
@@ -279,4 +283,4 @@ class TestCategoryRepositoryList:
         compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
-        assert f"payments.user_id = '{user_id.hex}'" in sql
+        assert f"users.id = '{user_id.hex}'" in sql
