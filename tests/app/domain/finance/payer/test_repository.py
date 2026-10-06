@@ -6,30 +6,30 @@ from uuid import uuid4
 
 import pytest
 
-from app.domain.finance.category.repository import CategoryRepository
+from app.domain.finance.payer.repository import PayerRepository
 from app.shared.schemas import FilterPage
 
 
-class TestCategoryRepositoryList:
+class TestPayerRepositoryList:
     @staticmethod
     @pytest.mark.asyncio
-    async def test_should_list_categories_by_user_without_pagination():
+    async def test_should_list_payers_by_user_without_pagination():
         session = AsyncMock()
-        repository = CategoryRepository(session)
+        repository = PayerRepository(session)
 
         user_id = uuid4()
 
-        category_one = SimpleNamespace(id=uuid4())
-        category_two = SimpleNamespace(id=uuid4())
+        payer_one = SimpleNamespace(id=uuid4())
+        payer_two = SimpleNamespace(id=uuid4())
 
-        expected = [category_one, category_two]
+        expected = [payer_one, payer_two]
 
         scalars_result = MagicMock()
         scalars_result.all.return_value = expected
         session.scalars.return_value = scalars_result
 
         with patch(
-            "app.domain.finance.category.repository.is_paginate",
+            "app.domain.finance.payer.repository.is_paginate",
             return_value=False,
         ) as is_paginate:
             result = await repository.list(
@@ -44,21 +44,21 @@ class TestCategoryRepositoryList:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_should_list_categories_without_page_filter():
+    async def test_should_list_payers_without_page_filter():
         session = AsyncMock()
-        repository = CategoryRepository(session)
+        repository = PayerRepository(session)
 
         user_id = uuid4()
 
-        category = SimpleNamespace(id=uuid4())
-        expected = [category]
+        payer = SimpleNamespace(id=uuid4())
+        expected = [payer]
 
         scalars_result = MagicMock()
         scalars_result.all.return_value = expected
         session.scalars.return_value = scalars_result
 
         with patch(
-            "app.domain.finance.category.repository.is_paginate",
+            "app.domain.finance.payer.repository.is_paginate",
             return_value=False,
         ) as is_paginate:
             result = await repository.list(
@@ -75,7 +75,7 @@ class TestCategoryRepositoryList:
     @pytest.mark.asyncio
     async def test_should_apply_name_filter_when_paginating():
         session = AsyncMock()
-        repository = CategoryRepository(session)
+        repository = PayerRepository(session)
 
         user_id = uuid4()
         page_filter = FilterPage.build(
@@ -88,7 +88,7 @@ class TestCategoryRepositoryList:
 
         with (
             patch(
-                "app.domain.finance.category.repository.is_paginate",
+                "app.domain.finance.payer.repository.is_paginate",
                 return_value=True,
             ) as is_paginate,
             patch.object(
@@ -112,13 +112,13 @@ class TestCategoryRepositoryList:
         compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
-        assert "categories.name_code = 'amazon'" in sql
+        assert "payers.name_code = 'amazon'" in sql
 
     @staticmethod
     @pytest.mark.asyncio
     async def test_should_use_pagination_when_filter_requires_pagination():
         session = AsyncMock()
-        repository = CategoryRepository(session)
+        repository = PayerRepository(session)
 
         user_id = uuid4()
         page_filter = FilterPage.build(
@@ -130,7 +130,7 @@ class TestCategoryRepositoryList:
 
         with (
             patch(
-                "app.domain.finance.category.repository.is_paginate",
+                "app.domain.finance.payer.repository.is_paginate",
                 return_value=True,
             ) as is_paginate,
             patch.object(
@@ -157,7 +157,7 @@ class TestCategoryRepositoryList:
     @pytest.mark.asyncio
     async def test_should_not_use_pagination_when_filter_does_not_require_pagination():
         session = AsyncMock()
-        repository = CategoryRepository(session)
+        repository = PayerRepository(session)
 
         user_id = uuid4()
         page_filter = FilterPage()
@@ -168,7 +168,7 @@ class TestCategoryRepositoryList:
 
         with (
             patch(
-                "app.domain.finance.category.repository.is_paginate",
+                "app.domain.finance.payer.repository.is_paginate",
                 return_value=False,
             ),
             patch.object(
@@ -191,7 +191,7 @@ class TestCategoryRepositoryList:
     @pytest.mark.asyncio
     async def test_should_not_apply_name_filter_when_name_is_not_provided():
         session = AsyncMock()
-        repository = CategoryRepository(session)
+        repository = PayerRepository(session)
 
         user_id = uuid4()
         page_filter = FilterPage.build(
@@ -203,7 +203,7 @@ class TestCategoryRepositoryList:
 
         with (
             patch(
-                "app.domain.finance.category.repository.is_paginate",
+                "app.domain.finance.payer.repository.is_paginate",
                 return_value=True,
             ),
             patch.object(
@@ -226,13 +226,13 @@ class TestCategoryRepositoryList:
         compiled = query.compile(compile_kwargs={"literal_binds": True})
         sql = str(compiled)
 
-        assert "categories.name_code =" not in sql
+        assert "payers.name_code =" not in sql
 
     @staticmethod
     @pytest.mark.asyncio
     async def test_should_join_user_and_use_distinct():
         session = AsyncMock()
-        repository = CategoryRepository(session)
+        repository = PayerRepository(session)
 
         user_id = uuid4()
 
@@ -241,7 +241,7 @@ class TestCategoryRepositoryList:
         session.scalars.return_value = scalars_result
 
         with patch(
-            "app.domain.finance.category.repository.is_paginate",
+            "app.domain.finance.payer.repository.is_paginate",
             return_value=False,
         ):
             await repository.list(
@@ -261,7 +261,7 @@ class TestCategoryRepositoryList:
     @pytest.mark.asyncio
     async def test_should_filter_by_user_id():
         session = AsyncMock()
-        repository = CategoryRepository(session)
+        repository = PayerRepository(session)
 
         user_id = uuid4()
 
@@ -270,7 +270,7 @@ class TestCategoryRepositoryList:
         session.scalars.return_value = scalars_result
 
         with patch(
-            "app.domain.finance.category.repository.is_paginate",
+            "app.domain.finance.payer.repository.is_paginate",
             return_value=False,
         ):
             await repository.list(

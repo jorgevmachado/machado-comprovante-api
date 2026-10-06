@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock
 
-from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
+from app.domain.finance.receipt.interpretation.institutions.schema import (
+    InstitutionEnum,
+)
 from app.domain.finance.receipt.interpretation.schema import (
     InterpretationResult,
     ExtractedField,
@@ -34,7 +36,9 @@ class TestInterpretationServiceInterpret:
             result = service.interpret(text="ITAU UNIBANCO S.A.")
 
             assert result is expected
-            service.itau.interpret.assert_called_once_with(text="ITAU UNIBANCO S.A.", institution=InstitutionEnum.ITAU)
+            service.itau.interpret.assert_called_once_with(
+                text="ITAU UNIBANCO S.A.", institution=InstitutionEnum.ITAU
+            )
             service.unknown.interpret.assert_not_called()
         finally:
             InterpretationValidator.validate = original_validate
@@ -60,7 +64,9 @@ class TestInterpretationServiceInterpret:
             result = service.interpret("NU PAGAMENTOS S.A.")
 
             assert result is expected
-            service.nubank.interpret.assert_called_once_with(text="NU PAGAMENTOS S.A.", institution=InstitutionEnum.NUBANK)
+            service.nubank.interpret.assert_called_once_with(
+                text="NU PAGAMENTOS S.A.", institution=InstitutionEnum.NUBANK
+            )
         finally:
             InterpretationValidator.validate = original_validate
 
@@ -85,7 +91,9 @@ class TestInterpretationServiceInterpret:
             result = service.interpret("CAIXA ECONOMICA FEDERAL")
 
             assert result is expected
-            service.caixa.interpret.assert_called_once_with(text="CAIXA ECONOMICA FEDERAL", institution=InstitutionEnum.CAIXA)
+            service.caixa.interpret.assert_called_once_with(
+                text="CAIXA ECONOMICA FEDERAL", institution=InstitutionEnum.CAIXA
+            )
         finally:
             InterpretationValidator.validate = original_validate
 
@@ -110,7 +118,9 @@ class TestInterpretationServiceInterpret:
             result = service.interpret("BANCO EXEMPLO S.A.")
 
             assert result is expected
-            service.unknown.interpret.assert_called_once_with(text="BANCO EXEMPLO S.A.", institution=InstitutionEnum.UNKNOWN)
+            service.unknown.interpret.assert_called_once_with(
+                text="BANCO EXEMPLO S.A.", institution=InstitutionEnum.UNKNOWN
+            )
         finally:
             InterpretationValidator.validate = original_validate
 

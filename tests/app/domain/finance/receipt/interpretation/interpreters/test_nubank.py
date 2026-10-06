@@ -1,6 +1,8 @@
 from datetime import date
 
-from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
+from app.domain.finance.receipt.interpretation.institutions.schema import (
+    InstitutionEnum,
+)
 from app.domain.finance.receipt.interpretation.interpreters.nubank import (
     NubankInterpreter,
 )
@@ -110,8 +112,7 @@ class TestNubankInterpreter:
         self,
     ):
         result = NubankInterpreter.extract_source_institution(
-            text="Favorecido BANCO EXEMPLO S.A.",
-            institution=InstitutionEnum.NUBANK
+            text="Favorecido BANCO EXEMPLO S.A.", institution=InstitutionEnum.NUBANK
         )
 
         assert result.status == ExtractionStatusEnum.FOUND

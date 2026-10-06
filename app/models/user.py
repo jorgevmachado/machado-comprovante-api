@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from app.models.authentication import Authentication
     from app.models.payment import Payment
     from app.models.category import Category
+    from app.models.payer import Payer
 
 
 @table_registry.mapped_as_dataclass
@@ -80,6 +81,14 @@ class User:
     )
 
     categories: Mapped[list["Category"]] = relationship(
+        lazy=default_lazy,
+        default_factory=list,
+        init=False,
+        repr=False,
+        back_populates="user",
+    )
+
+    payers: Mapped[list["Payer"]] = relationship(
         lazy=default_lazy,
         default_factory=list,
         init=False,

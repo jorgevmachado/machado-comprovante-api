@@ -1,7 +1,13 @@
 import re
 
-from app.domain.finance.receipt.interpretation.institutions.rules.rules import INSTITUTION_RULES
-from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum, InstitutionRule
+from app.domain.finance.receipt.interpretation.institutions.rules.rules import (
+    INSTITUTION_RULES,
+)
+from app.domain.finance.receipt.interpretation.institutions.schema import (
+    InstitutionEnum,
+    InstitutionRule,
+)
+
 
 class InstitutionsService:
     @staticmethod
@@ -15,9 +21,7 @@ class InstitutionsService:
                 text=normalized_text,
                 rule=rule,
             ):
-                scores[rule.institution] = (
-                    scores.get(rule.institution,0) + rule.weight
-                )
+                scores[rule.institution] = scores.get(rule.institution, 0) + rule.weight
         if not scores:
             return InstitutionEnum.UNKNOWN
 
@@ -35,9 +39,11 @@ class InstitutionsService:
         return institutions[0]
 
     @staticmethod
-
     def _matches(text: str, rule: InstitutionRule) -> bool:
-        return re.search(
-            rule.pattern,
-            text,
-        ) is not None
+        return (
+            re.search(
+                rule.pattern,
+                text,
+            )
+            is not None
+        )

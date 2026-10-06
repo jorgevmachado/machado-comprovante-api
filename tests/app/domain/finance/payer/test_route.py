@@ -6,43 +6,43 @@ from uuid import uuid4
 
 import pytest
 
-from app.domain.finance.category.schema import CategoryPersistSchema
+from app.domain.finance.payer.schema import PayerPersistSchema
 from app.shared.schemas import FilterPage
 
-from app.domain.finance.category.route import (
+from app.domain.finance.payer.route import (
     list_all,
-    category_filter,
-    category_service,
+    payer_filter,
+    payer_service,
     find_one,
     create,
     update,
 )
-from app.domain.finance.category.service import CategoryService
+from app.domain.finance.payer.service import PayerService
 
 
-def test_category_builds_service() -> None:
-    service = category_service(AsyncMock())
-    assert isinstance(service, CategoryService)
+def test_payer_builds_service() -> None:
+    service = payer_service(AsyncMock())
+    assert isinstance(service, PayerService)
 
 
-def test_get_category_filter_builds_dynamic_filter():
-    page_filter = category_filter(
+def test_get_payer_filter_builds_dynamic_filter():
+    page_filter = payer_filter(
         page=1,
-        name="Category Name",
+        name="Payer Name",
         limit=12,
         clean_cache=True,
     )
 
     assert page_filter.page == 1
-    assert page_filter.name == "Category Name"
+    assert page_filter.name == "Payer Name"
     assert page_filter.limit == 12
     assert page_filter.clean_cache
 
 
 @pytest.mark.asyncio
-async def test_finance_category_route_list_all_paginate_and_filter() -> None:
+async def test_finance_payer_route_list_all_paginate_and_filter() -> None:
     service = AsyncMock()
-    page_filter = category_filter(page=1, limit=12)
+    page_filter = payer_filter(page=1, limit=12)
     expected = SimpleNamespace(items=[])
     service.list.return_value = expected
     current_user = SimpleNamespace(id="user-id", username="Finance User")
@@ -65,35 +65,35 @@ async def test_finance_category_route_list_all_paginate_and_filter() -> None:
 
 
 @pytest.mark.asyncio
-async def test_finance_category_route_find_by_id() -> None:
+async def test_finance_payer_route_find_by_id() -> None:
     service = AsyncMock()
-    category_id = uuid4()
-    expected = SimpleNamespace(id=category_id, name="Category Name")
+    payer_id = uuid4()
+    expected = SimpleNamespace(id=payer_id, name="Payer Name")
     service.find_by.return_value = expected
     current_user = SimpleNamespace(id="user-id", username="Finance User")
 
     result = await find_one(
-        param=str(category_id),
+        param=str(payer_id),
         service=service,
         current_user=current_user,
     )
 
     assert result is expected
     service.find_by.assert_awaited_once_with(
-        id=str(category_id),
+        id=str(payer_id),
         user_id=str(current_user.id),
         user_request=current_user.username,
     )
 
 
 @pytest.mark.asyncio
-async def test_finance_category_route_create() -> None:
+async def test_finance_payer_route_create() -> None:
     service = AsyncMock()
-    expected = SimpleNamespace(id=uuid4(), name="New Category")
+    expected = SimpleNamespace(id=uuid4(), name="New Payer")
     service.create.return_value = expected
     current_user = SimpleNamespace(id="user-id", username="Finance User")
 
-    payload = CategoryPersistSchema(name="New Category")
+    payload = PayerPersistSchema(name="New Payer")
 
     result = await create(
         service=service,
@@ -103,30 +103,30 @@ async def test_finance_category_route_create() -> None:
 
     assert result is expected
     service.create.assert_awaited_once_with(
-        user_id=str(current_user.id), name=payload.name, description=payload.description
+        user_id=str(current_user.id), name=payload.name
     )
 
 
 @pytest.mark.asyncio
-async def test_finance_category_route_update() -> None:
+async def test_finance_payer_route_update() -> None:
     service = AsyncMock()
-    category_id = uuid4()
-    expected = SimpleNamespace(id=category_id, name="New Category")
+    payer_id = uuid4()
+    expected = SimpleNamespace(id=payer_id, name="New Payer")
     service.update.return_value = expected
     current_user = SimpleNamespace(id="user-id", username="Finance User")
 
-    payload = CategoryPersistSchema(name="New Category")
+    payload = PayerPersistSchema(name="New Payer")
 
     result = await update(
         service=service,
         payload=payload,
-        category_id=str(category_id),
+        payer_id=str(payer_id),
         current_user=current_user,
     )
 
     assert result is expected
     service.update.assert_awaited_once_with(
-        param=str(category_id),
+        param=str(payer_id),
         update_schema=payload,
         user_request=current_user.username,
     )

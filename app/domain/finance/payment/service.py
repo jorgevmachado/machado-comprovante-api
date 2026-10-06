@@ -15,9 +15,17 @@ from app.core.logging import LoggingParams, log_service_success
 from app.core.pagination import exception_pagination
 from app.core.service import BaseService
 from app.domain.finance.payment.repository import PaymentRepository
-from app.domain.finance.payment.schema import PaymentSchema, PaymentSummaryMinMaxSchema, PaymentDashboardRequestSchema, \
-    PaymentDashboardResponseSchema, PaymentDashboardPeriodSchema, PaymentDashboardSummarySchema, \
-    PaymentDashboardMonthlySchema, PaymentDashboardInstitutionSchema, PaymentDashboardBeneficiarySchema
+from app.domain.finance.payment.schema import (
+    PaymentSchema,
+    PaymentSummaryMinMaxSchema,
+    PaymentDashboardRequestSchema,
+    PaymentDashboardResponseSchema,
+    PaymentDashboardPeriodSchema,
+    PaymentDashboardSummarySchema,
+    PaymentDashboardMonthlySchema,
+    PaymentDashboardInstitutionSchema,
+    PaymentDashboardBeneficiarySchema,
+)
 
 from app.models import Payment, User
 from app.shared.schemas import FilterPage
@@ -51,6 +59,7 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
     async def create(
         self,
         user_id: UUID,
+        payer_id: UUID,
         receipt_id: UUID,
         amount: Decimal,
         category_id: UUID,
@@ -63,6 +72,7 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
         payment = Payment(
             amount=amount,
             user_id=user_id,
+            payer_id=payer_id,
             receipt_id=receipt_id,
             category_id=category_id,
             description=description,
@@ -282,9 +292,9 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
             )
 
     async def get_dashboard(
-            self,
-            params: PaymentDashboardRequestSchema,
-            user: User,
+        self,
+        params: PaymentDashboardRequestSchema,
+        user: User,
     ) -> PaymentDashboardResponseSchema:
         summary = await self.repository.dashboard_summary(
             user_id=user.id,

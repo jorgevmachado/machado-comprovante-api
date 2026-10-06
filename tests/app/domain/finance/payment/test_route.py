@@ -15,7 +15,8 @@ from app.domain.finance.payment.route import (
     summary_total,
     summary_max,
     summary_min,
-    summary_beneficiary, get_dashboard,
+    summary_beneficiary,
+    get_dashboard,
 )
 from app.domain.finance.payment.schema import PaymentDashboardRequestSchema
 from app.domain.finance.payment.service import PaymentService
@@ -250,37 +251,37 @@ async def test_payment_route_summary_beneficiary() -> None:
 
 @pytest.mark.asyncio
 async def test_get_dashboard_route_returns_service_result():
-        service = AsyncMock()
+    service = AsyncMock()
 
-        current_user = SimpleNamespace(
-            id="22222222-2222-2222-2222-222222222222",
-        )
+    current_user = SimpleNamespace(
+        id="22222222-2222-2222-2222-222222222222",
+    )
 
-        params = PaymentDashboardRequestSchema(
-            start_date="2026-01-01",
-            end_date="2026-09-30",
-            institution="itau",
-            beneficiary_id="33333333-3333-3333-3333-333333333333",
-        )
+    params = PaymentDashboardRequestSchema(
+        start_date="2026-01-01",
+        end_date="2026-09-30",
+        institution="itau",
+        beneficiary_id="33333333-3333-3333-3333-333333333333",
+    )
 
-        expected = SimpleNamespace(
-            period=SimpleNamespace(
-                start_date=params.start_date,
-                end_date=params.end_date,
-            ),
-        )
+    expected = SimpleNamespace(
+        period=SimpleNamespace(
+            start_date=params.start_date,
+            end_date=params.end_date,
+        ),
+    )
 
-        service.get_dashboard.return_value = expected
+    service.get_dashboard.return_value = expected
 
-        result = await get_dashboard(
-            params=params,
-            service=service,
-            current_user=current_user,
-        )
+    result = await get_dashboard(
+        params=params,
+        service=service,
+        current_user=current_user,
+    )
 
-        assert result is expected
+    assert result is expected
 
-        service.get_dashboard.assert_awaited_once_with(
-            params=params,
-            user=current_user,
-        )
+    service.get_dashboard.assert_awaited_once_with(
+        params=params,
+        user=current_user,
+    )

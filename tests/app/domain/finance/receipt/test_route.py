@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import date
+from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 from uuid import uuid4
@@ -21,8 +23,9 @@ from app.domain.finance.schema import FinanceConfirmRequestSchema
 
 def build_update_payload() -> FinanceConfirmRequestSchema:
     return FinanceConfirmRequestSchema(
-        paid_amount="387.42",
-        payment_date="2026-09-12",
+        payer="Fulano de Tal",
+        paid_amount=Decimal("387.42"),
+        payment_date=date(2026, 9, 12),
         category="Categoria Exemplo",
         beneficiary="Empresa Exemplo",
         source_institution="Banco Exemplo",

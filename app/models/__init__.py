@@ -9,6 +9,7 @@ from app.models.beneficiary import Beneficiary
 from app.models.receipt import Receipt
 from app.models.payment import Payment
 from app.models.category import Category
+from app.models.payer import Payer
 
 __all__ = [
     "User",
@@ -20,6 +21,7 @@ __all__ = [
     "Receipt",
     "Payment",
     "Category",
+    "Payer",
     "StatusEnum",
     "ProcessingStatusEnum",
     "utcnow",

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 
-from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
+from app.domain.finance.receipt.interpretation.institutions.schema import (
+    InstitutionEnum,
+)
 
 
 @dataclass(frozen=True)

@@ -19,13 +19,23 @@ ALLOWED_FILE_EXTENSIONS = {
     ".png",
 }
 
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Organiza documentos de pagamento.")
 
-    parser.add_argument("--source-dir", required=True, help="Diretório de origem dos documentos de pagamento.")
-    parser.add_argument("--target-dir", default=Path.cwd() / "comprovantes", help="Diretório de destino para os documentos organizados.")
+    parser.add_argument(
+        "--source-dir",
+        required=True,
+        help="Diretório de origem dos documentos de pagamento.",
+    )
+    parser.add_argument(
+        "--target-dir",
+        default=Path.cwd() / "comprovantes",
+        help="Diretório de destino para os documentos organizados.",
+    )
 
     return parser
+
 
 def resolve_target_dir(target_dir: str | Path) -> Path:
     normalized_target_dir = str(target_dir).strip()
@@ -38,6 +48,7 @@ def resolve_target_dir(target_dir: str | Path) -> Path:
     resolved_target_dir = Path(normalized_target_dir).expanduser().resolve()
     resolved_target_dir.mkdir(parents=True, exist_ok=True)
     return resolved_target_dir
+
 
 def get_file_date(filename: str) -> datetime | None:
     for pattern in DATE_PATTERNS:
@@ -58,37 +69,32 @@ def get_file_date(filename: str) -> datetime | None:
 
     return None
 
+
 def has_date(filename: str) -> bool:
     return get_file_date(filename) is not None
 
+
 def is_payment_file(file: Path) -> bool:
-    return (
-        file.suffix.lower() in ALLOWED_FILE_EXTENSIONS
-        and has_date(file.name)
-    )
+    return file.suffix.lower() in ALLOWED_FILE_EXTENSIONS and has_date(file.name)
+
 
 def get_files_from_zip(source_dir: Path, target_dir: Path) -> list[Path]:
     with zipfile.ZipFile(source_dir) as zip_file:
         zip_file.extractall(target_dir)
 
-    return [
-        file
-        for file in target_dir.rglob("*")
-        if file.is_file()
-    ]
+    return [file for file in target_dir.rglob("*") if file.is_file()]
+
 
 def get_files(source_dir: Path) -> list[Path]:
-    return [
-        file
-        for file in source_dir.iterdir()
-        if file.is_file()
-    ]
+    return [file for file in source_dir.iterdir() if file.is_file()]
+
 
 def resolve_files_dir(target_dir: Path, directory_name: str) -> Path:
     files_dir = target_dir / directory_name
     files_dir.mkdir(parents=True, exist_ok=True)
 
     return files_dir
+
 
 def copy_files(files: list[Path], target_dir: Path) -> None:
     if not files:
@@ -101,6 +107,7 @@ def copy_files(files: list[Path], target_dir: Path) -> None:
         print(f"Arquivo copiado: {file.name}")
 
     print(f"{len(files)} arquivos enviados para a pasta {target_dir.name}.")
+
 
 def resolve_files_by_date(files: list[Path]) -> dict[str, dict[str, list[Path]]]:
     files_by_date: dict[str, dict[str, list[Path]]] = {}
@@ -119,6 +126,7 @@ def resolve_files_by_date(files: list[Path]) -> dict[str, dict[str, list[Path]]]
 
     return files_by_date
 
+
 def copy_files_date(target_dir: Path, files: list[Path]) -> None:
     files_by_date = resolve_files_by_date(files)
 
@@ -129,16 +137,14 @@ def copy_files_date(target_dir: Path, files: list[Path]) -> None:
             month_dir = resolve_files_dir(year_dir, month)
             copy_files(month_files, month_dir)
 
+
 def process_files(files: list[Path], target_dir: Path) -> tuple[int, int]:
-    files_with_date = [
-        file
-        for file in files
-        if is_payment_file(file)
-    ]
+    files_with_date = [file for file in files if is_payment_file(file)]
     if files_with_date:
         copy_files_date(target_dir, files_with_date)
 
     return len(files), len(files_with_date)
+
 
 def resolve_files(source_dir: str | Path, target_dir: Path) -> tuple[int, int]:
     source = Path(source_dir).expanduser().resolve()
@@ -170,6 +176,7 @@ def main() -> None:
     print(f"Arquivos ignorados: {total_files - total_with_date}")
     print()
     print("Documentos de pagamento organizados com sucesso.")
+
 
 if __name__ == "__main__":
     main()

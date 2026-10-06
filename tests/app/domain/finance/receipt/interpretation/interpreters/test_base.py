@@ -1,7 +1,9 @@
 from datetime import date
 from decimal import Decimal
 
-from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
+from app.domain.finance.receipt.interpretation.institutions.schema import (
+    InstitutionEnum,
+)
 from app.domain.finance.receipt.interpretation.interpreters.base import BaseInterpreter
 from app.domain.finance.receipt.interpretation.schema import ExtractionStatusEnum
 

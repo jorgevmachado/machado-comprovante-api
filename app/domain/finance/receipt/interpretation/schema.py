@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 T = TypeVar("T")
 
+
 class ExtractionStatusEnum(StrEnum):
     FOUND = "FOUND"
     NOT_FOUND = "NOT_FOUND"

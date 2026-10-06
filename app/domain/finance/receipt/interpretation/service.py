@@ -1,8 +1,12 @@
 from __future__ import annotations
 import re
 
-from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
-from app.domain.finance.receipt.interpretation.institutions.service import InstitutionsService
+from app.domain.finance.receipt.interpretation.institutions.schema import (
+    InstitutionEnum,
+)
+from app.domain.finance.receipt.interpretation.institutions.service import (
+    InstitutionsService,
+)
 from app.domain.finance.receipt.interpretation.interpreters.unknown import (
     UnknownInterpreter,
 )
@@ -122,8 +126,8 @@ class InterpretationService:
             return InstitutionEnum.NUBANK
 
         if re.search(
-                r"CAIXA\s+ECON[ÔO]MICA\s+FEDERAL",
-                normalized_text,
+            r"CAIXA\s+ECON[ÔO]MICA\s+FEDERAL",
+            normalized_text,
         ):
             return InstitutionEnum.CAIXA
 

@@ -5,11 +5,13 @@ from pydantic import BaseModel
 
 from app.domain.finance.beneficiary.schema import BeneficiarySchema
 from app.domain.finance.category.schema import CategorySchema
+from app.domain.finance.payer.schema import PayerSchema
 from app.domain.finance.payment.schema import PaymentSchema
 from app.domain.finance.institution.schema import InstitutionSchema
 
 
 class FinanceConfirmRequestSchema(BaseModel):
+    payer: str
     category: str
     beneficiary: str
     paid_amount: Decimal
@@ -18,7 +20,6 @@ class FinanceConfirmRequestSchema(BaseModel):
     destination_institution: str | None = None
 
     fine: Decimal | None = None
-    payer: str | None = None
     barcode: str | None = None
     due_date: date | None = None
     discount: Decimal | None = None
@@ -32,6 +33,7 @@ class FinanceConfirmRequestSchema(BaseModel):
 
 
 class FinanceConfirmResponseSchema(BaseModel):
+    payer: PayerSchema
     payment: PaymentSchema
     category: CategorySchema
     beneficiary: BeneficiarySchema

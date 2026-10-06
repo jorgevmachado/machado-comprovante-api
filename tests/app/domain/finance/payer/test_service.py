@@ -8,49 +8,55 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from app.domain.finance.category.service import CategoryService
-from app.models import Category
+from app.domain.finance.payer.service import PayerService
+from app.models import Payer, utcnow
 from app.shared.schemas import FilterPage
 
+@pytest.fixture
+def user():
+    return SimpleNamespace(
+        id=uuid4(),
+        username="user"
+    )
 
-class TestCategoryService:
+@pytest.fixture
+def payer():
+    return SimpleNamespace(id=uuid4(), name="Pessoa Exemplo", name_code="pessoa_exemplo", created_at=utcnow())
+
+class TestPayerService:
     @staticmethod
     def test_from_session_builds_service():
-        service = CategoryService.from_session(AsyncMock())
+        service = PayerService.from_session(AsyncMock())
 
-        assert isinstance(service, CategoryService)
+        assert isinstance(service, PayerService)
 
 
-class TestCategoryServiceResolve:
+class TestPayerServiceResolve:
     @staticmethod
     @pytest.mark.asyncio
-    async def test_resolve_returns_existing_category():
+    async def test_resolve_returns_existing_payer(
+            user,
+            payer
+    ):
         repository = AsyncMock()
-        service = CategoryService(repository)
-        user_id = uuid4()
+        service = PayerService(repository)
+        user_id=user.id
 
-        category = SimpleNamespace(
-            id="11111111-1111-1111-1111-111111111111",
-            name="Categoria Exemplo",
-            name_code="categoria_exemplo",
-            description="Descrição da categoria exemplo",
-        )
-
-        service.find_by = AsyncMock(return_value=category)
+        service.find_by = AsyncMock(return_value=payer)
 
         with patch(
-            "app.domain.finance.category.service.to_snake_case",
-            return_value="categoria_exemplo",
+            "app.domain.finance.payer.service.to_snake_case",
+            return_value=payer.name_code,
         ) as to_snake_case:
-            result = await service.resolve(user_id=user_id, name="Categoria Exemplo")
+            result = await service.resolve(user_id=user_id, name=payer.name)
 
-        assert result is category
+        assert result is payer
 
-        to_snake_case.assert_called_once_with("Categoria Exemplo")
+        to_snake_case.assert_called_once_with(payer.name)
 
         service.find_by.assert_awaited_once_with(
             user_id=user_id,
-            name_code="categoria_exemplo",
+            name_code=payer.name_code,
             without_throw=True,
         )
 
@@ -58,58 +64,54 @@ class TestCategoryServiceResolve:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_resolve_creates_category_when_not_found():
+    async def test_resolve_creates_payer_when_not_found(
+            user,
+            payer
+    ):
         repository = AsyncMock()
-        service = CategoryService(repository)
+        service = PayerService(repository)
 
         service.find_by = AsyncMock(return_value=None)
 
-        user_id = uuid4()
+        user_id=user.id
 
-        expected = SimpleNamespace(
-            id="11111111-1111-1111-1111-111111111111",
-            name="Categoria Exemplo",
-            name_code="categoria_exemplo",
-        )
+        expected = payer
 
         repository.save.return_value = expected
 
         with patch(
-            "app.domain.finance.category.service.to_snake_case",
-            return_value="categoria_exemplo",
+            "app.domain.finance.payer.service.to_snake_case",
+            return_value=payer.name_code,
         ) as to_snake_case:
-            result = await service.resolve(user_id=user_id, name="Categoria Exemplo")
+            result = await service.resolve(user_id=user_id, name=payer.name)
 
         assert result is expected
 
-        to_snake_case.assert_called_once_with("Categoria Exemplo")
+        to_snake_case.assert_called_once_with(payer.name)
 
         service.find_by.assert_awaited_once_with(
             user_id=user_id,
-            name_code="categoria_exemplo",
+            name_code=payer.name_code,
             without_throw=True,
         )
 
         repository.save.assert_awaited_once()
 
-        category = repository.save.await_args.kwargs["entity"]
+        entity = repository.save.await_args.kwargs["entity"]
 
-        assert isinstance(category, Category)
-        assert category.name == "Categoria Exemplo"
-        assert category.name_code == "categoria_exemplo"
+        assert isinstance(entity, Payer)
+        assert entity.name == "Pessoa Exemplo"
+        assert entity.name_code == "pessoa_exemplo"
 
 
-class TestCategoryServiceList:
+class TestPayerServiceList:
     @staticmethod
     @pytest.mark.asyncio
-    async def test_list_returns_repository_result():
+    async def test_list_returns_repository_result(
+            user
+    ):
         repository = AsyncMock()
-        service = CategoryService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
+        service = PayerService(repository)
 
         page_filter = FilterPage.build(
             name="Amazon",
@@ -136,14 +138,11 @@ class TestCategoryServiceList:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_list_returns_exception_pagination_when_repository_raises():
+    async def test_list_returns_exception_pagination_when_repository_raises(
+            user
+    ):
         repository = AsyncMock()
-        service = CategoryService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
+        service = PayerService(repository)
 
         page_filter = FilterPage.build(
             page=1,
@@ -160,10 +159,10 @@ class TestCategoryServiceList:
 
         with (
             patch(
-                "app.domain.finance.category.service.handle_service_exception"
+                "app.domain.finance.payer.service.handle_service_exception"
             ) as handle_exception,
             patch(
-                "app.domain.finance.category.service.exception_pagination",
+                "app.domain.finance.payer.service.exception_pagination",
                 return_value=expected,
             ) as pagination,
         ):
@@ -192,14 +191,11 @@ class TestCategoryServiceList:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_list_returns_exception_pagination_when_repository_raises_without_filter():
+    async def test_list_returns_exception_pagination_when_repository_raises_without_filter(
+            user
+    ):
         repository = AsyncMock()
-        service = CategoryService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
+        service = PayerService(repository)
 
         exception = Exception("Repository error")
         repository.list.side_effect = exception
@@ -210,9 +206,9 @@ class TestCategoryServiceList:
         )
 
         with (
-            patch("app.domain.finance.category.service.handle_service_exception"),
+            patch("app.domain.finance.payer.service.handle_service_exception"),
             patch(
-                "app.domain.finance.category.service.exception_pagination",
+                "app.domain.finance.payer.service.exception_pagination",
                 return_value=expected,
             ) as pagination,
         ):
@@ -232,21 +228,18 @@ class TestCategoryServiceList:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_list_logs_success_after_repository_call():
+    async def test_list_logs_success_after_repository_call(
+            user
+    ):
         repository = AsyncMock()
-        service = CategoryService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
+        service = PayerService(repository)
 
         expected = []
 
         repository.list.return_value = expected
 
         with patch(
-            "app.domain.finance.category.service.log_service_success"
+            "app.domain.finance.payer.service.log_service_success"
         ) as log_success:
             result = await service.list(
                 user=user,
@@ -264,14 +257,11 @@ class TestCategoryServiceList:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_list_logs_success_even_when_repository_raises():
+    async def test_list_logs_success_even_when_repository_raises(
+            user
+    ):
         repository = AsyncMock()
-        service = CategoryService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
+        service = PayerService(repository)
 
         exception = Exception("Repository error")
         repository.list.side_effect = exception
@@ -282,13 +272,13 @@ class TestCategoryServiceList:
         )
 
         with (
-            patch("app.domain.finance.category.service.handle_service_exception"),
+            patch("app.domain.finance.payer.service.handle_service_exception"),
             patch(
-                "app.domain.finance.category.service.exception_pagination",
+                "app.domain.finance.payer.service.exception_pagination",
                 return_value=expected,
             ),
             patch(
-                "app.domain.finance.category.service.log_service_success"
+                "app.domain.finance.payer.service.log_service_success"
             ) as log_success,
         ):
             result = await service.list(
@@ -306,83 +296,72 @@ class TestCategoryServiceList:
         )
 
 
-class TestCategoryServiceCreate:
+class TestPayerServiceCreate:
     @staticmethod
     @pytest.mark.asyncio
-    async def test_create_returns_not_existing_category():
+    async def test_create_returns_not_existing_payer(
+            user,
+            payer
+    ):
         repository = AsyncMock()
-        service = CategoryService(repository)
-        user_id = uuid4()
-
-        category = SimpleNamespace(
-            id="11111111-1111-1111-1111-111111111111",
-            name="Categoria Exemplo",
-            name_code="categoria_exemplo",
-            description="Descrição da categoria exemplo",
-        )
+        service = PayerService(repository)
+        user_id=user.id
 
         service.find_by = AsyncMock(return_value=None)
-        service.repository.save = AsyncMock(return_value=category)
+        service.repository.save = AsyncMock(return_value=payer)
 
         with patch(
-            "app.domain.finance.category.service.to_snake_case",
-            return_value=category.name_code,
+            "app.domain.finance.payer.service.to_snake_case",
+            return_value=payer.name_code,
         ) as to_snake_case:
             result = await service.create(
                 user_id=user_id,
-                name=category.name,
-                name_code=None,
-                description=category.description,
+                name=payer.name,
+                name_code=None
             )
 
-        assert result.name is category.name
-        assert result.name_code is category.name_code
-        assert result.description is category.description
+        assert result.name is payer.name
+        assert result.name_code is payer.name_code
 
-        to_snake_case.assert_called_once_with(category.name)
+        to_snake_case.assert_called_once_with(payer.name)
 
         service.find_by.assert_awaited_once_with(
             user_id=user_id,
-            name_code=category.name_code,
+            name_code=payer.name_code,
             without_throw=True,
         )
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_creates_category_raises_when_category_exists():
+    async def test_creates_payer_raises_when_payer_exists(
+            user,
+            payer
+    ):
         repository = AsyncMock()
-        service = CategoryService(repository)
+        service = PayerService(repository)
 
-        category = SimpleNamespace(
-            id="11111111-1111-1111-1111-111111111111",
-            name="Categoria Exemplo",
-            name_code="categoria_exemplo",
-            description="Descrição da categoria exemplo",
-        )
+        service.find_by = AsyncMock(return_value=payer)
 
-        service.find_by = AsyncMock(return_value=category)
-
-        user_id = uuid4()
+        user_id=user.id
 
         with patch(
-            "app.domain.finance.category.service.to_snake_case",
-            return_value="categoria_exemplo",
+            "app.domain.finance.payer.service.to_snake_case",
+            return_value=payer.name_code,
         ) as to_snake_case:
             with pytest.raises(HTTPException) as exc_info:
                 await service.create(
                     user_id=user_id,
-                    name=category.name,
-                    name_code=None,
-                    description=category.description,
+                    name=payer.name,
+                    name_code=None
                 )
 
             assert exc_info.value.status_code == HTTPStatus.CONFLICT
-            assert exc_info.value.detail == "Category already exists"
+            assert exc_info.value.detail == "Payer already exists"
 
-        to_snake_case.assert_called_once_with(category.name)
+        to_snake_case.assert_called_once_with(payer.name)
 
         service.find_by.assert_awaited_once_with(
             user_id=user_id,
-            name_code="categoria_exemplo",
+            name_code=payer.name_code,
             without_throw=True,
         )

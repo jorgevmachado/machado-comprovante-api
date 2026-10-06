@@ -114,7 +114,10 @@ class ReceiptService(BaseService[ReceiptRepository, Receipt]):
             receipt = await self.find_by(
                 file_hash=file_hash, user_id=str(user.id), without_throw=True
             )
-            if receipt and receipt.processing_status == ProcessingStatusEnum.RECEIVED:
+            if receipt and (
+                receipt.processing_status == ProcessingStatusEnum.RECEIVED
+                or receipt.processing_status == ProcessingStatusEnum.PROCESSED
+            ):
                 return UploadReceiptResponseSchema(
                     id=receipt.id,
                     data=ExtractedReceiptData.model_validate(receipt.extracted_data)

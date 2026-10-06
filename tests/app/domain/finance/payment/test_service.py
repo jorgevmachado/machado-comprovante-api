@@ -10,16 +10,102 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from app.domain.finance.beneficiary.schema import BeneficiarySchema
-from app.domain.finance.category.schema import CategorySchema
-from app.domain.finance.institution.schema import InstitutionSchema
-from app.domain.finance.payment.schema import PaymentSummaryMinMaxSchema, PaymentSchema, PaymentDashboardRequestSchema, \
-    PaymentDashboardResponseSchema, PaymentDashboardPeriodSchema, PaymentDashboardSummarySchema, \
-    PaymentDashboardMonthlySchema, PaymentDashboardInstitutionSchema, PaymentDashboardBeneficiarySchema
+from app.domain.finance.payment.schema import (
+    PaymentDashboardRequestSchema,
+    PaymentDashboardResponseSchema,
+    PaymentDashboardPeriodSchema,
+    PaymentDashboardSummarySchema,
+    PaymentDashboardMonthlySchema,
+    PaymentDashboardInstitutionSchema,
+    PaymentDashboardBeneficiarySchema,
+)
 from app.domain.finance.payment.service import PaymentService
-from app.domain.finance.receipt.schema import ReceiptSchema
 from app.models import Payment, utcnow, ProcessingStatusEnum
 from app.shared.schemas import FilterPage
+
+
+@pytest.fixture
+def user():
+    return SimpleNamespace(
+        id=uuid4(),
+        username="jorge",
+        created_at=utcnow(),
+    )
+
+
+@pytest.fixture
+def payer():
+    return SimpleNamespace(id=uuid4(), name="Pessoa Exemplo", created_at=utcnow())
+
+
+@pytest.fixture
+def category():
+    return SimpleNamespace(
+        id=uuid4(),
+        name="Categoria Exemplo",
+        created_at=utcnow(),
+    )
+
+
+@pytest.fixture
+def beneficiary():
+    return SimpleNamespace(
+        id=uuid4(),
+        name="Empresa Exemplo",
+        created_at=utcnow(),
+    )
+
+
+@pytest.fixture
+def receipt():
+    return SimpleNamespace(
+        id=uuid4(),
+        created_at=utcnow(),
+        updated_at=None,
+        deleted_at=None,
+        file_name="receipt.pdf",
+        file_type="application/pdf",
+        file_size=1024,
+        extracted_data=None,
+        processing_status=ProcessingStatusEnum.PROCESSED,
+    )
+
+
+@pytest.fixture
+def source_institution():
+    return SimpleNamespace(
+        id=uuid4(),
+        name="Banco Exemplo",
+        created_at=utcnow(),
+    )
+
+
+@pytest.fixture
+def destination_institution():
+    return SimpleNamespace(
+        id=uuid4(),
+        name="Banco Destino",
+        created_at=utcnow(),
+    )
+
+
+@pytest.fixture
+def payment(
+    payer, receipt, category, beneficiary, source_institution, destination_institution
+):
+    return SimpleNamespace(
+        id=uuid4(),
+        payer=payer,
+        amount=Decimal("150.00"),
+        receipt=receipt,
+        category=category,
+        description=None,
+        beneficiary=beneficiary,
+        source_institution=source_institution,
+        destination_institution=destination_institution,
+        created_at=utcnow(),
+        payment_date=date(2026, 9, 15),
+    )
 
 
 class TestPaymentService:
@@ -33,12 +119,13 @@ class TestPaymentService:
 class TestPaymentServiceCheckReceipt:
     @staticmethod
     @pytest.mark.asyncio
-    async def test_check_receipt_does_not_raise_when_payment_does_not_exist():
+    async def test_check_receipt_does_not_raise_when_payment_does_not_exist(
+        user, payment
+    ):
         service = PaymentService(AsyncMock())
         service.find_by = AsyncMock(return_value=None)
 
-        receipt_id = uuid4()
-        user = SimpleNamespace(id=uuid4())
+        receipt_id = payment.receipt.id
 
         await service.check_receipt(
             receipt_id=receipt_id,
@@ -53,12 +140,11 @@ class TestPaymentServiceCheckReceipt:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_check_receipt_raises_when_payment_already_exists():
+    async def test_check_receipt_raises_when_payment_already_exists(user, payment):
         service = PaymentService(AsyncMock())
-        service.find_by = AsyncMock(return_value=SimpleNamespace(id=uuid4()))
+        service.find_by = AsyncMock(return_value=payment)
 
-        receipt_id = uuid4()
-        user = SimpleNamespace(id=uuid4())
+        receipt_id = payment.receipt.id
 
         with pytest.raises(
             Exception,
@@ -79,96 +165,81 @@ class TestPaymentServiceCheckReceipt:
 class TestPaymentServiceCreate:
     @staticmethod
     @pytest.mark.asyncio
-    async def test_create_builds_and_saves_payment():
+    async def test_create_builds_and_saves_payment(user, payment):
         repository = AsyncMock()
         service = PaymentService(repository)
 
-        user_id = uuid4()
-        receipt_id = uuid4()
-        category_id = uuid4()
-        beneficiary_id = uuid4()
-        source_institution_id = uuid4()
-        destination_institution_id = uuid4()
-
-        amount = Decimal("387.42")
-        payment_date = date(2026, 9, 12)
-        description = "Payment description"
-
-        expected = SimpleNamespace(id=uuid4())
+        expected = payment
         repository.save.return_value = expected
 
         result = await service.create(
-            user_id=user_id,
-            receipt_id=receipt_id,
-            category_id=category_id,
-            amount=amount,
-            payment_date=payment_date,
-            description=description,
-            beneficiary_id=beneficiary_id,
-            source_institution_id=source_institution_id,
-            destination_institution_id=destination_institution_id,
+            user_id=user.id,
+            payer_id=payment.payer.id,
+            receipt_id=payment.receipt.id,
+            category_id=payment.category.id,
+            amount=payment.amount,
+            payment_date=payment.payment_date,
+            description=payment.description,
+            beneficiary_id=payment.beneficiary.id,
+            source_institution_id=payment.source_institution.id,
+            destination_institution_id=payment.destination_institution.id,
         )
 
         assert result is expected
 
         repository.save.assert_awaited_once()
 
-        payment = repository.save.await_args.kwargs["entity"]
+        entity = repository.save.await_args.kwargs["entity"]
 
-        assert isinstance(payment, Payment)
-        assert payment.amount == amount
-        assert payment.description == description
-        assert payment.user_id == user_id
-        assert payment.receipt_id == receipt_id
-        assert payment.payment_date == payment_date
-        assert payment.beneficiary_id == beneficiary_id
-        assert payment.source_institution_id == source_institution_id
-        assert payment.destination_institution_id == destination_institution_id
-        assert payment.category_id == category_id
+        assert isinstance(entity, Payment)
+        assert entity.amount == payment.amount
+        assert entity.description == payment.description
+        assert entity.user_id == user.id
+        assert entity.receipt_id == payment.receipt.id
+        assert entity.payer_id == payment.payer.id
+        assert entity.payment_date == payment.payment_date
+        assert entity.beneficiary_id == payment.beneficiary.id
+        assert entity.source_institution_id == payment.source_institution.id
+        assert entity.destination_institution_id == payment.destination_institution.id
+        assert entity.category_id == payment.category.id
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_create_allows_destination_institution_to_be_none():
+    async def test_create_allows_destination_institution_to_be_none(user, payment):
         repository = AsyncMock()
         service = PaymentService(repository)
 
-        user_id = uuid4()
-        receipt_id = uuid4()
-        category_id = uuid4()
-        beneficiary_id = uuid4()
-        source_institution_id = uuid4()
-
-        repository.save.return_value = SimpleNamespace(id=uuid4())
+        payment.description = None
+        payment.destination_institution = None
+        payment.destination_institution_id = None
+        repository.save.return_value = payment
 
         await service.create(
-            user_id=user_id,
-            receipt_id=receipt_id,
-            category_id=category_id,
-            amount=Decimal("95.00"),
-            payment_date=date(2026, 9, 12),
-            beneficiary_id=beneficiary_id,
+            user_id=user.id,
+            payer_id=payment.payer.id,
+            receipt_id=payment.receipt.id,
+            category_id=payment.category.id,
+            amount=payment.amount,
+            payment_date=payment.payment_date,
+            beneficiary_id=payment.beneficiary.id,
             description=None,
-            source_institution_id=source_institution_id,
+            source_institution_id=payment.source_institution.id,
             destination_institution_id=None,
         )
 
         repository.save.assert_awaited_once()
 
-        payment = repository.save.await_args.kwargs["entity"]
+        entity = repository.save.await_args.kwargs["entity"]
 
-        assert payment.destination_institution_id is None
+        assert entity.destination_institution_id is None
+
 
 class TestPaymentServiceList:
     @staticmethod
     @pytest.mark.asyncio
-    async def test_list_returns_repository_result():
+    async def test_list_returns_repository_result(user):
         repository = AsyncMock()
         service = PaymentService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
 
         page_filter = FilterPage.build(
             beneficiary="Amazon",
@@ -195,14 +266,9 @@ class TestPaymentServiceList:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_list_returns_exception_pagination_when_repository_raises():
+    async def test_list_returns_exception_pagination_when_repository_raises(user):
         repository = AsyncMock()
         service = PaymentService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
 
         page_filter = FilterPage.build(
             page=1,
@@ -251,14 +317,11 @@ class TestPaymentServiceList:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_list_returns_exception_pagination_when_repository_raises_without_filter():
+    async def test_list_returns_exception_pagination_when_repository_raises_without_filter(
+        user,
+    ):
         repository = AsyncMock()
         service = PaymentService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
 
         exception = Exception("Repository error")
         repository.list.side_effect = exception
@@ -291,14 +354,9 @@ class TestPaymentServiceList:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_list_logs_success_after_repository_call():
+    async def test_list_logs_success_after_repository_call(user):
         repository = AsyncMock()
         service = PaymentService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
 
         expected = []
 
@@ -323,14 +381,9 @@ class TestPaymentServiceList:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_list_logs_success_even_when_repository_raises():
+    async def test_list_logs_success_even_when_repository_raises(user):
         repository = AsyncMock()
         service = PaymentService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
 
         exception = Exception("Repository error")
         repository.list.side_effect = exception
@@ -490,72 +543,48 @@ class TestPaymentServiceSummaryTotal:
 class TestPaymentServiceSummaryMax:
     @staticmethod
     @pytest.mark.asyncio
-    async def test_summary_max_returns_repository_result():
+    async def test_summary_max_returns_repository_result(user, payment):
         repository = AsyncMock()
         service = PaymentService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
 
         page_filter = FilterPage.build(
             start_date=date(2026, 9, 1),
             end_date=date(2026, 9, 30),
         )
 
-        expected_beneficiary = BeneficiarySchema(
-            id=uuid4(), name="Beneficiary", created_at=utcnow()
-        )
-
-        expected_category = CategorySchema(
-            id=uuid4(), name="Category", created_at=utcnow()
-        )
-
-        expected_source_institution = InstitutionSchema(
-            id=uuid4(), name="Institution", created_at=utcnow()
-        )
-
-        expected_receipt = ReceiptSchema(
-            id=uuid4(),
-            created_at=utcnow(),
-            file_name="receipt.pdf",
-            file_type="application/pdf",
-            file_size=1024,
-            processing_status=ProcessingStatusEnum.PROCESSED,
-        )
-
-        expected = SimpleNamespace(
-            id=uuid4(),
-            amount=Decimal("2000"),
-            receipt=expected_receipt,
-            category=expected_category,
-            beneficiary=expected_beneficiary,
-            created_at=utcnow(),
-            description=None,
-            payment_date=date(2026, 9, 15),
-            source_institution=expected_source_institution,
-        )
-
-        repository.summary_order_by.return_value = expected
+        repository.summary_order_by.return_value = payment
 
         result = await service.summary_max(
             user=user,
             page_filter=page_filter,
         )
+        assert result.payment.id == payment.id
+        assert result.payment.amount == payment.amount
+        assert result.payment.payment_date == payment.payment_date
+        assert result.payment.description == payment.description
+        assert result.payment.created_at == payment.created_at
 
-        assert result == PaymentSummaryMinMaxSchema(
-            payment=PaymentSchema(
-                id=expected.id,
-                amount=expected.amount,
-                category=expected.category,
-                created_at=expected.created_at,
-                beneficiary=expected.beneficiary,
-                receipt=expected.receipt,
-                description=None,
-                payment_date=expected.payment_date,
-                source_institution=expected.source_institution,
-            )
+        assert result.payment.payer.id == payment.payer.id
+        assert result.payment.payer.name == payment.payer.name
+        assert result.payment.payer.created_at == payment.payer.created_at
+
+        assert result.payment.category.id == payment.category.id
+        assert result.payment.category.name == payment.category.name
+        assert result.payment.category.created_at == payment.category.created_at
+
+        assert result.payment.beneficiary.id == payment.beneficiary.id
+        assert result.payment.beneficiary.name == payment.beneficiary.name
+        assert result.payment.beneficiary.created_at == payment.beneficiary.created_at
+
+        assert result.payment.receipt.id == payment.receipt.id
+        assert result.payment.receipt.file_name == payment.receipt.file_name
+        assert result.payment.receipt.created_at == payment.receipt.created_at
+
+        assert result.payment.source_institution.id == payment.source_institution.id
+        assert result.payment.source_institution.name == payment.source_institution.name
+        assert (
+            result.payment.source_institution.created_at
+            == payment.source_institution.created_at
         )
 
         repository.summary_order_by.assert_awaited_once_with(
@@ -566,14 +595,9 @@ class TestPaymentServiceSummaryMax:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_summary_max_returns_repository_when_repository_raises():
+    async def test_summary_max_returns_repository_when_repository_raises(user):
         repository = AsyncMock()
         service = PaymentService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
 
         exception = Exception("Repository error")
         repository.summary_order_by.side_effect = exception
@@ -596,72 +620,48 @@ class TestPaymentServiceSummaryMax:
 class TestPaymentServiceSummaryMin:
     @staticmethod
     @pytest.mark.asyncio
-    async def test_summary_min_returns_repository_result():
+    async def test_summary_min_returns_repository_result(user, payment):
         repository = AsyncMock()
         service = PaymentService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
 
         page_filter = FilterPage.build(
             start_date=date(2026, 9, 1),
             end_date=date(2026, 9, 30),
         )
 
-        expected_beneficiary = BeneficiarySchema(
-            id=uuid4(), name="Beneficiary", created_at=utcnow()
-        )
-
-        expected_category = CategorySchema(
-            id=uuid4(), name="Category", created_at=utcnow()
-        )
-
-        expected_source_institution = InstitutionSchema(
-            id=uuid4(), name="Institution", created_at=utcnow()
-        )
-
-        expected_receipt = ReceiptSchema(
-            id=uuid4(),
-            created_at=utcnow(),
-            file_name="receipt.pdf",
-            file_type="application/pdf",
-            file_size=1024,
-            processing_status=ProcessingStatusEnum.PROCESSED,
-        )
-
-        expected = SimpleNamespace(
-            id=uuid4(),
-            amount=Decimal("2000"),
-            created_at=utcnow(),
-            receipt=expected_receipt,
-            beneficiary=expected_beneficiary,
-            category=expected_category,
-            description=None,
-            payment_date=date(2026, 9, 15),
-            source_institution=expected_source_institution,
-        )
-
-        repository.summary_order_by.return_value = expected
+        repository.summary_order_by.return_value = payment
 
         result = await service.summary_min(
             user=user,
             page_filter=page_filter,
         )
+        assert result.payment.id == payment.id
+        assert result.payment.amount == payment.amount
+        assert result.payment.payment_date == payment.payment_date
+        assert result.payment.description == payment.description
+        assert result.payment.created_at == payment.created_at
 
-        assert result == PaymentSummaryMinMaxSchema(
-            payment=PaymentSchema(
-                id=expected.id,
-                amount=expected.amount,
-                receipt=expected.receipt,
-                created_at=expected.created_at,
-                beneficiary=expected.beneficiary,
-                payment_date=expected.payment_date,
-                source_institution=expected.source_institution,
-                category=expected.category,
-                description=expected.description,
-            )
+        assert result.payment.payer.id == payment.payer.id
+        assert result.payment.payer.name == payment.payer.name
+        assert result.payment.payer.created_at == payment.payer.created_at
+
+        assert result.payment.category.id == payment.category.id
+        assert result.payment.category.name == payment.category.name
+        assert result.payment.category.created_at == payment.category.created_at
+
+        assert result.payment.beneficiary.id == payment.beneficiary.id
+        assert result.payment.beneficiary.name == payment.beneficiary.name
+        assert result.payment.beneficiary.created_at == payment.beneficiary.created_at
+
+        assert result.payment.receipt.id == payment.receipt.id
+        assert result.payment.receipt.file_name == payment.receipt.file_name
+        assert result.payment.receipt.created_at == payment.receipt.created_at
+
+        assert result.payment.source_institution.id == payment.source_institution.id
+        assert result.payment.source_institution.name == payment.source_institution.name
+        assert (
+            result.payment.source_institution.created_at
+            == payment.source_institution.created_at
         )
 
         repository.summary_order_by.assert_awaited_once_with(
@@ -672,14 +672,9 @@ class TestPaymentServiceSummaryMin:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_summary_min_returns_repository_when_repository_raises():
+    async def test_summary_min_returns_repository_when_repository_raises(user):
         repository = AsyncMock()
         service = PaymentService(repository)
-
-        user = SimpleNamespace(
-            id=uuid4(),
-            username="jorge",
-        )
 
         exception = Exception("Repository error")
         repository.summary_order_by.side_effect = exception
@@ -874,6 +869,7 @@ class TestPaymentServiceUpdatePayment:
             user_id=str(user.id),
             without_throw=True,
         )
+
 
 class TestPaymentServiceGetDashboard:
     @staticmethod

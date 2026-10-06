@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from app.models.institution import Institution
     from app.models.receipt import Receipt
     from app.models.category import Category
+    from app.models.payer import Payer
 
 
 @table_registry.mapped_as_dataclass
@@ -87,6 +88,14 @@ class Payment:
     )
 
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    payer_id: Mapped[UUID] = mapped_column(ForeignKey("payers.id"), nullable=False)
+
+    payer: Mapped["Payer"] = relationship(
+        init=False,
+        lazy=default_lazy,
+        back_populates="payments",
+    )
 
     amount: Mapped[Decimal] = mapped_column(
         Numeric(12, 2),

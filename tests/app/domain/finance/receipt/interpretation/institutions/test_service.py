@@ -1,5 +1,10 @@
-from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum, InstitutionRule
-from app.domain.finance.receipt.interpretation.institutions.service import InstitutionsService
+from app.domain.finance.receipt.interpretation.institutions.schema import (
+    InstitutionEnum,
+    InstitutionRule,
+)
+from app.domain.finance.receipt.interpretation.institutions.service import (
+    InstitutionsService,
+)
 
 
 class TestInstitutionsServiceIdentifyNubank:
@@ -10,10 +15,8 @@ class TestInstitutionsServiceIdentifyNubank:
         NUBANK.COM.BR
         """
 
-        assert (
-                InstitutionsService.identify(text)
-                == InstitutionEnum.NUBANK
-        )
+        assert InstitutionsService.identify(text) == InstitutionEnum.NUBANK
+
 
 class TestInstitutionsServiceIdentifyUnknown:
     @staticmethod
@@ -22,10 +25,7 @@ class TestInstitutionsServiceIdentifyUnknown:
         Comprovante de transferência
         """
 
-        assert (
-            InstitutionsService.identify(text)
-            == InstitutionEnum.UNKNOWN
-        )
+        assert InstitutionsService.identify(text) == InstitutionEnum.UNKNOWN
 
     @staticmethod
     def test_should_return_unknown_when_institutions_have_same_score(monkeypatch):
@@ -50,7 +50,4 @@ class TestInstitutionsServiceIdentifyUnknown:
         CAIXA
         """
 
-        assert (
-            InstitutionsService.identify(text)
-            == InstitutionEnum.UNKNOWN
-        )
+        assert InstitutionsService.identify(text) == InstitutionEnum.UNKNOWN

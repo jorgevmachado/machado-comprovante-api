@@ -1,4 +1,6 @@
-from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
+from app.domain.finance.receipt.interpretation.institutions.schema import (
+    InstitutionEnum,
+)
 from app.domain.finance.receipt.interpretation.interpreters.itau import (
     ItauInterpreter,
 )
@@ -66,8 +68,7 @@ class TestItauInterpreter:
 
     def test_extract_source_institution_from_institution_param(self):
         result = ItauInterpreter.extract_source_institution(
-            text="Beneficiário: ITAU UNIBANCO S.A.",
-            institution=InstitutionEnum.ITAU
+            text="Beneficiário: ITAU UNIBANCO S.A.", institution=InstitutionEnum.ITAU
         )
 
         assert result.status == ExtractionStatusEnum.FOUND

@@ -15,7 +15,9 @@ from app.domain.finance.payment.schema import (
     PaymentSummaryCountSchema,
     PaymentSummaryTotalSchema,
     PaymentSummaryMinMaxSchema,
-    PaymentSummaryBeneficiaryTotalSchema, PaymentDashboardResponseSchema, PaymentDashboardRequestSchema,
+    PaymentSummaryBeneficiaryTotalSchema,
+    PaymentDashboardResponseSchema,
+    PaymentDashboardRequestSchema,
 )
 from app.domain.finance.payment.service import PaymentService
 from app.models import User
@@ -144,7 +146,11 @@ async def summary_beneficiary(
     return await service.summary_beneficiary(page_filter=page_filter, user=current_user)
 
 
-@router.get("/dashboard", response_model=PaymentDashboardResponseSchema, status_code=HTTPStatus.OK)
+@router.get(
+    "/dashboard",
+    response_model=PaymentDashboardResponseSchema,
+    status_code=HTTPStatus.OK,
+)
 async def get_dashboard(
     params: Annotated[PaymentDashboardRequestSchema, Query()],
     service: Service,

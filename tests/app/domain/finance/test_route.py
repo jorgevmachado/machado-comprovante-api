@@ -16,6 +16,7 @@ from app.domain.finance.service import FinanceService
 
 def build_confirm_payload() -> FinanceConfirmRequestSchema:
     return FinanceConfirmRequestSchema(
+        payer="Pessoa Exemplo",
         paid_amount=Decimal("387.42"),
         payment_date="2026-09-12",
         category="Categoria Exemplo",

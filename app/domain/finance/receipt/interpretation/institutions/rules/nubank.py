@@ -1,5 +1,9 @@
-from app.domain.finance.receipt.interpretation.institutions.rules.schema import InstitutionRule
-from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
+from app.domain.finance.receipt.interpretation.institutions.rules.schema import (
+    InstitutionRule,
+)
+from app.domain.finance.receipt.interpretation.institutions.schema import (
+    InstitutionEnum,
+)
 
 
 class NubankRules:

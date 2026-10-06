@@ -3,6 +3,8 @@ from app.domain.finance.beneficiary.service import BeneficiaryService
 from app.domain.finance.category.schema import CategorySchema
 from app.domain.finance.category.service import CategoryService
 from app.domain.finance.institution.schema import InstitutionSchema
+from app.domain.finance.payer.schema import PayerSchema
+from app.domain.finance.payer.service import PayerService
 from app.domain.finance.payment.schema import PaymentSchema
 from app.domain.finance.payment.service import PaymentService
 from app.domain.finance.receipt.interpretation.schema import ExtractedReceiptData
@@ -29,6 +31,7 @@ class FinanceService:
     def __init__(
         self,
         session: Session,
+        payer_service: PayerService | None = None,
         receipt_service: ReceiptService | None = None,
         payment_service: PaymentService | None = None,
         category_service: CategoryService | None = None,
@@ -36,9 +39,12 @@ class FinanceService:
         institution_service: InstitutionService | None = None,
     ):
         self.session = session
+        self.payer_service = payer_service or PayerService.from_session(session)
         self.receipt_service = receipt_service or ReceiptService.from_session(session)
         self.payment_service = payment_service or PaymentService.from_session(session)
-        self.category_service = category_service or CategoryService.from_session(session)
+        self.category_service = category_service or CategoryService.from_session(
+            session
+        )
         self.beneficiary_service = (
             beneficiary_service or BeneficiaryService.from_session(session)
         )
@@ -57,6 +63,11 @@ class FinanceService:
             await self.receipt_service.update_receipt_status(
                 receipt=receipt,
                 status=ProcessingStatusEnum.PROCESSING,
+            )
+
+            payer = await self.payer_service.resolve(
+                name=payload.payer,
+                user_id=user.id,
             )
 
             category = await self.category_service.resolve(
@@ -79,6 +90,7 @@ class FinanceService:
             payment = await self.payment_service.create(
                 amount=payload.paid_amount,
                 user_id=user.id,
+                payer_id=payer.id,
                 receipt_id=receipt.id,
                 category_id=category.id,
                 description=payload.description,
@@ -92,6 +104,12 @@ class FinanceService:
 
             receipt_updated = await self.receipt_service.confirm_receipt(
                 receipt=receipt, payload=payload.model_dump(mode="json")
+            )
+
+            payer_schema = PayerSchema(
+                id=payer.id,
+                name=payer.name,
+                created_at=payer.created_at,
             )
 
             category_schema = CategorySchema(
@@ -121,10 +139,12 @@ class FinanceService:
             )
 
             return FinanceConfirmResponseSchema(
+                payer=payer_schema,
                 category=category_schema,
                 beneficiary=beneficiary_schema,
                 payment=PaymentSchema(
                     id=payment.id,
+                    payer=payer_schema,
                     amount=payment.amount,
                     receipt=ReceiptSchema(
                         id=receipt_updated.id,
@@ -163,8 +183,9 @@ class FinanceService:
         user: User,
     ):
         try:
-
-            payment =  await self.payment_service.find_by(id=payment_id, user_id=str(user.id))
+            payment = await self.payment_service.find_by(
+                id=payment_id, user_id=str(user.id)
+            )
 
             raw_payload: dict[str, object] = {}
 
@@ -182,18 +203,23 @@ class FinanceService:
 
             if payload.category is not None:
                 category = await self.category_service.resolve(
-                    user_id=user.id,
-                    name=payload.category
+                    user_id=user.id, name=payload.category
                 )
                 raw_payload["category_id"] = category.id
 
-            if  payload.source_institution is not None:
+            if payload.payer is not None:
+                payer = await self.payer_service.resolve(
+                    user_id=user.id, name=payload.payer
+                )
+                raw_payload["payer_id"] = payer.id
+
+            if payload.source_institution is not None:
                 source_institution = await self.institution_service.resolve(
                     name=payload.source_institution
                 )
                 raw_payload["source_institution_id"] = source_institution.id
 
-            if  payload.destination_institution is not None:
+            if payload.destination_institution is not None:
                 destination_institution = await self.institution_service.resolve(
                     name=payload.destination_institution
                 )

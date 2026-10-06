@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import default_lazy, table_registry
@@ -16,13 +16,13 @@ if TYPE_CHECKING:
 
 
 @table_registry.mapped_as_dataclass
-class Category:
-    __tablename__ = "categories"
+class Payer:
+    __tablename__ = "payers"
     __table_args__ = (
         UniqueConstraint(
             "user_id",
             "name_code",
-            name="uq_categories_user_id_name_code",
+            name="uq_payers_user_id_name_code",
         ),
     )
 
@@ -31,17 +31,12 @@ class Category:
     user: Mapped["User"] = relationship(
         init=False,
         lazy=default_lazy,
-        back_populates="categories",
+        back_populates="payers",
     )
 
     name: Mapped[str] = mapped_column(String, nullable=False)
 
     name_code: Mapped[str] = mapped_column(String, nullable=False)
-
-    description: Mapped[str | None] = mapped_column(
-        Text,
-        nullable=True,
-    )
 
     # Auto-generated / server-managed — excluded from __init__
     id: Mapped[UUID] = mapped_column(
@@ -62,5 +57,5 @@ class Category:
         default_factory=list,
         init=False,
         repr=False,
-        back_populates="category",
+        back_populates="payer",
     )

@@ -6,6 +6,7 @@ from decimal import Decimal
 from app.domain.finance.beneficiary.schema import BeneficiarySchema
 from app.domain.finance.category.schema import CategorySchema
 from app.domain.finance.institution.schema import InstitutionSchema
+from app.domain.finance.payer.schema import PayerSchema
 from app.domain.finance.receipt.schema import ReceiptSchema
 
 
@@ -13,6 +14,7 @@ class PaymentSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
     amount: Decimal
+    payer: PayerSchema
     receipt: ReceiptSchema
     category: CategorySchema
     beneficiary: BeneficiarySchema
@@ -40,9 +42,11 @@ class PaymentSummaryBeneficiaryTotalSchema(BaseModel):
     total: Decimal
     beneficiary: str
 
+
 class PaymentDashboardPeriodSchema(BaseModel):
     end_date: date
     start_date: date
+
 
 class PaymentDashboardSummarySchema(BaseModel):
     total: Decimal
@@ -50,15 +54,18 @@ class PaymentDashboardSummarySchema(BaseModel):
     average: Decimal
     highest: Decimal
 
+
 class PaymentDashboardMonthlySchema(BaseModel):
     total: Decimal
     count: int
     period: str
 
+
 class PaymentDashboardInstitutionSchema(BaseModel):
     total: Decimal
     count: int
     institution: str
+
 
 class PaymentDashboardBeneficiarySchema(BaseModel):
     name: str
@@ -66,12 +73,14 @@ class PaymentDashboardBeneficiarySchema(BaseModel):
     count: int
     beneficiary_id: UUID
 
+
 class PaymentDashboardResponseSchema(BaseModel):
     period: PaymentDashboardPeriodSchema
     summary: PaymentDashboardSummarySchema
     monthly: list[PaymentDashboardMonthlySchema]
     institutions: list[PaymentDashboardInstitutionSchema]
     beneficiaries: list[PaymentDashboardBeneficiarySchema]
+
 
 class PaymentDashboardRequestSchema(BaseModel):
     end_date: date

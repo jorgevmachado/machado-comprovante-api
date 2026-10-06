@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_session
 from app.core.pagination import CustomLimitOffsetPage
 from app.core.security import get_current_user
-from app.domain.finance.category.schema import CategorySchema, CategoryPersistSchema
-from app.domain.finance.category.service import CategoryService
+from app.domain.finance.payer.schema import PayerSchema, PayerPersistSchema
+from app.domain.finance.payer.service import PayerService
 from app.models import User
 from app.shared.schemas import FilterPage
 
@@ -18,15 +18,15 @@ router = APIRouter()
 Session = Annotated[AsyncSession, Depends(get_session)]
 
 
-def category_service(session: Session) -> CategoryService:
-    return CategoryService.from_session(session)
+def payer_service(session: Session) -> PayerService:
+    return PayerService.from_session(session)
 
 
-Service = Annotated[CategoryService, Depends(category_service)]
+Service = Annotated[PayerService, Depends(payer_service)]
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
-def category_filter(
+def payer_filter(
     page: int | None = None,
     name: str | None = None,
     limit: int | None = 12,
@@ -46,18 +46,18 @@ def category_filter(
 
 @router.get(
     "",
-    response_model=CustomLimitOffsetPage[CategorySchema] | list[CategorySchema],
+    response_model=CustomLimitOffsetPage[PayerSchema] | list[PayerSchema],
     status_code=HTTPStatus.OK,
 )
 async def list_all(
     service: Service,
     current_user: CurrentUser,
-    page_filter: Annotated[FilterPage, Depends(category_filter)],
+    page_filter: Annotated[FilterPage, Depends(payer_filter)],
 ):
     return await service.list(page_filter=page_filter, user=current_user)
 
 
-@router.get("/{param}", response_model=CategorySchema, status_code=HTTPStatus.OK)
+@router.get("/{param}", response_model=PayerSchema, status_code=HTTPStatus.OK)
 async def find_one(param: str, service: Service, current_user: CurrentUser):
     return await service.find_by(
         id=param,
@@ -68,30 +68,30 @@ async def find_one(param: str, service: Service, current_user: CurrentUser):
 
 @router.post(
     "",
-    response_model=CategorySchema,
+    response_model=PayerSchema,
     status_code=HTTPStatus.CREATED,
 )
 async def create(
     service: Service,
     current_user: CurrentUser,
-    payload: CategoryPersistSchema,
+    payload: PayerPersistSchema,
 ):
     return await service.create(
-        user_id=current_user.id, name=payload.name, description=payload.description
+        user_id=current_user.id, name=payload.name
     )
 
 
 @router.post(
-    "/{category_id}",
-    response_model=CategorySchema,
+    "/{payer_id}",
+    response_model=PayerSchema,
     status_code=HTTPStatus.CREATED,
 )
 async def update(
     service: Service,
-    category_id: str,
+    payer_id: str,
     current_user: CurrentUser,
-    payload: CategoryPersistSchema,
+    payload: PayerPersistSchema,
 ):
     return await service.update(
-        param=category_id, update_schema=payload, user_request=current_user.username
+        param=payer_id, update_schema=payload, user_request=current_user.username
     )

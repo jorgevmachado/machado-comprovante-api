@@ -187,13 +187,13 @@ class PaymentRepository(BaseRepository[Payment]):
         }
 
     def _build_dashboard_filter(
-            self,
-            query,
-            user_id: UUID,
-            start_date: date,
-            end_date: date,
-            institution: str | None = None,
-            beneficiary_id: UUID | None = None,
+        self,
+        query,
+        user_id: UUID,
+        start_date: date,
+        end_date: date,
+        institution: str | None = None,
+        beneficiary_id: UUID | None = None,
     ):
         query = query.where(
             Payment.user_id == user_id,
@@ -212,12 +212,12 @@ class PaymentRepository(BaseRepository[Payment]):
         return query
 
     async def dashboard_summary(
-            self,
-            user_id: UUID,
-            start_date: date,
-            end_date: date,
-            institution: str | None = None,
-            beneficiary_id: UUID | None = None,
+        self,
+        user_id: UUID,
+        start_date: date,
+        end_date: date,
+        institution: str | None = None,
+        beneficiary_id: UUID | None = None,
     ):
         query = select(
             func.count(Payment.id).label("count"),
@@ -296,9 +296,7 @@ class PaymentRepository(BaseRepository[Payment]):
             Institution.name_code.label("institution"),
             func.count(Payment.id).label("count"),
             func.coalesce(func.sum(Payment.amount), 0).label("total"),
-        ).join(
-            Payment.source_institution
-        )
+        ).join(Payment.source_institution)
 
         query = self._build_dashboard_filter(
             query=query,
@@ -309,10 +307,8 @@ class PaymentRepository(BaseRepository[Payment]):
             beneficiary_id=beneficiary_id,
         )
 
-        query = (
-            query
-            .group_by(Institution.id, Institution.name_code)
-            .order_by(desc(func.sum(Payment.amount)))
+        query = query.group_by(Institution.id, Institution.name_code).order_by(
+            desc(func.sum(Payment.amount))
         )
 
         result = await self.session.execute(query)
@@ -340,9 +336,7 @@ class PaymentRepository(BaseRepository[Payment]):
             Beneficiary.name.label("name"),
             func.count(Payment.id).label("count"),
             func.coalesce(func.sum(Payment.amount), 0).label("total"),
-        ).join(
-            Payment.beneficiary
-        )
+        ).join(Payment.beneficiary)
 
         query = self._build_dashboard_filter(
             query=query,
@@ -353,10 +347,8 @@ class PaymentRepository(BaseRepository[Payment]):
             beneficiary_id=beneficiary_id,
         )
 
-        query = (
-            query
-            .group_by(Beneficiary.id, Beneficiary.name)
-            .order_by(desc(func.sum(Payment.amount)))
+        query = query.group_by(Beneficiary.id, Beneficiary.name).order_by(
+            desc(func.sum(Payment.amount))
         )
 
         result = await self.session.execute(query)

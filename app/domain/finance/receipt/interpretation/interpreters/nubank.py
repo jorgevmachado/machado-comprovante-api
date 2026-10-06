@@ -3,7 +3,9 @@ from __future__ import annotations
 import re
 from datetime import date
 
-from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
+from app.domain.finance.receipt.interpretation.institutions.schema import (
+    InstitutionEnum,
+)
 from app.domain.finance.receipt.interpretation.interpreters.base import BaseInterpreter
 from app.domain.finance.receipt.interpretation.schema import ExtractedField
 
@@ -36,7 +38,7 @@ class NubankInterpreter(BaseInterpreter):
 
     @staticmethod
     def _extract_payment_date(
-            text: str,
+        text: str,
     ) -> ExtractedField[date]:
         match = re.search(
             r"([0-9NIL]{2})\s+([A-Z]{3})\s+(\d{4})(?:\s*-\s*\d{2}:\d{2}:\d{2})?",
@@ -73,12 +75,12 @@ class NubankInterpreter(BaseInterpreter):
         except ValueError:
             return NubankInterpreter._ambiguous()
 
-        return NubankInterpreter._parse_date(
-            f"{value.day}/{value.month}/{value.year}"
-        )
+        return NubankInterpreter._parse_date(f"{value.day}/{value.month}/{value.year}")
 
     @staticmethod
-    def extract_source_institution(text: str, institution: InstitutionEnum = InstitutionEnum.UNKNOWN) -> ExtractedField[str]:
+    def extract_source_institution(
+        text: str, institution: InstitutionEnum = InstitutionEnum.UNKNOWN
+    ) -> ExtractedField[str]:
         if institution == InstitutionEnum.NUBANK:
             return NubankInterpreter._extract_text("Nubank")
         return NubankInterpreter._find_institution(

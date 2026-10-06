@@ -4,7 +4,9 @@ import re
 from datetime import datetime, date
 from decimal import Decimal, InvalidOperation
 
-from app.domain.finance.receipt.interpretation.institutions.schema import InstitutionEnum
+from app.domain.finance.receipt.interpretation.institutions.schema import (
+    InstitutionEnum,
+)
 from app.domain.finance.receipt.interpretation.schema import (
     ExtractedField,
     ExtractedReceiptData,
@@ -28,7 +30,9 @@ class BaseInterpreter:
         "DEZ": 12,
     }
 
-    def interpret(self, text: str, institution: InstitutionEnum) -> ExtractedReceiptData:
+    def interpret(
+        self, text: str, institution: InstitutionEnum
+    ) -> ExtractedReceiptData:
         payer = self._extract_payer(text)
         effective_payer = self._extract_effective_payer(text)
         if (
@@ -305,12 +309,12 @@ class BaseInterpreter:
             text,
             (
                 r"Comprovante de Pix\s*\r?\n\s*R\$\s*([\d.]+,\d{2})",
-            r"Valor pago:\s*R\$\s*([\d.]+,\d{2})",
-            r"Valor Pago\s*\(R\$\):\s*([\d.]+,\d{2})",
-            r"Valor\s+R\$\s*([\d.]+,\d{2})",
-            r"Valor\s+Data\s*\r?\n\s*\d{2}/\d{2}/\d{2,4}\s*\r?\n\s*R\$\s*([\d.]+,\d{2})",
-            r"Valor\s+Data\s*\r?\n\s*R\$\s*([\d.]+,\d{2})\s+\d{2}/\d{2}/\d{4}",
-            r"R\$\s*([\d.]+,\d{2})",
+                r"Valor pago:\s*R\$\s*([\d.]+,\d{2})",
+                r"Valor Pago\s*\(R\$\):\s*([\d.]+,\d{2})",
+                r"Valor\s+R\$\s*([\d.]+,\d{2})",
+                r"Valor\s+Data\s*\r?\n\s*\d{2}/\d{2}/\d{2,4}\s*\r?\n\s*R\$\s*([\d.]+,\d{2})",
+                r"Valor\s+Data\s*\r?\n\s*R\$\s*([\d.]+,\d{2})\s+\d{2}/\d{2}/\d{4}",
+                r"R\$\s*([\d.]+,\d{2})",
             ),
         )
 
@@ -392,7 +396,9 @@ class BaseInterpreter:
         )
 
     @staticmethod
-    def extract_source_institution(text: str, institution: InstitutionEnum = InstitutionEnum.UNKNOWN) -> ExtractedField[str]:
+    def extract_source_institution(
+        text: str, institution: InstitutionEnum = InstitutionEnum.UNKNOWN
+    ) -> ExtractedField[str]:
         return BaseInterpreter._not_found()
 
     @staticmethod
