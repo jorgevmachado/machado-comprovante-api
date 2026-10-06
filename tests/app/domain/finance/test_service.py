@@ -190,9 +190,9 @@ class TestFinanceServiceConfirm:
         assert result.beneficiary.id == payment.beneficiary.id
         assert result.beneficiary.name == payment.beneficiary.name
 
-        assert result.payment.id == payment.id
-        assert result.payment.amount == payment.amount
-        assert result.payment.payment_date == payment.payment_date
+        assert result.id == payment.id
+        assert result.amount == payment.amount
+        assert result.payment_date == payment.payment_date
 
         assert result.source_institution.id == payment.source_institution.id
         assert result.source_institution.name == payment.source_institution.name

@@ -1,24 +1,22 @@
+from typing import Annotated
+
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_session
 from app.domain.finance.beneficiary.schema import BeneficiarySchema
 from app.domain.finance.beneficiary.service import BeneficiaryService
 from app.domain.finance.category.schema import CategorySchema
 from app.domain.finance.category.service import CategoryService
 from app.domain.finance.institution.schema import InstitutionSchema
+from app.domain.finance.institution.service import InstitutionService
 from app.domain.finance.payer.schema import PayerSchema
 from app.domain.finance.payer.service import PayerService
 from app.domain.finance.payment.schema import PaymentSchema
 from app.domain.finance.payment.service import PaymentService
-from app.domain.finance.receipt.interpretation.schema import ExtractedReceiptData
 from app.domain.finance.receipt.schema import ReceiptSchema
 from app.domain.finance.receipt.service import ReceiptService
-from app.domain.finance.institution.service import InstitutionService
-from typing import Annotated
-from fastapi import Depends
-
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.core.database import get_session
 from app.domain.finance.schema import (
-    FinanceConfirmResponseSchema,
     FinanceConfirmRequestSchema,
     FinanceUpdatePaymentRequestSchema,
 )
@@ -29,14 +27,14 @@ Session = Annotated[AsyncSession, Depends(get_session)]
 
 class FinanceService:
     def __init__(
-        self,
-        session: Session,
-        payer_service: PayerService | None = None,
-        receipt_service: ReceiptService | None = None,
-        payment_service: PaymentService | None = None,
-        category_service: CategoryService | None = None,
-        beneficiary_service: BeneficiaryService | None = None,
-        institution_service: InstitutionService | None = None,
+            self,
+            session: Session,
+            payer_service: PayerService | None = None,
+            receipt_service: ReceiptService | None = None,
+            payment_service: PaymentService | None = None,
+            category_service: CategoryService | None = None,
+            beneficiary_service: BeneficiaryService | None = None,
+            institution_service: InstitutionService | None = None,
     ):
         self.session = session
         self.payer_service = payer_service or PayerService.from_session(session)
@@ -46,15 +44,15 @@ class FinanceService:
             session
         )
         self.beneficiary_service = (
-            beneficiary_service or BeneficiaryService.from_session(session)
+                beneficiary_service or BeneficiaryService.from_session(session)
         )
         self.institution_service = (
-            institution_service or InstitutionService.from_session(session)
+                institution_service or InstitutionService.from_session(session)
         )
 
     async def confirm(
-        self, receipt_id: str, payload: FinanceConfirmRequestSchema, user: User
-    ) -> FinanceConfirmResponseSchema:
+            self, receipt_id: str, payload: FinanceConfirmRequestSchema, user: User
+    ) -> PaymentSchema:
         try:
             receipt = await self.receipt_service.validate_confirm_receipt(
                 receipt_id=receipt_id, user=user
@@ -106,81 +104,30 @@ class FinanceService:
                 receipt=receipt, payload=payload.model_dump(mode="json")
             )
 
-            payer_schema = PayerSchema(
-                id=payer.id,
-                name=payer.name,
-                created_at=payer.created_at,
-            )
-
-            category_schema = CategorySchema(
-                id=category.id,
-                name=category.name,
-                created_at=category.created_at,
-            )
-
-            beneficiary_schema = BeneficiarySchema(
-                id=beneficiary.id,
-                name=beneficiary.name,
-                created_at=beneficiary.created_at,
-            )
-            source_institution_schema = InstitutionSchema(
-                id=source_institution.id,
-                name=source_institution.name,
-                created_at=source_institution.created_at,
-            )
-            destination_institution_schema = (
-                InstitutionSchema(
-                    id=destination_institution.id,
-                    name=destination_institution.name,
-                    created_at=destination_institution.created_at,
-                )
-                if destination_institution
-                else None
-            )
-
-            return FinanceConfirmResponseSchema(
-                payer=payer_schema,
-                category=category_schema,
-                beneficiary=beneficiary_schema,
-                payment=PaymentSchema(
-                    id=payment.id,
-                    payer=payer_schema,
-                    amount=payment.amount,
-                    receipt=ReceiptSchema(
-                        id=receipt_updated.id,
-                        file_name=receipt_updated.file_name,
-                        file_type=receipt_updated.file_type,
-                        file_size=receipt_updated.file_size,
-                        created_at=receipt_updated.created_at,
-                        updated_at=receipt_updated.updated_at,
-                        deleted_at=receipt_updated.deleted_at,
-                        extracted_data=(
-                            ExtractedReceiptData.model_validate(
-                                receipt_updated.extracted_data
-                            )
-                            if receipt_updated.extracted_data is not None
-                            else None
-                        ),
-                        processing_status=receipt_updated.processing_status,
-                    ),
-                    created_at=payment.created_at,
-                    beneficiary=beneficiary_schema,
-                    payment_date=payment.payment_date,
-                    source_institution=source_institution_schema,
-                    destination_institution=destination_institution_schema,
-                    category=category_schema,
+            return PaymentSchema(
+                id=payment.id,
+                payer=PayerSchema.model_validate(payer),
+                amount=payment.amount,
+                receipt=ReceiptSchema.model_validate(receipt_updated),
+                category=CategorySchema.model_validate(category),
+                created_at=payment.created_at,
+                beneficiary=BeneficiarySchema.model_validate(beneficiary),
+                payment_date=payment.payment_date,
+                source_institution=InstitutionSchema.model_validate(source_institution),
+                destination_institution=(
+                    InstitutionSchema.model_validate(destination_institution)
+                    if destination_institution
+                    else None
                 ),
-                source_institution=source_institution_schema,
-                destination_institution=destination_institution_schema,
             )
         except Exception as e:
             raise e
 
     async def update_payment(
-        self,
-        payment_id: str,
-        payload: FinanceUpdatePaymentRequestSchema,
-        user: User,
+            self,
+            payment_id: str,
+            payload: FinanceUpdatePaymentRequestSchema,
+            user: User,
     ):
         try:
             payment = await self.payment_service.find_by(

@@ -11,7 +11,6 @@ from app.core.database import get_session
 from app.domain.finance.payment.schema import PaymentSchema
 from app.domain.finance.schema import (
     FinanceConfirmRequestSchema,
-    FinanceConfirmResponseSchema,
     FinanceUpdatePaymentRequestSchema,
 )
 from app.domain.finance.service import FinanceService
@@ -47,7 +46,7 @@ router.include_router(category_router, prefix="/category", tags=["Category"])
 
 @router.post(
     "/receipt/{receipt_id}/confirm",
-    response_model=FinanceConfirmResponseSchema,
+    response_model=PaymentSchema,
     status_code=HTTPStatus.CREATED,
 )
 async def confirm(
