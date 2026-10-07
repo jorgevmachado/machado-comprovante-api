@@ -19,6 +19,7 @@ from app.domain.finance.beneficiary.route import router as beneficiary_router
 from app.domain.finance.institution.route import router as institution_router
 from app.domain.finance.payment.route import router as payment_router
 from app.domain.finance.category.route import router as category_router
+from app.domain.finance.payer.route import router as payer_router
 from app.models import User
 
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -43,6 +44,7 @@ router.include_router(payment_router, prefix="/payment", tags=["Payment"])
 
 router.include_router(category_router, prefix="/category", tags=["Category"])
 
+router.include_router(payer_router, prefix="/payer", tags=["Payer"])
 
 @router.post(
     "/receipt/{receipt_id}/confirm",

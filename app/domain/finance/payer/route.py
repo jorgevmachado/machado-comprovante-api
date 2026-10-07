@@ -81,10 +81,10 @@ async def create(
     )
 
 
-@router.post(
+@router.put(
     "/{payer_id}",
     response_model=PayerSchema,
-    status_code=HTTPStatus.CREATED,
+    status_code=HTTPStatus.OK,
 )
 async def update(
     service: Service,
