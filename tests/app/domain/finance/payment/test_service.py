@@ -17,7 +17,7 @@ from app.domain.finance.payment.schema import (
     PaymentDashboardSummarySchema,
     PaymentDashboardMonthlySchema,
     PaymentDashboardInstitutionSchema,
-    PaymentDashboardBeneficiarySchema,
+    PaymentDashboardBeneficiarySchema, PaymentDashboardCategorySchema, PaymentDashboardPayerSchema,
 )
 from app.domain.finance.payment.service import PaymentService
 from app.models import Payment, utcnow, ProcessingStatusEnum
@@ -883,10 +883,14 @@ class TestPaymentServiceGetDashboard:
             username="jorge",
         )
 
+        payer_id = uuid4()
+        category_id = uuid4()
         beneficiary_id = uuid4()
         institution_id = uuid4()
 
         params = PaymentDashboardRequestSchema(
+            payer_id=payer_id,
+            category_id=category_id,
             start_date=date(2026, 1, 1),
             end_date=date(2026, 9, 30),
             institution="itau",
@@ -926,6 +930,24 @@ class TestPaymentServiceGetDashboard:
             {
                 "beneficiary_id": beneficiary_id,
                 "name": "Amazon",
+                "total": Decimal("5000.00"),
+                "count": 10,
+            },
+        ]
+
+        repository.dashboard_categories.return_value = [
+            {
+                "category_id": category_id,
+                "name": "Cartão de Crédito",
+                "total": Decimal("5000.00"),
+                "count": 10,
+            },
+        ]
+
+        repository.dashboard_payers.return_value = [
+            {
+                "payer_id": payer_id,
+                "name": "John Doe",
                 "total": Decimal("5000.00"),
                 "count": 10,
             },
@@ -980,6 +1002,24 @@ class TestPaymentServiceGetDashboard:
             ),
         ]
 
+        assert result.categories == [
+            PaymentDashboardCategorySchema(
+                category_id=category_id,
+                name="Cartão de Crédito",
+                total=Decimal("5000.00"),
+                count=10,
+            ),
+        ]
+
+        assert result.payers == [
+            PaymentDashboardPayerSchema(
+                payer_id=payer_id,
+                name="John Doe",
+                total=Decimal("5000.00"),
+                count=10,
+            ),
+        ]
+
         repository.dashboard_summary.assert_awaited_once_with(
             user_id=user.id,
             end_date=params.end_date,
@@ -1010,4 +1050,20 @@ class TestPaymentServiceGetDashboard:
             end_date=params.end_date,
             institution=params.institution,
             beneficiary_id=params.beneficiary_id,
+        )
+
+        repository.dashboard_categories.assert_awaited_once_with(
+            user_id=user.id,
+            start_date=params.start_date,
+            end_date=params.end_date,
+            institution=params.institution,
+            category_id=params.category_id,
+        )
+
+        repository.dashboard_payers.assert_awaited_once_with(
+            user_id=user.id,
+            start_date=params.start_date,
+            end_date=params.end_date,
+            institution=params.institution,
+            payer_id=params.payer_id,
         )

@@ -38,6 +38,7 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 
 def payment_filter(
     page: int | None = None,
+    payer: str | None = None,
     order: Literal["asc", "desc"] | None = None,
     limit: int | None = 12,
     offset: int | None = None,
@@ -53,6 +54,7 @@ def payment_filter(
 ) -> FilterPage:
     return FilterPage.build(
         page=page,
+        payer=payer,
         order=order,
         limit=limit,
         offset=offset,

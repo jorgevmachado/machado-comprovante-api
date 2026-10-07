@@ -1257,9 +1257,65 @@ class TestPaymentRepositoryBuildDashboardFilter:
         assert f"payments.beneficiary_id = '{beneficiary_id.hex}'" in sql
         assert "JOIN institutions" not in sql
 
+    def test_should_filter_by_category(self):
+        user_id = uuid4()
+        category_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        query = select(Payment)
+
+        result = repository._build_dashboard_filter(
+            query=query,
+            user_id=user_id,
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+            category_id=category_id,
+        )
+
+        compiled = result.compile(
+            compile_kwargs={"literal_binds": True},
+        )
+        sql = str(compiled)
+
+        assert f"payments.user_id = '{user_id.hex}'" in sql
+        assert "payments.payment_date >= '2026-09-01'" in sql
+        assert "payments.payment_date <= '2026-09-30'" in sql
+        assert f"payments.category_id = '{category_id.hex}'" in sql
+        assert "JOIN institutions" not in sql
+
+    def test_should_filter_by_payer(self):
+        user_id = uuid4()
+        payer_id = uuid4()
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        query = select(Payment)
+
+        result = repository._build_dashboard_filter(
+            query=query,
+            user_id=user_id,
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 30),
+            payer_id=payer_id,
+        )
+
+        compiled = result.compile(
+            compile_kwargs={"literal_binds": True},
+        )
+        sql = str(compiled)
+
+        assert f"payments.user_id = '{user_id.hex}'" in sql
+        assert "payments.payment_date >= '2026-09-01'" in sql
+        assert "payments.payment_date <= '2026-09-30'" in sql
+        assert f"payments.payer_id = '{payer_id.hex}'" in sql
+        assert "JOIN institutions" not in sql
+
     def test_should_apply_all_dashboard_filters(self):
         user_id = uuid4()
         beneficiary_id = uuid4()
+        category_id = uuid4()
+        payer_id = uuid4()
         session = AsyncMock()
         repository = PaymentRepository(session)
 
@@ -1272,6 +1328,8 @@ class TestPaymentRepositoryBuildDashboardFilter:
             end_date=date(2026, 9, 30),
             institution="Itaú Unibanco",
             beneficiary_id=beneficiary_id,
+            category_id=category_id,
+            payer_id=payer_id,
         )
 
         compiled = result.compile(
@@ -1285,6 +1343,8 @@ class TestPaymentRepositoryBuildDashboardFilter:
         assert "JOIN institutions" in sql
         assert "institutions.name_code = 'itau_unibanco'" in sql
         assert f"payments.beneficiary_id = '{beneficiary_id.hex}'" in sql
+        assert f"payments.category_id = '{category_id.hex}'" in sql
+        assert f"payments.payer_id = '{payer_id.hex}'" in sql
 
     def test_should_not_apply_optional_dashboard_filters_when_not_provided(self):
         user_id = uuid4()
@@ -1689,6 +1749,197 @@ class TestPaymentRepositoryDashboardBeneficiaries:
             side_effect=lambda query, **kwargs: query,
         ):
             result = await repository.dashboard_beneficiaries(
+                user_id=uuid4(),
+                start_date=date(2026, 9, 1),
+                end_date=date(2026, 9, 30),
+            )
+
+        assert result == []
+
+
+class TestPaymentRepositoryDashboardCategories:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_dashboard_categories():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+        category_id = uuid4()
+
+        rows = [
+            SimpleNamespace(
+                category_id=category_id,
+                name="Cartão de Crédito",
+                count=4,
+                total=Decimal("2500.00"),
+            ),
+            SimpleNamespace(
+                category_id=uuid4(),
+                name="Telecomunicação",
+                count=2,
+                total=Decimal("800.00"),
+            ),
+        ]
+
+        execute_result = MagicMock()
+        execute_result.__iter__.return_value = iter(rows)
+        session.execute.return_value = execute_result
+
+        filtered_query = MagicMock()
+
+        with patch.object(
+            repository,
+            "_build_dashboard_filter",
+            return_value=filtered_query,
+        ) as build_filter:
+            result = await repository.dashboard_categories(
+                user_id=user_id,
+                start_date=date(2026, 1, 1),
+                end_date=date(2026, 9, 30),
+                institution="Itaú",
+                category_id=category_id,
+            )
+
+        assert result == [
+            {
+                "category_id": category_id,
+                "name": "Cartão de Crédito",
+                "count": 4,
+                "total": Decimal("2500.00"),
+            },
+            {
+                "category_id": rows[1].category_id,
+                "name": "Telecomunicação",
+                "count": 2,
+                "total": Decimal("800.00"),
+            },
+        ]
+
+        build_filter.assert_called_once_with(
+            query=ANY,
+            user_id=user_id,
+            start_date=date(2026, 1, 1),
+            end_date=date(2026, 9, 30),
+            institution="Itaú",
+            category_id=category_id,
+        )
+
+        session.execute.assert_awaited_once_with(
+            filtered_query.group_by.return_value.order_by.return_value,
+        )
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_empty_list_when_there_are_no_category_results():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        execute_result = MagicMock()
+        execute_result.__iter__.return_value = iter([])
+        session.execute.return_value = execute_result
+
+        with patch.object(
+            repository,
+            "_build_dashboard_filter",
+            side_effect=lambda query, **kwargs: query,
+        ):
+            result = await repository.dashboard_categories(
+                user_id=uuid4(),
+                start_date=date(2026, 9, 1),
+                end_date=date(2026, 9, 30),
+            )
+
+        assert result == []
+
+class TestPaymentRepositoryDashboardPayers:
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_dashboard_payers():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        user_id = uuid4()
+        payer_id = uuid4()
+
+        rows = [
+            SimpleNamespace(
+                payer_id=payer_id,
+                name="John Doe",
+                count=4,
+                total=Decimal("2500.00"),
+            ),
+            SimpleNamespace(
+                payer_id=uuid4(),
+                name="Jane Smith",
+                count=2,
+                total=Decimal("800.00"),
+            ),
+        ]
+
+        execute_result = MagicMock()
+        execute_result.__iter__.return_value = iter(rows)
+        session.execute.return_value = execute_result
+
+        filtered_query = MagicMock()
+
+        with patch.object(
+            repository,
+            "_build_dashboard_filter",
+            return_value=filtered_query,
+        ) as build_filter:
+            result = await repository.dashboard_payers(
+                user_id=user_id,
+                start_date=date(2026, 1, 1),
+                end_date=date(2026, 9, 30),
+                institution="Itaú",
+                payer_id=payer_id,
+            )
+
+        assert result == [
+            {
+                "payer_id": payer_id,
+                "name": "John Doe",
+                "count": 4,
+                "total": Decimal("2500.00"),
+            },
+            {
+                "payer_id": rows[1].payer_id,
+                "name": "Jane Smith",
+                "count": 2,
+                "total": Decimal("800.00"),
+            },
+        ]
+
+        build_filter.assert_called_once_with(
+            query=ANY,
+            user_id=user_id,
+            start_date=date(2026, 1, 1),
+            end_date=date(2026, 9, 30),
+            institution="Itaú",
+            payer_id=payer_id,
+        )
+
+        session.execute.assert_awaited_once_with(
+            filtered_query.group_by.return_value.order_by.return_value,
+        )
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_should_return_empty_list_when_there_are_no_payer_results():
+        session = AsyncMock()
+        repository = PaymentRepository(session)
+
+        execute_result = MagicMock()
+        execute_result.__iter__.return_value = iter([])
+        session.execute.return_value = execute_result
+
+        with patch.object(
+            repository,
+            "_build_dashboard_filter",
+            side_effect=lambda query, **kwargs: query,
+        ):
+            result = await repository.dashboard_payers(
                 user_id=uuid4(),
                 start_date=date(2026, 9, 1),
                 end_date=date(2026, 9, 30),

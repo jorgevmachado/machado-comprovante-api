@@ -73,11 +73,25 @@ class PaymentDashboardBeneficiarySchema(BaseModel):
     count: int
     beneficiary_id: UUID
 
+class PaymentDashboardCategorySchema(BaseModel):
+    name: str
+    total: Decimal
+    count: int
+    category_id: UUID
+
+class PaymentDashboardPayerSchema(BaseModel):
+    name: str
+    total: Decimal
+    count: int
+    payer_id: UUID
+
 
 class PaymentDashboardResponseSchema(BaseModel):
+    payers: list[PaymentDashboardPayerSchema]
     period: PaymentDashboardPeriodSchema
     summary: PaymentDashboardSummarySchema
     monthly: list[PaymentDashboardMonthlySchema]
+    categories: list[PaymentDashboardCategorySchema]
     institutions: list[PaymentDashboardInstitutionSchema]
     beneficiaries: list[PaymentDashboardBeneficiarySchema]
 
@@ -86,4 +100,6 @@ class PaymentDashboardRequestSchema(BaseModel):
     end_date: date
     start_date: date
     institution: str | None = None
+    payer_id: UUID | None = None
+    category_id: UUID | None = None
     beneficiary_id: UUID | None = None

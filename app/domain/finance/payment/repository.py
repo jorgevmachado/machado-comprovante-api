@@ -12,7 +12,7 @@ from fastapi import Query
 
 from app.core.pagination import is_paginate
 from app.core.repository.base import BaseRepository
-from app.models import Beneficiary, Institution, Payment, Category
+from app.models import Beneficiary, Institution, Payment, Category, Payer
 from app.shared.schemas import FilterPage
 from app.shared.utils.string import to_snake_case
 
@@ -56,6 +56,7 @@ class PaymentRepository(BaseRepository[Payment]):
         page_filter: Annotated[FilterPage, Query()] | None = None,
     ):
         relations = {
+            "payer": Payer,
             "category": Category,
             "beneficiary": Beneficiary,
             "destination_institution": Institution,
@@ -98,6 +99,7 @@ class PaymentRepository(BaseRepository[Payment]):
             selectinload(Payment.user),
             selectinload(Payment.beneficiary),
             selectinload(Payment.category),
+            selectinload(Payment.payer),
             selectinload(Payment.source_institution),
             selectinload(Payment.destination_institution),
         )
@@ -115,6 +117,7 @@ class PaymentRepository(BaseRepository[Payment]):
             selectinload(Payment.user),
             selectinload(Payment.beneficiary),
             selectinload(Payment.category),
+            selectinload(Payment.payer),
             selectinload(Payment.source_institution),
             selectinload(Payment.destination_institution),
         )
@@ -130,6 +133,7 @@ class PaymentRepository(BaseRepository[Payment]):
             selectinload(Payment.user),
             selectinload(Payment.beneficiary),
             selectinload(Payment.category),
+            selectinload(Payment.payer),
             selectinload(Payment.source_institution),
             selectinload(Payment.destination_institution),
         )
@@ -148,6 +152,7 @@ class PaymentRepository(BaseRepository[Payment]):
             selectinload(Payment.user),
             selectinload(Payment.beneficiary),
             selectinload(Payment.category),
+            selectinload(Payment.payer),
             selectinload(Payment.receipt),
             selectinload(Payment.source_institution),
             selectinload(Payment.destination_institution),
@@ -171,6 +176,7 @@ class PaymentRepository(BaseRepository[Payment]):
                 selectinload(Payment.user),
                 selectinload(Payment.beneficiary),
                 selectinload(Payment.category),
+                selectinload(Payment.payer),
                 selectinload(Payment.source_institution),
                 selectinload(Payment.destination_institution),
             )
@@ -193,6 +199,8 @@ class PaymentRepository(BaseRepository[Payment]):
         start_date: date,
         end_date: date,
         institution: str | None = None,
+        payer_id: UUID | None = None,
+        category_id: UUID | None = None,
         beneficiary_id: UUID | None = None,
     ):
         query = query.where(
@@ -208,6 +216,12 @@ class PaymentRepository(BaseRepository[Payment]):
 
         if beneficiary_id:
             query = query.where(Payment.beneficiary_id == beneficiary_id)
+
+        if category_id:
+            query = query.where(Payment.category_id == category_id)
+
+        if payer_id:
+            query = query.where(Payment.payer_id == payer_id)
 
         return query
 
@@ -356,6 +370,86 @@ class PaymentRepository(BaseRepository[Payment]):
         return [
             {
                 "beneficiary_id": row.beneficiary_id,
+                "name": row.name,
+                "count": row.count,
+                "total": row.total,
+            }
+            for row in result
+        ]
+
+    async def dashboard_categories(
+        self,
+        user_id: UUID,
+        start_date: date,
+        end_date: date,
+        institution: str | None = None,
+        category_id: UUID | None = None,
+    ):
+        query = select(
+            Category.id.label("category_id"),
+            Category.name.label("name"),
+            func.count(Payment.id).label("count"),
+            func.coalesce(func.sum(Payment.amount), 0).label("total"),
+        ).join(Payment.category)
+
+        query = self._build_dashboard_filter(
+            query=query,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            institution=institution,
+            category_id=category_id,
+        )
+
+        query = query.group_by(Category.id, Category.name).order_by(
+            desc(func.sum(Payment.amount))
+        )
+
+        result = await self.session.execute(query)
+
+        return [
+            {
+                "category_id": row.category_id,
+                "name": row.name,
+                "count": row.count,
+                "total": row.total,
+            }
+            for row in result
+        ]
+
+    async def dashboard_payers(
+        self,
+        user_id: UUID,
+        start_date: date,
+        end_date: date,
+        institution: str | None = None,
+        payer_id: UUID | None = None,
+    ):
+        query = select(
+            Payer.id.label("payer_id"),
+            Payer.name.label("name"),
+            func.count(Payment.id).label("count"),
+            func.coalesce(func.sum(Payment.amount), 0).label("total"),
+        ).join(Payment.payer)
+
+        query = self._build_dashboard_filter(
+            query=query,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            institution=institution,
+            payer_id=payer_id,
+        )
+
+        query = query.group_by(Payer.id, Payer.name).order_by(
+            desc(func.sum(Payment.amount))
+        )
+
+        result = await self.session.execute(query)
+
+        return [
+            {
+                "payer_id": row.payer_id,
                 "name": row.name,
                 "count": row.count,
                 "total": row.total,

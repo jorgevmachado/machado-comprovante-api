@@ -31,6 +31,7 @@ def test_payment_builds_service() -> None:
 def test_get_payment_filter_builds_dynamic_filter() -> None:
     page_filter = payment_filter(
         page=1,
+        payer="John Doe",
         order="asc",
         limit=12,
         offset=10,
@@ -46,6 +47,7 @@ def test_get_payment_filter_builds_dynamic_filter() -> None:
     )
 
     assert page_filter.page == 1
+    assert page_filter.payer == "John Doe"
     assert page_filter.order == "asc"
     assert page_filter.limit == 12
     assert page_filter.offset == 10

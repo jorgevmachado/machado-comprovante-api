@@ -24,7 +24,7 @@ from app.domain.finance.payment.schema import (
     PaymentDashboardSummarySchema,
     PaymentDashboardMonthlySchema,
     PaymentDashboardInstitutionSchema,
-    PaymentDashboardBeneficiarySchema,
+    PaymentDashboardBeneficiarySchema, PaymentDashboardPayerSchema, PaymentDashboardCategorySchema,
 )
 
 from app.models import Payment, User
@@ -328,7 +328,32 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
             beneficiary_id=params.beneficiary_id,
         )
 
+        payers = await self.repository.dashboard_payers(
+            user_id=user.id,
+            start_date=params.start_date,
+            end_date=params.end_date,
+            institution=params.institution,
+            payer_id=params.payer_id,
+        )
+
+        categories = await self.repository.dashboard_categories(
+            user_id=user.id,
+            start_date=params.start_date,
+            end_date=params.end_date,
+            institution=params.institution,
+            category_id=params.category_id,
+        )
+
         return PaymentDashboardResponseSchema(
+            payers=[
+                PaymentDashboardPayerSchema(
+                    payer_id=item["payer_id"],
+                    name=item["name"],
+                    total=item["total"],
+                    count=item["count"],
+                )
+                for item in payers
+            ],
             period=PaymentDashboardPeriodSchema(
                 start_date=params.start_date,
                 end_date=params.end_date,
@@ -346,6 +371,15 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
                     count=item["count"],
                 )
                 for item in monthly
+            ],
+            categories=[
+                PaymentDashboardCategorySchema(
+                    category_id=item["category_id"],
+                    name=item["name"],
+                    total=item["total"],
+                    count=item["count"],
+                )
+                for item in categories
             ],
             institutions=[
                 PaymentDashboardInstitutionSchema(
