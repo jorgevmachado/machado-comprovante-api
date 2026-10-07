@@ -236,7 +236,10 @@ class PaymentRepository(BaseRepository[Payment]):
         query = select(
             func.count(Payment.id).label("count"),
             func.coalesce(func.sum(Payment.amount), 0).label("total"),
-            func.coalesce(func.avg(Payment.amount), 0).label("average"),
+            func.coalesce(
+                func.round(func.avg(Payment.amount), 2),
+                0,
+            ).label("average"),
             func.coalesce(func.max(Payment.amount), 0).label("highest"),
         )
 
