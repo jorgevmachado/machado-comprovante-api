@@ -19,10 +19,12 @@ class PaymentSchema(BaseModel):
     category: CategorySchema
     beneficiary: BeneficiarySchema
     payment_date: date
-    created_at: datetime
     source_institution: InstitutionSchema
     description: str | None = None
     destination_institution: InstitutionSchema | None = None
+    created_at: datetime
+    updated_at: datetime | None = None
+    deleted_at: datetime | None = None
 
 
 class PaymentSummaryCountSchema(BaseModel):
