@@ -821,6 +821,13 @@ class TestPaymentServiceUpdatePayment:
         service = PaymentService(repository)
 
         payment_id = uuid4()
+        original_updated_at = utcnow()
+        payment = SimpleNamespace(
+            id=payment_id,
+            amount=Decimal("100.00"),
+            payment_date=date(2026, 9, 15),
+            updated_at=original_updated_at,
+        )
 
         payload: dict[str, object] = {
             "amount": Decimal("150.00"),
@@ -828,7 +835,7 @@ class TestPaymentServiceUpdatePayment:
         }
 
         expected = SimpleNamespace(id=uuid4())
-
+        service.find_by = AsyncMock(return_value=payment)
         repository.save.return_value = expected
 
         result = await service.update_payment(
@@ -839,6 +846,48 @@ class TestPaymentServiceUpdatePayment:
 
         assert result is expected
         repository.save.assert_awaited_once()
+        assert payment.updated_at is not original_updated_at
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_update_payment_keeps_updated_at_when_values_are_unchanged():
+        repository = AsyncMock()
+        service = PaymentService(repository)
+        updated_at = utcnow()
+        payment = SimpleNamespace(
+            amount=Decimal("150.00"),
+            payment_date=date(2026, 9, 15),
+            updated_at=updated_at,
+        )
+        service.find_by = AsyncMock(return_value=payment)
+
+        await service.update_payment(
+            payment_id=str(uuid4()),
+            payload={
+                "amount": Decimal("150.00"),
+                "payment_date": date(2026, 9, 15),
+            },
+            user=SimpleNamespace(id=uuid4(), username="jorge"),
+        )
+
+        assert payment.updated_at is updated_at
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_update_payment_ignores_updated_at_from_payload():
+        repository = AsyncMock()
+        service = PaymentService(repository)
+        updated_at = utcnow()
+        payment = SimpleNamespace(updated_at=updated_at)
+        service.find_by = AsyncMock(return_value=payment)
+
+        await service.update_payment(
+            payment_id=str(uuid4()),
+            payload={"updated_at": utcnow()},
+            user=SimpleNamespace(id=uuid4(), username="jorge"),
+        )
+
+        assert payment.updated_at is updated_at
 
     @staticmethod
     @pytest.mark.asyncio

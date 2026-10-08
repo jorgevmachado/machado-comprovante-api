@@ -27,7 +27,7 @@ from app.domain.finance.payment.schema import (
     PaymentDashboardBeneficiarySchema, PaymentDashboardPayerSchema, PaymentDashboardCategorySchema,
 )
 
-from app.models import Payment, User
+from app.models import Payment, User, utcnow
 from app.shared.schemas import FilterPage
 
 logger = logging.getLogger(__name__)
@@ -271,8 +271,15 @@ class PaymentService(BaseService[PaymentRepository, Payment]):
                 raise HTTPException(
                     status_code=HTTPStatus.NOT_FOUND, detail="Payment not found"
                 )
+            has_changes = False
             for key, value in payload.items():
+                if key == "updated_at":
+                    continue
+                if getattr(payment, key) != value:
+                    has_changes = True
                 setattr(payment, key, value)
+            if has_changes:
+                payment.updated_at = utcnow()
             return await self.repository.save(entity=payment)
         except Exception as exception:
             handle_service_exception(
