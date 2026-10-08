@@ -11,3 +11,7 @@ class BeneficiarySchema(BaseModel):
     created_at: datetime
     updated_at: datetime | None = None
     deleted_at: datetime | None = None
+
+class BeneficiaryPersistSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    name: str

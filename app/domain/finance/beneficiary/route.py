@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_session
 from app.core.pagination import CustomLimitOffsetPage
 from app.core.security import get_current_user
-from app.domain.finance.beneficiary.schema import BeneficiarySchema
+from app.domain.finance.beneficiary.schema import BeneficiarySchema, BeneficiaryPersistSchema
 from app.domain.finance.beneficiary.service import BeneficiaryService
 from app.models import User
 from app.shared.schemas import FilterPage
@@ -55,3 +55,19 @@ async def list_all(
     page_filter: Annotated[FilterPage, Depends(beneficiary_filter)],
 ):
     return await service.list(page_filter=page_filter, user=current_user)
+
+
+@router.put(
+    "/{beneficiary_id}",
+    response_model=BeneficiarySchema,
+    status_code=HTTPStatus.OK,
+)
+async def update(
+    service: Service,
+    beneficiary_id: str,
+    current_user: CurrentUser,
+    payload: BeneficiaryPersistSchema,
+):
+    return await service.update(
+        param=beneficiary_id, update_schema=payload, user_request=current_user.username
+    )

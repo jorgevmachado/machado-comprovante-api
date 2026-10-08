@@ -2,15 +2,17 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
+from uuid import uuid4
 
 import pytest
 
+from app.domain.finance.institution.schema import InstitutionPersistSchema
 from app.shared.schemas import FilterPage
 
 from app.domain.finance.institution.route import (
     list_all,
     institution_filter,
-    institution_service,
+    institution_service, update,
 )
 from app.domain.finance.institution.service import InstitutionService
 
@@ -57,3 +59,28 @@ async def test_finance_institution_route_list_all_paginate_and_filter() -> None:
         == FilterPage.build(page_filter=page_filter).model_dump()
     )
     assert service.list.await_args.kwargs["user"] == current_user
+
+
+@pytest.mark.asyncio
+async def test_finance_institution_route_update() -> None:
+    service = AsyncMock()
+    institution_id = uuid4()
+    expected = SimpleNamespace(id=institution_id, name="New Institution")
+    service.update.return_value = expected
+    current_user = SimpleNamespace(id="user-id", username="Finance User")
+
+    payload = InstitutionPersistSchema(name="New Institution")
+
+    result = await update(
+        service=service,
+        payload=payload,
+        institution_id=str(institution_id),
+        current_user=current_user,
+    )
+
+    assert result is expected
+    service.update.assert_awaited_once_with(
+        param=str(institution_id),
+        update_schema=payload,
+        user_request=current_user.username,
+    )
